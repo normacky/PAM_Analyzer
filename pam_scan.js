@@ -39,7 +39,11 @@ const CFG = {
   adjustment:  process.env.PAM_ADJ      || 'split',
   exchanges:  (process.env.PAM_EXCH || 'NYSE,NASDAQ,ARCA,AMEX,BATS').split(','),
   limit:       parseInt(process.env.PAM_LIMIT    || '0', 10),   // 0 = whole market
+  fmpBatch:    parseInt(process.env.FMP_BATCH    || '50', 10),  // symbols per FMP profile request
+  fmpGapMs:    parseInt(process.env.FMP_GAP_MS   || '400', 10), // pause between FMP requests
 };
+
+const FMP_KEY = process.env.FMP_KEY;   // free key from financialmodelingprep.com — adds market cap + industry
 
 const KEY    = process.env.ALPACA_KEY;
 const SECRET = process.env.ALPACA_SECRET;
@@ -119,12 +123,38 @@ async function alpacaGet(url, tries = 0) {
 async function fetchUniverse(cfg) {
   const assets = await alpacaGet(TRADE_API + '/v2/assets?status=active&asset_class=us_equity');
   const ex = new Set(cfg.exchanges);
-  let syms = assets
-    .filter(a => a.tradable && a.status === 'active' && ex.has(a.exchange) && /^[A-Z]{1,5}$/.test(a.symbol))
-    .map(a => a.symbol);
-  syms.sort();
-  if (cfg.limit) syms = syms.slice(0, cfg.limit);
-  return syms;
+  let list = assets.filter(a => a.tradable && a.status === 'active' && ex.has(a.exchange) && /^[A-Z]{1,5}$/.test(a.symbol));
+  list.sort((a, b) => a.symbol < b.symbol ? -1 : 1);
+  if (cfg.limit) list = list.slice(0, cfg.limit);
+  const names = {};
+  for (const a of list) names[a.symbol] = a.name || '';
+  return { syms: list.map(a => a.symbol), names };
+}
+
+/* ---- 4b. market cap + sector + industry for the fired tickers (FMP, optional) ---- */
+async function addFundamentals(meta, cfg) {
+  const tickers = Object.keys(meta);
+  if (!FMP_KEY) { console.error('No FMP_KEY set — skipping market cap / industry (rows still carry name + price).'); return; }
+  if (!tickers.length) return;
+  console.error(`Looking up market cap + industry for ${tickers.length} counters via FMP…`);
+  for (let i = 0; i < tickers.length; i += cfg.fmpBatch) {
+    const batch = tickers.slice(i, i + cfg.fmpBatch);
+    try {
+      const r = await fetch('https://financialmodelingprep.com/api/v3/profile/' + batch.join(',') + '?apikey=' + FMP_KEY);
+      if (!r.ok) { console.error('  FMP ' + r.status + ' on a batch — skipping'); await sleep(cfg.fmpGapMs); continue; }
+      const arr = await r.json();
+      if (Array.isArray(arr)) for (const p of arr) {
+        const t = p.symbol; if (!t || !meta[t]) continue;
+        meta[t].mc = (p.mktCap != null ? p.mktCap : (p.marketCap != null ? p.marketCap : null)); // raw USD
+        meta[t].sector = p.sector || '';
+        meta[t].industry = p.industry || '';
+        if (!meta[t].name && p.companyName) meta[t].name = p.companyName;
+      }
+    } catch (e) { console.error('  FMP batch error: ' + e.message); }
+    await sleep(cfg.fmpGapMs);
+    process.stderr.write(`  fundamentals ${Math.min(i + cfg.fmpBatch, tickers.length)}/${tickers.length}\r`);
+  }
+  process.stderr.write('\n');
 }
 
 async function fetchBars(symbols, cfg) {
@@ -162,12 +192,13 @@ async function main() {
   if (!KEY || !SECRET) { console.error('Set ALPACA_KEY and ALPACA_SECRET in the environment first.'); process.exit(1); }
   const eng = loadEngine(CFG.htmlPath);
   console.error('Engine loaded from ' + CFG.htmlPath + '. Fetching universe…');
-  const syms = await fetchUniverse(CFG);
+  const { syms, names } = await fetchUniverse(CFG);
   console.error(`Universe: ${syms.length} symbols. Pulling ~${CFG.lookback} daily bars each…`);
   const barsBySym = await fetchBars(syms, CFG);
 
   let scanned = 0, asof = '';
   const rows = [];
+  const meta = {};   // ticker -> { name, px, mc, sector, industry } — only for tickers that fired
   for (const sym of syms) {
     const arr = barsBySym[sym];
     if (!arr || arr.length < 60) continue;
@@ -175,8 +206,14 @@ async function main() {
     scanned++;
     const lastDate = series.time[series.time.length - 1];
     if (lastDate > asof) asof = lastDate;
-    rows.push(...detectFresh(sym, series, eng, CFG));
+    const fired = detectFresh(sym, series, eng, CFG);
+    if (fired.length) {
+      rows.push(...fired);
+      meta[sym] = { name: names[sym] || '', px: +series.close[series.close.length - 1] };
+    }
   }
+
+  await addFundamentals(meta, CFG);   // adds mc / sector / industry to each fired ticker (no-op without FMP_KEY)
 
   const counts = {};
   for (const r of rows) counts[r.trig] = (counts[r.trig] || 0) + 1;
@@ -185,11 +222,13 @@ async function main() {
   const result = {
     asof, timeframe: '1day', agg_mult: CFG.aggMult, fresh_within: CFG.freshWithin,
     generated_at: new Date().toISOString(), provider: 'alpaca', feed: CFG.feed, adjustment: CFG.adjustment,
-    universe: syms.length, scanned, trigger_types: TRIGGER_TYPES, counts, rows,
+    fundamentals: FMP_KEY ? 'fmp' : 'none',
+    universe: syms.length, scanned, fired: Object.keys(meta).length,
+    trigger_types: TRIGGER_TYPES, counts, rows, meta,
   };
   fs.writeFileSync(CFG.out, JSON.stringify(result, null, 1));
-  console.error(`Done — ${rows.length} fresh triggers across ${scanned} scanned tickers (asof ${asof}). Wrote ${CFG.out}`);
+  console.error(`Done — ${rows.length} fresh triggers across ${Object.keys(meta).length} counters (of ${scanned} scanned, asof ${asof}). Wrote ${CFG.out}`);
 }
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
-module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars };
+module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals };
