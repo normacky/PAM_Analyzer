@@ -151,7 +151,26 @@
   .scanchip{cursor:pointer}
   .scanchip .n{opacity:.55;margin-left:5px;font-size:10.5px}
   .scanchip.sel{background:var(--onbg);border-color:var(--txt);color:var(--txt)}
-  .scanrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--hair)}
+  .scanrow{padding:7px 8px;border-bottom:1px solid var(--hair);cursor:pointer;border-radius:6px}
+  .scanrow:hover{background:var(--panel-in)}
+  .scanrow .l1,.scanrow .l2{display:flex;align-items:center;gap:8px}
+  .scanrow .l2{margin-top:3px}
+  .scanrow .sym{font-family:var(--mono);font-size:13px;font-weight:600;flex:none}
+  .scanrow .nm{font-size:12px;color:var(--mut);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .scanrow .px{font-family:var(--mono);font-size:12px;color:var(--txt);flex:none}
+  .scanrow .sub{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .scanrow .tm{font-family:var(--mono);font-size:10.5px;flex:none}
+  .scannum{font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:5px 7px;width:56px}
+  .scansel{font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:5px 7px;max-width:190px}
+  .sortbtn{font-family:var(--mono);font-size:11px;background:var(--panel-in);color:var(--mut);border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer}
+  .sortbtn:hover{color:var(--txt)}
+  .sortbtn.on{background:var(--onbg);color:var(--txt);border-color:var(--txt)}
+  .sortbtn .ar{margin-left:4px;opacity:.7;font-size:9px}
+  .drng{position:relative;display:inline-block;width:158px;height:22px;flex:none;touch-action:none;-webkit-user-select:none;user-select:none}
+  .drng-track{position:absolute;top:9px;left:0;right:0;height:4px;border-radius:2px;background:var(--line)}
+  .drng-fill{position:absolute;top:9px;height:4px;border-radius:2px;background:var(--long)}
+  .drng-h{position:absolute;top:3px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--txt);border:2px solid var(--panel);cursor:grab;touch-action:none}
+  .drng-h:active{cursor:grabbing}
   .opn{color:var(--force);font-size:9.5px;letter-spacing:0;font-weight:400}
   .eff tr.eff-grp{cursor:pointer}
   .eff tr.eff-grp:hover td{background:rgba(126,143,176,0.06)}
@@ -383,6 +402,37 @@
       </div>
     </div>
     <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div id="scanFilters" style="display:none;margin-top:12px;flex-wrap:wrap;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)">
+      <span id="fCapWrap" style="display:inline-flex;align-items:center;gap:5px">
+        <span class="ctl-label">Cap&nbsp;$B</span>
+        <input id="fCapMin" class="scannum" type="number" min="0" step="0.1" placeholder="min">
+        <span style="color:var(--faint)">&ndash;</span>
+        <input id="fCapMax" class="scannum" type="number" min="0" step="0.1" placeholder="max">
+      </span>
+      <span id="fPxWrap" style="display:inline-flex;align-items:center;gap:8px">
+        <span class="ctl-label">Price&nbsp;$</span>
+        <span id="pxSlider" class="drng">
+          <span class="drng-track"></span>
+          <span class="drng-fill" id="pxFill"></span>
+          <span class="drng-h" id="pxLo" tabindex="0" title="min price"></span>
+          <span class="drng-h" id="pxHi" tabindex="0" title="max price"></span>
+        </span>
+        <span id="pxLabel" style="font-family:var(--mono);font-size:11px;color:var(--mut);min-width:104px">$0 &ndash; $0</span>
+      </span>
+      <span id="fIndWrap" style="display:inline-flex;align-items:center;gap:5px">
+        <span class="ctl-label">Industry</span>
+        <select id="fInd" class="scansel"><option value="">All industries</option></select>
+      </span>
+      <button class="btn" id="fClear" style="padding:4px 10px;font-size:11px">Clear</button>
+    </div>
+    <div id="scanSort" style="display:none;margin-top:10px;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="ctl-label">Sort</span>
+      <button class="sortbtn" data-by="fresh">Fresh</button>
+      <button class="sortbtn" data-by="ticker">Ticker</button>
+      <button class="sortbtn" data-by="name" id="sortName">Name</button>
+      <button class="sortbtn" data-by="cap" id="sortCap">Mkt&nbsp;cap</button>
+      <button class="sortbtn" data-by="industry" id="sortInd">Industry</button>
+    </div>
     <div id="scanBody" style="margin-top:12px"></div>
     <div class="caveat" id="scanNote"></div>
   </div>
@@ -1393,7 +1443,8 @@ function groupInit(){
   GROUP.timer=setInterval(()=>{if(GROUP.token&&!document.hidden)groupPull();},45000);  /* auto-refresh the feed */
 }
 /* ---- Scan by trigger — reads scan_results.json (the whole-market precompute) ---- */
-const SCAN = { data:null, sel:null };
+const SCAN = { data:null, sel:null, meta:{}, filt:{ capMin:null, capMax:null, pxMin:null, pxMax:null, ind:'' }, sort:{ by:'fresh', dir:1 } };
+const PXSLIDER = { min:0, max:100, lo:0, hi:100 };
 const TRIG_DIR = {'Bull-FS':'long','UC1':'long','UC2':'long','DR1':'long','DR2':'long','S1':'long','S2':'long',
   'Bear-FS':'short','DC1':'short','DC2':'short','UR1':'short','UR2':'short','S1s':'short','S2s':'short'};
 function scanRenderChips(){
@@ -1411,34 +1462,145 @@ function scanRenderChips(){
     c.appendChild(b);
   });
 }
+function scanRowPasses(r){
+  const f=SCAN.filt, m=SCAN.meta[r.t]||{};
+  if(f.capMin!=null||f.capMax!=null){ const b=(m.mc!=null)?m.mc/1e9:null; if(b==null)return false; if(f.capMin!=null&&b<f.capMin)return false; if(f.capMax!=null&&b>f.capMax)return false; }
+  if(f.pxMin!=null||f.pxMax!=null){ const p=(m.px!=null)?+m.px:null; if(p==null)return false; if(f.pxMin!=null&&p<f.pxMin)return false; if(f.pxMax!=null&&p>f.pxMax)return false; }
+  if(f.ind && (m.industry||'')!==f.ind) return false;
+  return true;
+}
 function scanRenderList(){
   const body=$('#scanBody'); if(!body)return; body.innerHTML='';
   const d=SCAN.data; if(!d||!SCAN.sel)return;
-  const rows=(d.rows||[]).filter(r=>r.trig===SCAN.sel).sort((a,b)=>(a.ago-b.ago)||(a.t<b.t?-1:a.t>b.t?1:0));
+  const all=(d.rows||[]).filter(r=>r.trig===SCAN.sel);
+  const rows=all.filter(scanRowPasses).sort(scanCmp);
   const head=document.createElement('div');
   head.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:8px';
-  head.textContent=rows.length+' counter'+(rows.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart it';
+  head.textContent=(rows.length===all.length)
+    ? all.length+' counter'+(all.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart it'
+    : rows.length+' of '+all.length+' '+SCAN.sel+' counters match \u2014 tap any to chart it';
   body.appendChild(head);
+  if(!rows.length){ const e=document.createElement('div'); e.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint)'; e.textContent=all.length?'none match the current filters':'no counters'; body.appendChild(e); return; }
   rows.forEach(r=>{
-    const row=document.createElement('div'); row.className='scanrow';
-    const a=document.createElement('button'); a.textContent=r.t; a.title='Load '+r.t;
-    a.style.cssText='font-family:var(--mono);font-size:13px;font-weight:600;color:var(--'+(r.dir==='long'?'long':'short')+');background:none;border:none;cursor:pointer;padding:0;flex:none';
-    a.onclick=()=>{ $('#tkInput').value=r.t; fetchSymbol(r.t); };
-    const meta=document.createElement('span');
-    const bits=[ r.ago===0?'latest bar':(r.ago+' bar'+(r.ago===1?'':'s')+' back') ];
-    if(r.sys) bits.push(r.sys===2?'55-day':'20-day');
-    if(r.smelly) bits.push('already past entry');
-    meta.textContent=bits.join('  \u00b7  ');
-    meta.style.cssText='font-family:var(--mono);font-size:11px;color:var(--'+(r.smelly?'force':'mut')+');flex:1;text-align:right;min-width:0';
-    row.appendChild(a); row.appendChild(meta); body.appendChild(row);
+    const m=SCAN.meta[r.t]||{};
+    const row=document.createElement('div'); row.className='scanrow'; row.title='Load '+r.t;
+    row.onclick=()=>{ $('#tkInput').value=r.t; fetchSymbol(r.t); };
+    const l1=document.createElement('div'); l1.className='l1';
+    const sym=document.createElement('span'); sym.className='sym'; sym.textContent=r.t; sym.style.color='var(--'+(r.dir==='long'?'long':'short')+')';
+    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=m.name||'';
+    const px=document.createElement('span'); px.className='px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'';
+    l1.appendChild(sym); l1.appendChild(nm); l1.appendChild(px);
+    const l2=document.createElement('div'); l2.className='l2';
+    const sub=document.createElement('span'); sub.className='sub';
+    const sb=[]; if(m.mc!=null)sb.push(scanFmtCap(m.mc)); if(m.industry)sb.push(m.industry);
+    sub.textContent=sb.join('  \u00b7  ');
+    const tm=document.createElement('span'); tm.className='tm';
+    const tb=[ r.ago===0?'latest bar':(r.ago+' bar'+(r.ago===1?'':'s')+' back') ];
+    if(r.sys)tb.push(r.sys===2?'55-day':'20-day'); if(r.smelly)tb.push('past entry');
+    tm.textContent=tb.join(' \u00b7 '); tm.style.color='var(--'+(r.smelly?'force':'mut')+')';
+    l2.appendChild(sub); l2.appendChild(tm);
+    row.appendChild(l1); row.appendChild(l2); body.appendChild(row);
   });
 }
+function scanBuildFilters(){
+  const box=$('#scanFilters');
+  const metas=Object.values(SCAN.meta||{});
+  const hasCap=metas.some(m=>m&&m.mc!=null);
+  const hasPx =metas.some(m=>m&&m.px!=null);
+  const hasName=metas.some(m=>m&&m.name);
+  const inds=[...new Set(metas.map(m=>m&&m.industry).filter(Boolean))].sort();
+  const cw=$('#fCapWrap'), pw=$('#fPxWrap'), iw=$('#fIndWrap');
+  if(cw)cw.style.display=hasCap?'inline-flex':'none';
+  if(pw)pw.style.display=hasPx?'inline-flex':'none';
+  if(iw)iw.style.display=inds.length?'inline-flex':'none';
+  const sel=$('#fInd'); if(sel)sel.innerHTML='<option value="">All industries</option>'+inds.map(i=>'<option>'+i.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>').join('');
+  if(hasPx)pxSetBounds();
+  if(box)box.style.display=(hasCap||hasPx||inds.length)?'flex':'none';
+  const sr=$('#scanSort'), sn=$('#sortName'), sc=$('#sortCap'), si=$('#sortInd');
+  if(sn)sn.style.display=hasName?'':'none';
+  if(sc)sc.style.display=hasCap?'':'none';
+  if(si)si.style.display=inds.length?'':'none';
+  if((SCAN.sort.by==='cap'&&!hasCap)||(SCAN.sort.by==='industry'&&!inds.length)||(SCAN.sort.by==='name'&&!hasName)) SCAN.sort={by:'fresh',dir:1};
+  if(sr)sr.style.display=(SCAN.data&&(SCAN.data.rows||[]).length)?'flex':'none';
+  scanRenderSort();
+}
+function scanResetFilters(){
+  SCAN.filt={ capMin:null, capMax:null, pxMin:null, pxMax:null, ind:'' };
+  ['fCapMin','fCapMax'].forEach(id=>{ const e=$('#'+id); if(e)e.value=''; });
+  const s=$('#fInd'); if(s)s.value='';
+  pxSetBounds();
+}
+function scanReadFilters(){
+  const num=id=>{ const e=$('#'+id), v=(e&&e.value!=='')?parseFloat(e.value):null; return (v!=null&&!isNaN(v))?v:null; };
+  const s=$('#fInd');
+  SCAN.filt.capMin=num('fCapMin'); SCAN.filt.capMax=num('fCapMax'); SCAN.filt.ind=(s&&s.value)||'';
+  scanRenderList();
+}
+function scanFmtCap(mc){ return '$'+(mc/1e9).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' B'; }
+function scanCmp(a,b){
+  const by=SCAN.sort.by, dir=SCAN.sort.dir, ma=SCAN.meta[a.t]||{}, mb=SCAN.meta[b.t]||{};
+  let c=0;
+  if(by==='ticker'){ c=(a.t<b.t?-1:a.t>b.t?1:0); }
+  else if(by==='name'){ const x=(ma.name||a.t).toLowerCase(), y=(mb.name||b.t).toLowerCase(); c=(x<y?-1:x>y?1:0); }
+  else if(by==='cap'){ const x=(ma.mc!=null?ma.mc:-Infinity), y=(mb.mc!=null?mb.mc:-Infinity); c=(x<y?-1:x>y?1:0); }
+  else if(by==='industry'){ const x=(ma.industry||'\uffff'), y=(mb.industry||'\uffff'); c=(x<y?-1:x>y?1:0); }
+  else { c=(a.ago-b.ago); }
+  if(c===0) c=(a.t<b.t?-1:a.t>b.t?1:0);
+  return c*dir;
+}
+function scanSetSort(by){
+  if(SCAN.sort.by===by){ SCAN.sort.dir*=-1; }
+  else { SCAN.sort={ by, dir:(by==='cap'?-1:1) }; }
+  scanRenderSort(); scanRenderList();
+}
+function scanRenderSort(){
+  document.querySelectorAll('#scanSort .sortbtn').forEach(b=>{
+    const on=b.getAttribute('data-by')===SCAN.sort.by;
+    let base=b.getAttribute('data-label');
+    if(base==null){ base=b.textContent.replace(/\s*[\u2191\u2193]\s*$/,''); b.setAttribute('data-label',base); }
+    b.classList.toggle('on',on);
+    b.innerHTML=base+(on?' <span class="ar">'+(SCAN.sort.dir>0?'\u2191':'\u2193')+'</span>':'');
+  });
+}
+/* ---- price drag slider ---- */
+function pxPct(v){ const r=PXSLIDER.max-PXSLIDER.min; return r>0?((v-PXSLIDER.min)/r*100):0; }
+function pxRender(){
+  const lo=$('#pxLo'), hi=$('#pxHi'), fill=$('#pxFill'), lbl=$('#pxLabel'); if(!lo)return;
+  const pl=pxPct(PXSLIDER.lo), ph=pxPct(PXSLIDER.hi);
+  lo.style.left=pl+'%'; hi.style.left=ph+'%';
+  if(fill){ fill.style.left=pl+'%'; fill.style.width=Math.max(0,ph-pl)+'%'; }
+  if(lbl){ const f=v=>'$'+Math.round(v).toLocaleString('en-US'); lbl.textContent=f(PXSLIDER.lo)+' \u2013 '+f(PXSLIDER.hi)+(PXSLIDER.hi>=PXSLIDER.max?'+':''); }
+}
+function pxSetBounds(){
+  const ps=Object.values(SCAN.meta||{}).map(m=>m&&m.px).filter(v=>v!=null&&!isNaN(v));
+  let mx=100; if(ps.length){ mx=Math.max.apply(null,ps); mx=Math.max(10,Math.ceil(mx/10)*10); }
+  PXSLIDER.min=0; PXSLIDER.max=mx; PXSLIDER.lo=0; PXSLIDER.hi=mx; pxRender();
+}
+function pxApply(){
+  SCAN.filt.pxMin=(PXSLIDER.lo>PXSLIDER.min)?PXSLIDER.lo:null;
+  SCAN.filt.pxMax=(PXSLIDER.hi<PXSLIDER.max)?PXSLIDER.hi:null;
+  scanRenderList();
+}
+function pxValAt(clientX){
+  const s=$('#pxSlider'); if(!s||!s.getBoundingClientRect)return PXSLIDER.min;
+  const rc=s.getBoundingClientRect(); let p=(clientX-rc.left)/(rc.width||1); p=Math.max(0,Math.min(1,p));
+  return PXSLIDER.min + p*(PXSLIDER.max-PXSLIDER.min);
+}
+function pxDrag(which,startEv){
+  if(startEv&&startEv.preventDefault)startEv.preventDefault();
+  const move=e=>{ const cx=(e.touches&&e.touches[0])?e.touches[0].clientX:e.clientX; const v=pxValAt(cx);
+    if(which==='lo'){ PXSLIDER.lo=Math.min(v,PXSLIDER.hi); } else { PXSLIDER.hi=Math.max(v,PXSLIDER.lo); }
+    pxRender(); pxApply(); };
+  const up=()=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); };
+  document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
+}
 function scanApply(d){
-  SCAN.data=d; SCAN.sel=null;
+  SCAN.data=d; SCAN.sel=null; SCAN.meta=(d&&d.meta)||{};
+  scanResetFilters(); scanBuildFilters();
   const a=$('#scanAsof');
   if(a)a.textContent=d?(' \u00b7 '+((d.rows||[]).length)+' triggers across '+(d.scanned||'?')+' counters \u00b7 asof '+(d.asof||'?')):'';
   const note=$('#scanNote');
-  if(note)note.textContent=d?('Daily bars, last '+(d.fresh_within||2)+' candles \u00b7 '+(d.provider||'')+' '+(d.feed||'')+' \u00b7 generated '+(d.generated_at?new Date(d.generated_at).toLocaleString():'?')+'. Whole US market, ETFs and leveraged products included \u2014 analytical only, not financial advice.'):'';
+  if(note)note.textContent=d?('Daily bars, last '+(d.fresh_within||2)+' candles \u00b7 '+(d.provider||'')+' '+(d.feed||'')+(d.fundamentals==='fmp'?' \u00b7 fundamentals: FMP':'')+' \u00b7 generated '+(d.generated_at?new Date(d.generated_at).toLocaleString():'?')+'. Whole US market, ETFs and leveraged products included \u2014 analytical only, not financial advice.'):'';
   scanRenderChips(); scanRenderList();
 }
 async function scanLoadUrl(silent){
@@ -1459,6 +1621,13 @@ function scanInit(){
   const lb=$('#scanLoad'); if(lb)lb.onclick=()=>scanLoadUrl(false);
   const fb=$('#scanFileBtn'), fi=$('#scanFile');
   if(fb&&fi){ fb.onclick=()=>fi.click(); fi.onchange=()=>{ if(fi.files&&fi.files[0])scanLoadFile(fi.files[0]); fi.value=''; }; }
+  ['fCapMin','fCapMax'].forEach(id=>{ const e=$('#'+id); if(e)e.addEventListener('input',scanReadFilters); });
+  const si=$('#fInd'); if(si)si.addEventListener('change',scanReadFilters);
+  const fc=$('#fClear'); if(fc)fc.onclick=()=>{ scanResetFilters(); scanRenderList(); };
+  document.querySelectorAll('#scanSort .sortbtn').forEach(b=>{ b.onclick=()=>scanSetSort(b.getAttribute('data-by')); });
+  const plo=$('#pxLo'), phi=$('#pxHi');
+  if(plo)plo.addEventListener('pointerdown',e=>pxDrag('lo',e));
+  if(phi)phi.addEventListener('pointerdown',e=>pxDrag('hi',e));
   try{ const u=localStorage.getItem('pam_scan_url'); if(u&&$('#scanUrl')){ $('#scanUrl').value=u; scanLoadUrl(true); } }catch(e){}
   scanRenderChips();
 }
