@@ -26,6 +26,7 @@ jobs:
         env:
           ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
           ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
+          FMP_KEY: ${{ secrets.FMP_KEY }}
           PAM_HTML: pam_analyzer.html
           PAM_LIMIT: '0'         # 0 = the whole market
         run: node pam_scan.js
