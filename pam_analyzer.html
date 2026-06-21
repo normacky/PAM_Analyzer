@@ -148,8 +148,8 @@
   .effword{font-size:11px;letter-spacing:.04em}
   .effword.eff-robust{color:#5fb89e}.effword.eff-green{color:#5fd0b0}.effword.eff-bad{color:var(--short)}
   .effword.eff-thin{color:var(--force)}.effword.eff-none{color:var(--faint)}
-  .scanchip{cursor:pointer}
-  .scanchip .n{opacity:.55;margin-left:5px;font-size:10.5px}
+  .scanchip{cursor:pointer;padding:2px 7px;border-radius:7px;line-height:1.3}
+  .scanchip .n{opacity:.5;margin-left:4px;font-size:10px}
   .scanchip.sel{background:var(--onbg);border-color:var(--txt);color:var(--txt)}
   .scanrow{padding:7px 8px;border-bottom:1px solid var(--hair);cursor:pointer;border-radius:6px}
   .scanrow:hover{background:var(--panel-in)}
@@ -225,6 +225,29 @@
     .eff{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;font-size:11.5px}
     .eff th,.eff td{padding-left:7px;padding-right:7px}
     .eff-cnt{display:none}
+  }
+
+  /* ---- chart + scan side-by-side workspace ---- */
+  .workrow{margin-top:18px}
+  #scanBody::-webkit-scrollbar,.sidescroll::-webkit-scrollbar{width:9px}
+  #scanBody::-webkit-scrollbar-thumb,.sidescroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;border:2px solid var(--panel)}
+  #scanBody::-webkit-scrollbar-track,.sidescroll::-webkit-scrollbar-track{background:transparent}
+  @media(min-width:981px){
+    .workrow{display:flex;gap:18px;align-items:flex-start}
+    .workrow .chartcard{flex:1 1 0;min-width:0;position:sticky;top:14px}
+    .workrow #scanCard{flex:0 0 384px;width:384px;margin-top:0;max-height:calc(100vh - 28px);
+      display:flex;flex-direction:column;position:sticky;top:14px}
+    .workrow #scanCard h2{font-size:12px}
+    .workrow #scanChips{margin-top:12px}
+    #scanBody{flex:1 1 auto;min-height:120px;overflow-y:auto;overflow-x:hidden;
+      scrollbar-width:thin;scrollbar-color:var(--line) transparent;padding-right:4px}
+  }
+  @media(max-width:980px){
+    .workrow .chartcard{position:sticky;top:0;z-index:30;background:var(--panel);
+      border-radius:0 0 14px 14px;box-shadow:0 10px 22px rgba(0,0,0,.34)}
+    [data-theme="light"] .workrow .chartcard{box-shadow:0 10px 22px rgba(60,52,40,.16)}
+    .workrow .chartcard .legend{display:none}
+    .workrow #scanCard{margin-top:14px}
   }
 </style>
 
@@ -367,6 +390,7 @@
     </div>
   </div>
 
+  <div class="workrow">
   <div class="chartcard">
     <canvas id="chart"></canvas>
     <div class="tip" id="tip"></div>
@@ -388,7 +412,7 @@
     </div>
   </div>
 
-  <div class="card" id="scanCard" style="margin-top:18px">
+  <div class="card" id="scanCard">
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div>
         <h2 style="margin:0">Scan by trigger <span id="scanAsof" style="color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0"></span></h2>
@@ -401,7 +425,11 @@
         <input id="scanFile" type="file" accept="application/json,.json" style="display:none">
       </div>
     </div>
-    <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
+    <button class="btn drawer-btn" id="scanTrigToggle" style="margin-top:12px;width:100%;display:none;align-items:center;gap:8px;justify-content:flex-start;text-align:left">
+      <span id="scanTrigLabel" style="flex:1;min-width:0;text-align:left;color:var(--mut)">Pick a trigger…</span>
+      <span id="scanTrigCaret" style="color:var(--faint)">▾</span>
+    </button>
+    <div id="scanChips" style="margin-top:9px;display:flex;gap:5px;flex-wrap:wrap"></div>
     <div id="scanFilters" style="display:none;margin-top:12px;flex-wrap:wrap;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)">
       <span id="fCapWrap" style="display:inline-flex;align-items:center;gap:5px">
         <span class="ctl-label">Cap&nbsp;$B</span>
@@ -435,6 +463,7 @@
     </div>
     <div id="scanBody" style="margin-top:12px"></div>
     <div class="caveat" id="scanNote"></div>
+  </div>
   </div>
 
   <div class="card" id="effCard" style="margin-top:18px">
@@ -937,9 +966,10 @@ function drawCore(){
   {const sb=$('#scroll'); if(sb){sb.min=0;sb.max=Math.max(0,fullN-span);sb.value=start;sb.disabled=(fullN<=span);}
    const rl=$('#rangeLbl'); if(rl&&n)rl.textContent=view[0].date+'  →  '+view[n-1].date+'   ('+n+(S.tf==='W'?' wk':S.tf==='2'?' ×2d':' d')+')';}
   // ----- vertical layout: price panel + (ribbon strip) + indicator panels + date axis -----
-  const inds=[{key:'stoch',label:'Stoch %K/%D · 10, SMA 10'},{key:'rsi',label:'RSI 14 · Wilder'},
+  let inds=[{key:'stoch',label:'Stoch %K/%D · 10, SMA 10'},{key:'rsi',label:'RSI 14 · Wilder'},
               {key:'macd',label:'MACD 12·26·9'},{key:'atr',label:'ATR 14 · Wilder'}].filter(p=>S.ind[p.key]);
-  const priceH=Math.max(300,440-inds.length*18), panelH=84, panelGap=12, axisH=22;
+  const narrowCV=(window.innerWidth||1200)<981; if(narrowCV)inds=[];  /* phones: pinned chart shows price-only so it stays compact */
+  const priceH=narrowCV?300:Math.max(300,440-inds.length*18), panelH=84, panelGap=12, axisH=22;
   const ribH=(S.layers.turtle||S.layers.reverse)?16:0;
   const priceTop=padT, priceBot=priceTop+priceH; let cur=priceBot+ribH;
   inds.forEach(p=>{p.top=cur+panelGap;p.bot=p.top+panelH;cur=p.bot;});
@@ -1458,9 +1488,29 @@ function scanRenderChips(){
     const b=document.createElement('button');
     b.className='chip scanchip '+(TRIG_DIR[t]||'')+(SCAN.sel===t?' sel':'');
     b.innerHTML=t+' <span class="n">'+counts[t]+'</span>';
-    b.onclick=()=>{ SCAN.sel=(SCAN.sel===t)?null:t; scanRenderChips(); scanRenderList(); };
+    b.onclick=()=>{ SCAN.sel=(SCAN.sel===t)?null:t; SCAN.trigOpen=false; scanRenderChips(); scanRenderList(); };
     c.appendChild(b);
   });
+  scanTrigSync();
+}
+function scanTrigSync(){
+  const tog=$('#scanTrigToggle'), lbl=$('#scanTrigLabel'), car=$('#scanTrigCaret'), grid=$('#scanChips');
+  if(!tog||!grid)return;
+  const d=SCAN.data, counts=(d&&d.counts)||{};
+  const has=!!(d && (d.trigger_types||Object.keys(counts)).filter(t=>counts[t]>0).length);
+  tog.style.display=has?'flex':'none';          /* show the dropdown only once a scan is loaded */
+  if(!has){ grid.style.display='flex'; return; } /* no data: let the placeholder text show */
+  const open=!!SCAN.trigOpen;
+  grid.style.display=open?'flex':'none';
+  if(car)car.textContent=open?'▴':'▾';
+  if(lbl){
+    if(SCAN.sel){
+      const dir=TRIG_DIR[SCAN.sel]||'';
+      lbl.innerHTML='<span style="color:var(--faint);font-size:11px">Trigger</span> <span class="chip scanchip '+dir+' sel" style="pointer-events:none;margin-left:6px">'+SCAN.sel+' <span class="n">'+(counts[SCAN.sel]||0)+'</span></span>';
+    } else {
+      lbl.innerHTML='<span style="color:var(--mut)">Pick a trigger…</span>';
+    }
+  }
 }
 function scanRowPasses(r){
   const f=SCAN.filt, m=SCAN.meta[r.t]||{};
@@ -1619,6 +1669,7 @@ function scanLoadFile(file){
 }
 function scanInit(){
   const lb=$('#scanLoad'); if(lb)lb.onclick=()=>scanLoadUrl(false);
+  const tt=$('#scanTrigToggle'); if(tt)tt.onclick=()=>{ SCAN.trigOpen=!SCAN.trigOpen; scanTrigSync(); };
   const fb=$('#scanFileBtn'), fi=$('#scanFile');
   if(fb&&fi){ fb.onclick=()=>fi.click(); fi.onchange=()=>{ if(fi.files&&fi.files[0])scanLoadFile(fi.files[0]); fi.value=''; }; }
   ['fCapMin','fCapMax'].forEach(id=>{ const e=$('#'+id); if(e)e.addEventListener('input',scanReadFilters); });
