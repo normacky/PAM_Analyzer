@@ -1,0 +1,1488 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f141a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PAM">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFVklEQVR4nO3dS5LbVBiGYbnLU6hUAQWMKAa5NCR7IZfdcBkA2U0SshcK0gkLYMAimkHKSadju2XpSDpH3/NUZZSOLTn/6yNLbnvzyWffdJW5XHoDmNRm6Q24arvw/Rv2PPv+zxeLYokADD3XXZ2JWWOYMwCDTx+7OZklhDkCMPgMMUsIUwZg8Clh0hCmCMDgM4VJQjgreWOd4Wd6RWes1Apg8JlTsdWgxApg+FnK6NkbG4DhZ2mjZnBMAIafWgyexaEBGH5qM2gmhwRg+KnVybN5agCGn9qdNKOnBGD4aUXvWe0bgOGnNb1mtk8Ahp9W3Ti7pd8KAU25KQDP/rTu6Axvj7ydwvCzFpfdgUF3CES0QwF49mdt9s60FYBo+wLw7M9afTTbVgCiXQ/Asz9r98GMWwGItr1ydtSzPyneXRewAhBNAETbBeDwhzSXXWcFIJwAiCYAogmAaGedF8DkurQCEE0ARNtu6vrWSpiVFYDBzl887c5fPF16M0YRANEEQDQBEE0ARBMA0QRANAEQbfPp5996LxAHjT3P/+rRj4W2ZBpWAA4qcZGr9gtlAmCvkoNbcwQCIJoAiCYAogmAaFu/DsAsKp0zK0Ah58+fdufP6z3bwX4CINqxb4lkEI/nfnU+LlYAogmAaAIgmgCIJgCiCYBoAmjcm0cPujePHiy9Gc0SANEEQLTt0hvQkvPnvw/+mVePfyq9ORRgBeipz/BP+e+ZhgB6KDW8IqiPAIgmAKIJgGjOAjXipotdx/7+zos/S2/OalgBGjD2Sq8rxYcJoHKlhlcE+/mWyJkt+Xin3vcxVgCiCYBoAiCaANjr4vHPVd5WaQLgoBKDW/Pwd53PBp3fko/3gPu+eHJ4gO89++3Gn6l9vqwARBMA0QRANAEQTQBEEwDRmg/g9cP73euH95feDBrlF2IY7Oj5/0Y0vwLAGAIgmgCIJoAeSh3rruGYeW3O3r5bqeU/O9Pez8WTXwY8vO+9/fdj9q+Epf+v6vvjLNAJjkVw79mvN/4M9XEIVLm7f/xV1e2sjQAaMHZ4Df9hDoEacWiIXz/8/ujfc5wVgGgCIFoTh0C7ZX7ozzg84JDqV4A+wz/HbbBOVQdQcnBFwD5VBwBTEwDRmngR3AJvgWiTFYBoWR+NuOZ9XfO+TcghUOPuvnSNY4zZAvji69tz3VXV20B///37z+T3MVsAw3am7Ln7OR5Q2uJFMNEEQLSor0lN2lf6sQIQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRAtKoDuPfy7ypvi/WoOoCuKzO4hp9DNre+vH259EaMcfHDd13XGXKGqX4FgCkJgGgCINp2PZ+otJb9YE5WAKIJgGjr+WzQtewHs9rc+upO09cBYAyHQEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANGiviUSrrMCEO2s87tU5NpYAYgmAKIJgGgCINouAC+ESbPpOisA4QRAtKsBOAwixbtZX89HI8IA1w+B5MDafTDjXgMQbV8AVgHW6qPZtgIQ7VAAVgHWZu9MWwGIdiwAqwBrcXCWb/qWyE3Xdb5BhpYdHXCHQETrE4BDIVp14+z2XQFEQGt6zewph0AioBW9Z/XU1wAioHYnzeiQF8EioFYnz+bQs0AioDaDZnLMaVARUIvBszj2OoAIWNqoGSxxIUwELGX07G1LbEX3fkO8bYI5FHvSLf1WCKsBUys6Y6VWgKusBkxhkifXKQLYEQIlTHpUMWUAO0JgiFkOp+cIYEcI9DHr68g5A9i5uoNioOsWPHmyRABX7dtxUaxbVWcK/weHEKuEUAkI3gAAAABJRU5ErkJggg==">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAFVklEQVR4nO3dS5LbVBiGYbnLU6hUAQWMKAa5NCR7IZfdcBkA2U0SshcK0gkLYMAimkHKSadju2XpSDpH3/NUZZSOLTn/6yNLbnvzyWffdJW5XHoDmNRm6Q24arvw/Rv2PPv+zxeLYokADD3XXZ2JWWOYMwCDTx+7OZklhDkCMPgMMUsIUwZg8Clh0hCmCMDgM4VJQjgreWOd4Wd6RWes1Apg8JlTsdWgxApg+FnK6NkbG4DhZ2mjZnBMAIafWgyexaEBGH5qM2gmhwRg+KnVybN5agCGn9qdNKOnBGD4aUXvWe0bgOGnNb1mtk8Ahp9W3Ti7pd8KAU25KQDP/rTu6Axvj7ydwvCzFpfdgUF3CES0QwF49mdt9s60FYBo+wLw7M9afTTbVgCiXQ/Asz9r98GMWwGItr1ydtSzPyneXRewAhBNAETbBeDwhzSXXWcFIJwAiCYAogmAaGedF8DkurQCEE0ARNtu6vrWSpiVFYDBzl887c5fPF16M0YRANEEQDQBEE0ARBMA0QRANAEQbfPp5996LxAHjT3P/+rRj4W2ZBpWAA4qcZGr9gtlAmCvkoNbcwQCIJoAiCYAogmAaFu/DsAsKp0zK0Ah58+fdufP6z3bwX4CINqxb4lkEI/nfnU+LlYAogmAaAIgmgCIJgCiCYBoAmjcm0cPujePHiy9Gc0SANEEQLTt0hvQkvPnvw/+mVePfyq9ORRgBeipz/BP+e+ZhgB6KDW8IqiPAIgmAKIJgGjOAjXipotdx/7+zos/S2/OalgBGjD2Sq8rxYcJoHKlhlcE+/mWyJkt+Xin3vcxVgCiCYBoAiCaANjr4vHPVd5WaQLgoBKDW/Pwd53PBp3fko/3gPu+eHJ4gO89++3Gn6l9vqwARBMA0QRANAEQTQBEEwDRmg/g9cP73euH95feDBrlF2IY7Oj5/0Y0vwLAGAIgmgCIJoAeSh3rruGYeW3O3r5bqeU/O9Pez8WTXwY8vO+9/fdj9q+Epf+v6vvjLNAJjkVw79mvN/4M9XEIVLm7f/xV1e2sjQAaMHZ4Df9hDoEacWiIXz/8/ujfc5wVgGgCIFoTh0C7ZX7ozzg84JDqV4A+wz/HbbBOVQdQcnBFwD5VBwBTEwDRmngR3AJvgWiTFYBoWR+NuOZ9XfO+TcghUOPuvnSNY4zZAvji69tz3VXV20B///37z+T3MVsAw3am7Ln7OR5Q2uJFMNEEQLSor0lN2lf6sQIQTQBEEwDRBEA0ARBNAEQTANEEQDQBEE0ARBMA0QRAtKoDuPfy7ypvi/WoOoCuKzO4hp9DNre+vH259EaMcfHDd13XGXKGqX4FgCkJgGgCINp2PZ+otJb9YE5WAKIJgGjr+WzQtewHs9rc+upO09cBYAyHQEQTANEEQDQBEE0ARBMA0QRANAEQTQBEEwDRBEA0ARBNAEQTANGiviUSrrMCEO2s87tU5NpYAYgmAKIJgGgCINouAC+ESbPpOisA4QRAtKsBOAwixbtZX89HI8IA1w+B5MDafTDjXgMQbV8AVgHW6qPZtgIQ7VAAVgHWZu9MWwGIdiwAqwBrcXCWb/qWyE3Xdb5BhpYdHXCHQETrE4BDIVp14+z2XQFEQGt6zewph0AioBW9Z/XU1wAioHYnzeiQF8EioFYnz+bQs0AioDaDZnLMaVARUIvBszj2OoAIWNqoGSxxIUwELGX07G1LbEX3fkO8bYI5FHvSLf1WCKsBUys6Y6VWgKusBkxhkifXKQLYEQIlTHpUMWUAO0JgiFkOp+cIYEcI9DHr68g5A9i5uoNioOsWPHmyRABX7dtxUaxbVWcK/weHEKuEUAkI3gAAAABJRU5ErkJggg==">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<title>PAM Analyzer — The Operator's Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f141a; --panel:#11161d; --panel-in:#141b22; --btnbg:#1b232c; --onbg:#1b2740;
+    --hair:#1c242d; --line:#232c36; --ink2:var(--panel-in);
+    --txt:#e6e9ee; --mut:#8a93a0; --faint:#5b6470;
+    --long:#5fb89e; --short:#cf7a64; --force:#d4a85c; --neutral:#7c8597;
+    --disp:'Space Grotesk',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --body:'Inter',system-ui,sans-serif;
+  }
+  :root[data-theme="light"]{
+    --ink:#f4f1ea; --panel:#ffffff; --panel-in:#f6f3ec; --btnbg:#f1ede4; --onbg:#e8e2d6;
+    --hair:#ece7dd; --line:#e2ddd3; --ink2:#f6f3ec;
+    --txt:#23282d; --mut:#6f6a61; --faint:#9a948a;
+    --long:#2f8268; --short:#bf6953; --force:#a8802f; --neutral:#7a756c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ink);color:var(--txt);font-family:var(--body);
+    -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
+  a{color:var(--long)}
+  .wrap{max-width:1160px;margin:0 auto;padding:34px 28px 96px}
+
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+    gap:16px;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:30px}
+  .brand .ey{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--force)}
+  .brand h1{font-family:var(--disp);font-weight:700;font-size:30px;letter-spacing:-.01em;margin:.18em 0 .1em}
+  .brand .sub{color:var(--mut);font-size:13.5px;max-width:54ch}
+  .verdict{text-align:right;font-family:var(--mono)}
+  .verdict .tk{font-size:13px;color:var(--mut);letter-spacing:.08em}
+  .verdict .px{font-family:var(--disp);font-weight:700;font-size:26px}
+  .verdict .chips{display:flex;gap:6px;justify-content:flex-end;margin-top:7px;flex-wrap:wrap}
+  .chip{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);
+    color:var(--mut);background:var(--panel-in)}
+  .chip.long{color:var(--long);border-color:#1f4d44}
+  .chip.short{color:var(--short);border-color:#532f27}
+  .chip.force{color:var(--force);border-color:#534522}
+
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{font-family:var(--mono);font-size:12px;letter-spacing:.04em;background:transparent;color:var(--mut);
+    border:0;padding:7px 13px;cursor:pointer;transition:.15s}
+  .seg button.on{background:var(--onbg);color:var(--txt)}
+  .seg button:hover{color:var(--txt)}
+  .layers{display:inline-flex;flex-wrap:wrap;gap:6px}
+  .layers button{font-family:var(--mono);font-size:11.5px;background:var(--panel-in);color:var(--mut);
+    border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;transition:.15s}
+  .layers button:hover{color:var(--txt);border-color:#34467a}
+  .layers button.on{background:var(--onbg);color:var(--txt);border-color:#34467a}
+  .layers button[data-ly="turtle"].on{color:#7fc7ff;border-color:#2d5a7a}
+  .layers button[data-ly="reverse"].on{color:#ff9d7a;border-color:#7a4030}
+  .layers button[data-ly="channels"].on{color:#b9a3e8;border-color:#4a3d70}
+  .ctl-label{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
+  .btn{font-family:var(--mono);font-size:12px;background:var(--btnbg);color:var(--txt);border:1px solid var(--line);
+    border-radius:9px;padding:7px 13px;cursor:pointer}
+  .btn:hover{border-color:#445}
+
+  .chartcard{border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:14px 10px 6px;position:relative;overflow:hidden}
+  #chart{display:block;width:100%;height:440px;touch-action:pan-y}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11px;color:var(--mut);padding:8px 14px 6px}
+  .legend b{display:inline-block;width:16px;height:0;border-top-width:2px;border-top-style:solid;vertical-align:middle;margin-right:6px}
+  .tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--txt);min-width:172px;
+    opacity:0;transition:opacity .08s;z-index:5;box-shadow:0 8px 24px #0008}
+  .tip .d{color:var(--force);margin-bottom:3px}
+  .tip .row{display:flex;justify-content:space-between;gap:14px;color:var(--mut)}
+  .tip .row b{color:var(--txt);font-weight:500}
+  .tip .cls{margin-top:5px;padding-top:5px;border-top:1px solid var(--line)}
+
+  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:20px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}#chart{height:360px}}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px 22px 24px}
+  .card h2{font-family:var(--disp);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 4px;font-weight:600}
+  .card .lead{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:14px}
+
+  .step{display:grid;grid-template-columns:24px 1fr;gap:11px;padding:10px 0;border-top:1px solid var(--hair)}
+  .step:first-of-type{border-top:0}
+  .step .n{font-family:var(--mono);font-size:12px;color:var(--force);padding-top:1px}
+  .step .k{font-family:var(--disp);font-weight:600;font-size:14px;margin-bottom:2px}
+  .step .v{font-size:13.5px;color:var(--mut)}
+  .step .v b{color:var(--txt);font-weight:600}
+  .tag{font-family:var(--mono);font-size:10.5px;padding:1.5px 7px;border-radius:5px;border:1px solid var(--line);color:var(--mut)}
+  .tag.long{color:var(--long);border-color:#1f4d44;background:#0f211d}
+  .tag.short{color:var(--short);border-color:#532f27;background:#231310}
+
+  .trade table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+  .trade td{padding:7px 0;border-top:1px solid var(--hair);color:var(--mut)}
+  .trade td:last-child{text-align:right;color:var(--txt)}
+  .trade tr:first-child td{border-top:0}
+  .pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:6px}
+  .pill.ok{color:var(--long);background:#0f211d;border:1px solid #1f4d44}
+  .pill.no{color:var(--short);background:#231310;border:1px solid #532f27}
+  .note{font-size:12.5px;color:var(--mut);background:var(--panel-in);border:1px solid var(--line);border-left:3px solid var(--force);
+    border-radius:8px;padding:11px 13px;margin-top:12px;line-height:1.55}
+
+  .log{margin-top:4px}
+  .logrow{display:grid;grid-template-columns:62px auto 1fr;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--hair)}
+  .logrow:first-child{border-top:0}
+  .logrow .dt{font-family:var(--mono);font-size:11px;color:var(--faint);padding-top:2px}
+  .lab{font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap;align-self:start}
+  .lab.long{color:var(--long);background:#0f211d;border:1px solid #1f4d44}
+  .lab.short{color:var(--short);background:#231310;border:1px solid #532f27}
+  .logrow .why{font-size:12.5px;color:var(--mut);line-height:1.45}
+  .empty{font-size:13px;color:var(--mut);font-style:italic;padding:6px 0}
+
+  .caveat{font-size:11.5px;color:var(--faint);margin-top:16px;line-height:1.5;font-style:italic}
+  .paste{display:none;margin-top:14px}.paste.show{display:block}
+  textarea{width:100%;height:110px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:9px;
+    font-family:var(--mono);font-size:12px;padding:10px;resize:vertical}
+  .paste .row{display:flex;gap:9px;align-items:center;margin-top:9px}
+  .err{color:var(--short);font-family:var(--mono);font-size:11.5px}
+  details{margin-top:18px}summary{cursor:pointer;font-family:var(--disp);font-size:13px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--mut);font-weight:600}
+  .glo{margin-top:12px;font-size:12.5px;color:var(--mut);columns:2;column-gap:24px}
+  @media(max-width:560px){.glo{columns:1}.verdict{text-align:left}.verdict .chips{justify-content:flex-start}}
+  .glo div{break-inside:avoid;margin-bottom:8px}.glo b{color:var(--txt)}
+
+  /* ---- effectiveness panel ---- */
+  .verdict .nm{font-family:var(--body);font-size:12.5px;color:var(--mut);margin:1px 0 2px;max-width:32ch}
+  @media(max-width:560px){.verdict .nm{max-width:none}}
+  .eff{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+  .eff th{font-weight:500;color:var(--faint);text-align:left;padding:6px 10px 8px;border-bottom:1px solid var(--line);
+    font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+  .eff td{padding:9px 10px;border-top:1px solid var(--hair);color:var(--mut)}
+  .eff td.num,.eff th.num{text-align:right}
+  .eff td.pos{color:var(--long)}.eff td.neg{color:var(--short)}
+  .eff tr.bh td{border-top:1px solid var(--line)}
+  .effpill{display:inline-block;font-size:11.5px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);color:var(--txt);background:var(--panel-in)}
+  .effpill.eff-robust{color:#5fb89e;border-color:#1f6d5c;background:#0c211c}
+  .effpill.eff-green{color:#5fd0b0;border-color:#1f4d44;background:#0f211d}
+  .effpill.eff-bad{color:var(--short);border-color:#532f27;background:#231310}
+  .effpill.eff-thin{color:var(--force);border-color:#534522;background:#211c10}
+  .effpill.eff-bh{color:var(--mut);background:transparent}
+  .effword{font-size:11px;letter-spacing:.04em}
+  .effword.eff-robust{color:#5fb89e}.effword.eff-green{color:#5fd0b0}.effword.eff-bad{color:var(--short)}
+  .effword.eff-thin{color:var(--force)}.effword.eff-none{color:var(--faint)}
+  .scanchip{cursor:pointer}
+  .scanchip .n{opacity:.55;margin-left:5px;font-size:10.5px}
+  .scanchip.sel{background:var(--onbg);border-color:var(--txt);color:var(--txt)}
+  .scanrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--hair)}
+  .opn{color:var(--force);font-size:9.5px;letter-spacing:0;font-weight:400}
+  .eff tr.eff-grp{cursor:pointer}
+  .eff tr.eff-grp:hover td{background:rgba(126,143,176,0.06)}
+  .eff-car{display:inline-block;width:13px;color:var(--faint);font-size:9px;vertical-align:middle}
+  .eff tr.eff-kid td{padding-top:6px;padding-bottom:6px;border-top:1px solid var(--hair)}
+  .eff-sub{display:inline-block;margin-left:24px;font-family:var(--mono);font-size:11px;color:var(--mut)}
+  @media(max-width:560px){.eff th.avgcol,.eff td.avgcol{display:none}}
+
+  /* ---- declutter drawers (Calm Terminal) ---- */
+  .drawer-btn.open{background:var(--btnbg);color:var(--txt);border-color:var(--line)}
+  .drawer{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:17px 19px;margin:8px 0 6px}
+  .drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 30px}
+  @media(max-width:760px){.drawer-grid{grid-template-columns:1fr}}
+  .drawer-group{display:flex;flex-direction:column;gap:9px}
+  .drawer-h{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+  .drawer-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+  /* ---- light theme tint overrides ---- */
+  [data-theme="light"] .tag.long,[data-theme="light"] .pill.ok,[data-theme="light"] .lab.long,[data-theme="light"] .effpill.eff-green{background:#eaf3ee;border-color:#bcdccf}
+  [data-theme="light"] .tag.short,[data-theme="light"] .pill.no,[data-theme="light"] .lab.short,[data-theme="light"] .effpill.eff-bad{background:#f8ece8;border-color:#e6c3b8}
+  [data-theme="light"] .effpill.eff-robust{background:#e6f1ec;border-color:#9fcab8}
+  [data-theme="light"] .effpill.eff-thin{background:#f6efdd;border-color:#e0cfa0}
+  [data-theme="light"] .chip.long{border-color:#bcdccf}
+  [data-theme="light"] .chip.short{border-color:#e6c3b8}
+  [data-theme="light"] .chip.force{border-color:#e0cfa0}
+  [data-theme="light"] .effword.eff-robust{color:#2f8268}
+  [data-theme="light"] .effword.eff-green{color:#3a9576}
+  [data-theme="light"] .effword.eff-bad{color:#bf6953}
+  [data-theme="light"] .effword.eff-thin{color:#a8802f}
+  [data-theme="light"] .btn:hover{border-color:#cfc8ba}
+  [data-theme="light"] .layers button:hover{border-color:#cfc8ba}
+  [data-theme="light"] .drawer-btn.open{border-color:var(--line)}
+  [data-theme="light"] .tip{box-shadow:0 10px 30px rgba(60,52,40,.18)}
+  /* ---- effectiveness disclosure affordance ---- */
+  .eff-disc{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid var(--line);border-radius:5px;color:var(--mut);font-size:9px;margin-right:10px;vertical-align:middle;transition:.15s;flex:none}
+  .eff tr.eff-grp:hover .eff-disc{border-color:var(--force);color:var(--force);background:var(--panel-in)}
+  .eff-cnt{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-left:10px;vertical-align:middle}
+  .eff tr.eff-grp:hover .eff-cnt{color:var(--mut)}
+
+  /* ---- mobile hardening ---- */
+  @media(max-width:760px){.wrap{padding:24px 18px 76px}}
+  @media(max-width:560px){
+    .wrap{padding:20px 14px 64px}
+    .brand h1{font-size:25px}
+    .brand .sub{font-size:13px}
+    #chart{height:300px}
+    .chartcard{padding:10px 6px 6px}
+    .card{padding:18px 16px 20px}
+    .controls .spacer{display:none}
+    .controls{gap:10px}
+    #effCard > div:first-child > div:last-child{width:100%;min-width:0}
+    .eff{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;font-size:11.5px}
+    .eff th,.eff td{padding-left:7px;padding-right:7px}
+    .eff-cnt{display:none}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="ey">Price Action Manipulation · the operator's lens</div>
+      <h1>PAM Analyzer</h1>
+      <div class="sub">Reads a chart the way the framework does, then marks only the <b>genuine triggers</b> —
+        each labelled with which of the setups fired and why. Type a symbol to pull its data, or paste any chart in ⚙ Settings.</div>
+    </div>
+    <div class="verdict">
+      <div class="tk" id="vTk">—</div>
+      <div class="nm" id="vNm"></div>
+      <div class="px" id="vPx">—</div>
+      <div class="chips" id="vChips"></div>
+    </div>
+  </header>
+
+    <div class="controls" id="mainBar">
+    <span class="ctl-label">Symbol</span>
+    <input id="tkInput" type="text" placeholder="e.g. NVDA" autocomplete="off" spellcheck="false"
+      style="font-family:var(--mono);font-size:13px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 11px;width:96px;text-transform:uppercase;outline:none">
+    <button class="btn" id="fetchBtn">Fetch</button>
+
+    <span class="ctl-label" style="margin-left:10px">Timeframe</span>
+    <div class="seg" id="segTf">
+      <button data-tf="W">W · 3y</button>
+      <button data-tf="2" class="on">2D · 1y</button>
+      <button data-tf="1">D</button>
+    </div>
+
+    <span class="ctl-label" style="margin-left:10px">Lens</span>
+    <div class="seg" id="segLens"><button data-l="1" class="on">On</button><button data-l="0">Off</button></div>
+
+    <span class="spacer" style="flex:1"></span>
+
+    <button class="btn drawer-btn" id="indToggle">Indicators <span id="indState" style="color:var(--faint)">off</span> ▾</button>
+    <button class="btn drawer-btn" id="settingsToggle">⚙ Settings</button>
+    <button class="btn drawer-btn" id="themeToggle">◐ Light</button>
+  </div>
+
+  <div class="controls" id="statusBar" style="margin-top:-8px">
+    <span id="fetchStatus" style="font-family:var(--mono);font-size:11.5px;color:var(--mut)">Showing NVDA sample · open ⚙ Settings to add your free key and fetch any symbol</span>
+  </div>
+
+  <div class="drawer" id="indPanel" style="display:none">
+    <div class="drawer-h" style="margin-bottom:10px">Indicator sub-panels — toggle on to draw beneath the chart</div>
+    <div class="layers" id="indicators">
+      <button data-in="stoch">Stochastic</button>
+      <button data-in="rsi">RSI</button>
+      <button data-in="macd">MACD</button>
+      <button data-in="atr">ATR</button>
+    </div>
+  </div>
+
+  <div class="drawer" id="settingsPanel" style="display:none">
+    <div class="drawer-grid">
+      <div class="drawer-group">
+        <div class="drawer-h">Data &amp; API</div>
+        <div class="drawer-row">
+          <span class="ctl-label">Key</span>
+          <input id="keyInput" type="password" placeholder="Twelve Data key (optional in a group)" autocomplete="off" spellcheck="false"
+            style="font-family:var(--mono);font-size:12.5px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:150px;outline:none">
+          <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--long);text-decoration:none">free key ↗</a>
+        </div>
+        <div class="drawer-row">
+          <span class="ctl-label">Source</span>
+          <div class="seg" id="segData"><button data-d="NVDA" class="on">Live data</button><button data-d="PASTE">Paste…</button></div>
+        </div>
+      </div>
+
+      <div class="drawer-group">
+        <div class="drawer-h">Watchlist</div>
+        <div class="drawer-row">
+          <div class="layers" id="wlChips" style="flex:1"></div>
+          <button class="btn" id="wlAdd" style="padding:5px 10px;font-size:11px">★ Add</button>
+        </div>
+      </div>
+
+      <div class="drawer-group">
+        <div class="drawer-h">Sync · Google Drive</div>
+        <div class="drawer-row">
+          <button class="btn" id="syncToggle" style="padding:5px 10px;font-size:11px">Connect ▾</button>
+          <span id="syncStatus" style="font-family:var(--mono);font-size:11px;color:var(--mut)">Not connected</span>
+        </div>
+        <div id="syncPanel" style="display:none;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:2px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <input id="cid" type="text" placeholder="Google OAuth Client ID — …apps.googleusercontent.com" autocomplete="off" spellcheck="false"
+              style="font-family:var(--mono);font-size:12px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:220px;outline:none">
+            <button class="btn" id="connectDrive">Connect Drive</button>
+            <button class="btn" id="syncNow">Sync now</button>
+          </div>
+          <div style="font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.5;padding-top:7px">
+            One-time setup: in Google Cloud Console create an OAuth <b>Client ID (Web application)</b>, add this app's exact URL under "Authorized JavaScript origins", paste the Client ID above, then Connect. Your watchlist, settings and Twelve Data key live privately in your Drive's hidden app-data and sync to every device you connect.
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-group">
+        <div class="drawer-h">Group activity</div>
+        <div class="drawer-row">
+          <button class="btn" id="grpToggle" style="padding:5px 10px;font-size:11px">Members &#9662;</button>
+          <span id="groupStatus" style="font-family:var(--mono);font-size:11px;color:var(--mut)">Not in a group</span>
+        </div>
+        <div id="groupPanel" style="display:none;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:2px">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <input id="grpToken" type="password" placeholder="Your group access token (sent to you by the owner)" autocomplete="off" spellcheck="false"
+              style="font-family:var(--mono);font-size:12px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:220px;outline:none">
+            <button class="btn" id="grpJoin">Join</button>
+            <button class="btn" id="grpRefresh">Refresh</button>
+          </div>
+          <div style="font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.5;padding-top:7px">
+            The owner adds you, then sends you a private token &mdash; paste it once and you are in. Your token stays in this browser only. Your Twelve Data key is never shared with the group: only the ticker you check, your name and the time are posted to the shared activity feed below.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls" id="layersBar">
+    <span class="ctl-label">Layers</span>
+    <div class="layers" id="layers">
+      <button data-ly="pam"      class="on">PAM triggers</button>
+      <button data-ly="sma"      class="on">SMA 20/50/200</button>
+      <button data-ly="channels">Donchian 55/20/10</button>
+      <button data-ly="turtle">Turtle S1/S2</button>
+      <button data-ly="reverse">Reverse S1s/S2s</button>
+    </div>
+    <span class="ctl-label" style="margin-left:8px">Declutter</span>
+    <div class="seg" id="segRecent"><button data-r="0" class="on">All</button><button data-r="1">Recent</button></div>
+  </div>
+
+  <div class="paste" id="pasteBox">
+    <textarea id="pasteTa" placeholder="Paste OHLC rows, one bar per line. Accepts: date,open,high,low,close (or open,high,low,close). Commas, tabs or spaces all work."></textarea>
+    <div class="row">
+      <button class="btn" id="pasteRun">Analyse pasted data</button>
+      <button class="btn" id="pasteSample">Insert a sample</button>
+      <span class="err" id="pasteErr"></span>
+    </div>
+  </div>
+
+  <div class="chartcard">
+    <canvas id="chart"></canvas>
+    <div class="tip" id="tip"></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px 2px">
+      <button class="btn" id="fitAll" style="padding:5px 9px;font-size:11px">Fit all</button>
+      <button class="btn" id="zOut" style="padding:5px 11px;font-size:13px" title="Zoom out">–</button>
+      <button class="btn" id="zIn" style="padding:5px 11px;font-size:13px" title="Zoom in">+</button>
+      <input type="range" id="scroll" min="0" max="100" value="100" style="flex:1;accent-color:#5fb89e;cursor:pointer">
+      <span id="rangeLbl" style="font-family:var(--mono);font-size:11px;color:var(--mut);min-width:188px;text-align:right"></span>
+    </div>
+    <div class="legend">
+      <span><b style="border-color:var(--force)"></b>50 SMA (PAM flow)</span>
+      <span><b style="border-color:var(--neutral)"></b>20 SMA</span>
+      <span><b style="border-color:#b07fd0"></b>200 SMA</span>
+      <span style="color:var(--long)">▲</span><span style="color:var(--short)">▼ PAM trigger</span>
+      <span style="color:#378add">Donchian 20</span><span style="color:#9a7fe0">55</span><span style="color:#d4a85c">10 (exit)</span>
+      <span style="color:#3f9af0">S1/S2 long</span><span style="color:#ff6f45">S1s/S2s reverse</span>
+      <span style="color:#5b667e">drag chart or scroll · Shift-scroll to zoom</span>
+    </div>
+  </div>
+
+  <div class="card" id="scanCard" style="margin-top:18px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0">Scan by trigger <span id="scanAsof" style="color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0"></span></h2>
+        <div class="lead" style="margin-top:2px">pick a trigger &mdash; every US counter that fired it on the last 2 daily bars &middot; tap one to chart it</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input id="scanUrl" type="text" placeholder="scan_results.json URL" autocomplete="off" spellcheck="false" style="font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:220px;max-width:100%">
+        <button class="btn" id="scanLoad" style="padding:5px 11px;font-size:11px">Load</button>
+        <button class="btn" id="scanFileBtn" style="padding:5px 11px;font-size:11px">Load file&hellip;</button>
+        <input id="scanFile" type="file" accept="application/json,.json" style="display:none">
+      </div>
+    </div>
+    <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div id="scanBody" style="margin-top:12px"></div>
+    <div class="caveat" id="scanNote"></div>
+  </div>
+
+  <div class="card" id="effCard" style="margin-top:18px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0">Trigger effectiveness <span id="effName" style="color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0"></span></h2>
+        <div class="lead" style="margin-top:2px">how each system's signals actually played out — scored on daily bars · <span style="color:var(--force)">click any row to expand its setups</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;min-width:248px">
+        <button class="btn" id="effExpand" style="padding:5px 11px;font-size:11px;margin-right:4px">Expand all</button>
+        <span class="ctl-label">Window</span>
+        <input type="range" id="effYears" min="0" max="6" step="1" value="4" style="flex:1;accent-color:#5fb89e;cursor:pointer">
+        <span id="effYearsLbl" style="font-family:var(--mono);font-size:12px;color:var(--txt);min-width:64px;text-align:right">3 years</span>
+      </div>
+    </div>
+    <div id="effBody" style="margin-top:14px"></div>
+    <div class="caveat" id="effNote"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>The read</h2>
+      <div class="lead">worked through in the framework's order — latest bar on the right edge</div>
+      <div id="steps"></div>
+      <div class="caveat" id="caveat"></div>
+    </div>
+
+    <div class="card">
+      <h2>Trade structure</h2>
+      <div class="lead">drawn only when the latest bar is itself a trigger</div>
+      <div class="trade" id="trade"></div>
+
+      <h2 style="margin-top:24px">Recent triggers — and why</h2>
+      <div class="lead">every marked signal on the chart, newest first</div>
+      <div class="log" id="log"></div>
+
+      <details>
+        <summary>What the labels mean</summary>
+        <div class="glo">
+          <div><b>UC1 / UC2</b> — Up Continuation (long). Up flow, a force-bottom bear-trap at an LP, bullish EXE. "2" = a deeper two-leg pullback.</div>
+          <div><b>DC1 / DC2</b> — Down Continuation (short). Down flow, a force-top bull-trap, bearish EXE. "2" = deeper bounce.</div>
+          <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, force-top at an LP, bearish EXE. "2" = confirmed by a majority flush-up.</div>
+          <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, force-bottom, bullish EXE. "2" = after a majority flush-down.</div>
+          <div><b>Bull-FS / Bear-FS</b> — Force Strike. A mother/baby inside-bar trap: price false-breaks the inside-bar then reverses with an EXE. Standalone, any flow.</div>
+          <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back inside it: a failed break = a trap.</div>
+          <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
+          <div><b>1 vs 2</b> — a depth/flush heuristic here, not exact slide geometry; eyeball the structure to confirm.</div>
+        </div>
+      </details>
+    </div>
+  </div>
+  <div class="card" id="checklogCard" style="margin-top:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0">Check log</h2>
+        <div class="lead" style="margin-top:2px">every counter you've checked, newest first — synced across your devices</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="clogCsv" style="padding:5px 10px;font-size:11px">Export CSV</button>
+        <button class="btn" id="clogClear" style="padding:5px 10px;font-size:11px">Clear</button>
+      </div>
+    </div>
+    <div class="log" id="checklog" style="margin-top:10px;max-height:260px;overflow:auto"></div>
+  </div>
+  <div class="card" id="groupCard" style="margin-top:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0">Group activity</h2>
+        <div class="lead" style="margin-top:2px">what everyone in the group is checking, newest first &mdash; shared, visible to all members</div>
+        <div id="groupPresence" style="margin-top:5px"></div>
+      </div>
+      <button class="btn" id="grpRefresh2" style="padding:5px 10px;font-size:11px">Refresh</button>
+    </div>
+    <div class="log" id="groupFeed" style="margin-top:10px;max-height:300px;overflow:auto"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA  (real IBKR pulls)
+   ============================================================ */
+/* ===================== __PAM_DATA_INJECTION_POINT__ =====================
+   To load another instrument, replace this entire PAM_DATA object.
+   - ticker : symbol string shown in the header
+   - daily  : ~1 year of DAILY bars (the 2-Day chart aggregates pairs in-browser)
+   - weekly : ~5 years of WEEKLY bars, or null (Weekly button then falls back to 2-Day)
+   Each series = {time:[...],open:[...],high:[...],low:[...],close:[...],volume:[...]} (equal-length arrays).
+   ====================================================================== */
+const PAM_DATA = { ticker:"NVDA", daily:{
+"time":["2025-06-13","2025-06-16","2025-06-17","2025-06-18","2025-06-20","2025-06-23","2025-06-24","2025-06-25","2025-06-26","2025-06-27","2025-06-30","2025-07-01","2025-07-02","2025-07-03","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-14","2025-07-15","2025-07-16","2025-07-17","2025-07-18","2025-07-21","2025-07-22","2025-07-23","2025-07-24","2025-07-25","2025-07-28","2025-07-29","2025-07-30","2025-07-31","2025-08-01","2025-08-04","2025-08-05","2025-08-06","2025-08-07","2025-08-08","2025-08-11","2025-08-12","2025-08-13","2025-08-14","2025-08-15","2025-08-18","2025-08-19","2025-08-20","2025-08-21","2025-08-22","2025-08-25","2025-08-26","2025-08-27","2025-08-28","2025-08-29","2025-09-02","2025-09-03","2025-09-04","2025-09-05","2025-09-08","2025-09-09","2025-09-10","2025-09-11","2025-09-12","2025-09-15","2025-09-16","2025-09-17","2025-09-18","2025-09-19","2025-09-22","2025-09-23","2025-09-24","2025-09-25","2025-09-26","2025-09-29","2025-09-30","2025-10-01","2025-10-02","2025-10-03","2025-10-06","2025-10-07","2025-10-08","2025-10-09","2025-10-10","2025-10-13","2025-10-14","2025-10-15","2025-10-16","2025-10-17","2025-10-20","2025-10-21","2025-10-22","2025-10-23","2025-10-24","2025-10-27","2025-10-28","2025-10-29","2025-10-30","2025-10-31","2025-11-03","2025-11-04","2025-11-05","2025-11-06","2025-11-07","2025-11-10","2025-11-11","2025-11-12","2025-11-13","2025-11-14","2025-11-17","2025-11-18","2025-11-19","2025-11-20","2025-11-21","2025-11-24","2025-11-25","2025-11-26","2025-11-28","2025-12-01","2025-12-02","2025-12-03","2025-12-04","2025-12-05","2025-12-08","2025-12-09","2025-12-10","2025-12-11","2025-12-12","2025-12-15","2025-12-16","2025-12-17","2025-12-18","2025-12-19","2025-12-22","2025-12-23","2025-12-24","2025-12-26","2025-12-29","2025-12-30","2025-12-31","2026-01-02","2026-01-05","2026-01-06","2026-01-07","2026-01-08","2026-01-09","2026-01-12","2026-01-13","2026-01-14","2026-01-15","2026-01-16","2026-01-20","2026-01-21","2026-01-22","2026-01-23","2026-01-26","2026-01-27","2026-01-28","2026-01-29","2026-01-30","2026-02-02","2026-02-03","2026-02-04","2026-02-05","2026-02-06","2026-02-09","2026-02-10","2026-02-11","2026-02-12","2026-02-13","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-23","2026-02-24","2026-02-25","2026-02-26","2026-02-27","2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13","2026-03-16","2026-03-17","2026-03-18","2026-03-19","2026-03-20","2026-03-23","2026-03-24","2026-03-25","2026-03-26","2026-03-27","2026-03-30","2026-03-31","2026-04-01","2026-04-02","2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-20","2026-04-21","2026-04-22","2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-01","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13","2026-05-14","2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12"],
+"open":[142.5,143.38,144.54,144.02,145.45,142.5,145.55,149.29,155.94,156.04,158.41,156.26,152.95,158.37,158.28,159.34,161.23,164.31,163.73,165.34,171.15,171.07,172.07,173.67,172.78,171.4,169.54,172.6,173.6,174.01,177.97,176.51,182.89,174.12,175.17,179.68,176.37,181.59,181.54,182.05,182.94,182.63,179.73,181.78,180.58,182.42,175.13,174.85,172.64,178.36,180.01,182.0,180.9,178.08,170.06,171.05,170.54,168.01,167.57,169.08,176.64,179.68,177.82,175.68,177.0,172.59,173.95,175.7,175.31,181.97,179.72,174.47,178.16,180.35,182.1,185.21,189.61,189.17,185.46,186.25,186.61,192.29,193.42,187.99,184.77,184.81,182.25,180.2,183.07,182.79,181.17,180.4,183.86,190.0,193.06,207.99,205.15,206.4,208.05,203.0,198.78,196.52,184.9,195.09,195.18,195.69,191.05,182.95,185.97,183.4,184.75,196.0,181.27,179.47,174.91,181.69,179.0,174.76,181.77,181.08,181.62,183.8,182.68,185.57,185.0,180.29,181.11,177.95,176.22,176.04,174.56,176.65,183.91,182.98,187.94,189.91,187.7,188.23,189.55,189.81,191.77,190.51,188.57,189.12,185.08,183.12,185.01,184.33,186.51,189.05,181.9,179.04,184.71,187.51,187.17,187.24,191.28,191.31,191.25,187.21,186.23,179.46,174.99,176.7,184.26,191.4,192.45,193.08,187.5,181.77,188.74,187.07,186.49,191.45,191.5,194.47,194.28,181.25,175.0,178.65,180.41,181.21,179.81,176.85,182.44,185.91,184.03,184.93,182.95,185.07,182.57,178.01,177.92,177.39,174.84,177.04,176.15,170.0,168.78,167.01,176.0,172.06,177.11,175.64,184.48,181.8,184.31,186.0,190.9,196.55,197.48,199.88,199.92,202.15,200.98,202.36,199.92,209.7,209.5,212.7,209.95,201.26,199.52,199.24,199.9,208.3,212.99,214.01,218.46,224.93,229.85,229.76,229.82,219.61,223.18,222.33,220.9,216.57,214.13,211.36,214.57,215.79,227.19,221.75,214.0,214.5,210.16,210.68,204.29,201.48,204.71],
+"high":[143.58,146.18,145.21,145.61,146.19,144.74,147.96,154.44,156.72,158.71,158.66,157.2,157.6,160.98,159.3,160.22,164.41,164.49,167.89,165.49,172.4,171.74,174.16,174.24,173.38,171.4,171.26,173.83,174.72,176.85,179.38,179.89,183.29,176.53,179.99,180.26,179.9,183.88,183.3,183.84,183.33,183.96,183.02,181.9,182.93,182.49,175.53,176.89,178.59,181.91,182.38,182.49,184.46,178.09,172.37,172.41,171.85,169.03,170.96,170.98,179.29,180.27,178.59,178.27,177.5,173.2,177.1,178.08,184.55,182.41,179.78,180.25,178.64,184.0,187.35,188.14,191.05,190.36,187.23,189.06,189.42,195.3,195.62,190.1,184.78,184.86,183.27,184.1,185.2,182.79,183.44,183.03,187.47,191.77,203.15,212.15,206.16,207.97,211.34,203.96,202.9,197.6,188.32,199.94,195.41,195.84,191.44,191.01,189.0,184.65,187.85,196.0,184.55,183.48,178.15,182.91,179.29,180.29,185.66,182.41,184.51,184.65,187.99,185.71,185.47,181.31,182.82,178.41,178.2,176.05,176.15,181.07,184.16,189.33,188.72,192.69,188.76,188.98,190.56,192.9,193.63,192.17,191.36,189.55,186.34,187.11,188.1,184.45,189.7,190.43,182.37,185.37,186.17,189.6,189.11,190.0,192.35,193.48,194.49,190.3,186.29,179.57,176.81,187.0,193.66,192.48,193.26,193.6,187.51,187.14,190.37,188.43,190.33,193.95,193.77,197.62,194.28,182.58,183.46,180.89,184.7,184.05,182.75,182.91,186.44,187.62,184.94,186.09,188.87,185.4,183.37,179.98,178.26,178.37,176.22,181.21,176.5,170.97,169.45,174.61,177.36,177.48,177.79,178.2,185.25,184.08,190.0,189.65,196.5,200.4,199.84,201.7,202.17,202.75,202.5,203.82,210.94,216.82,214.72,212.72,210.3,203.0,201.73,200.22,208.26,214.19,217.79,222.3,223.74,227.84,236.54,231.49,230.0,224.47,226.12,227.38,220.94,218.18,214.14,215.51,217.8,224.87,232.28,222.79,221.59,214.87,210.36,211.39,207.22,205.66,207.06],
+"low":[140.85,143.25,143.78,143.13,142.66,142.04,145.5,149.28,154.03,155.26,155.96,151.5,152.95,157.77,157.35,158.4,161.16,161.61,163.48,162.02,169.2,168.9,170.83,171.27,171.2,164.59,167.97,171.3,172.96,173.97,175.17,176.05,175.93,170.89,174.52,175.91,176.25,178.8,180.4,180.25,179.47,179.35,179.46,178.05,180.58,175.49,168.81,173.81,171.21,176.57,178.81,179.11,176.41,173.14,167.23,168.88,169.42,164.07,167.57,166.74,175.49,176.48,176.45,174.52,174.39,168.42,172.96,175.18,174.71,177.31,175.4,173.12,174.93,180.35,181.48,183.9,188.26,185.38,183.33,184.4,186.61,191.07,182.8,185.98,179.76,177.29,179.77,179.8,181.74,179.8,176.77,179.8,183.51,188.44,191.92,204.78,201.42,202.07,206.34,197.98,194.97,186.39,178.92,193.79,191.31,191.13,183.85,180.58,184.33,179.65,182.84,179.86,172.94,176.49,169.55,178.25,176.5,173.68,180.0,179.12,179.97,180.92,182.4,183.32,182.04,176.62,174.63,175.04,174.9,170.31,171.82,176.35,182.36,182.9,186.59,189.61,185.93,186.94,186.49,188.26,186.16,186.83,186.57,183.71,183.68,183.1,183.42,180.83,186.33,186.08,177.79,178.42,183.93,186.83,185.99,185.71,189.84,186.06,189.49,184.88,176.23,171.91,171.03,174.6,183.93,188.12,188.78,186.52,181.59,179.18,186.77,185.66,185.94,189.58,187.4,193.8,184.32,176.38,174.62,176.92,180.06,177.89,176.83,175.58,182.01,184.46,181.75,179.94,181.42,181.69,180.33,175.79,171.73,174.76,173.98,176.86,171.14,167.01,164.28,166.96,174.76,171.38,175.77,173.66,180.31,180.65,184.31,185.74,190.77,195.75,195.81,199.27,197.84,199.0,199.33,197.24,199.81,207.38,208.21,207.58,198.7,197.12,194.76,196.04,198.65,206.5,212.89,213.89,214.93,221.58,229.31,224.25,218.37,217.93,220.5,217.94,214.86,212.0,208.78,211.22,211.13,215.72,221.36,214.52,210.98,204.34,206.0,199.36,199.92,199.54,203.46],
+"close":[141.97,144.69,144.12,145.48,143.85,144.17,147.9,154.31,155.02,157.75,157.99,153.3,157.25,159.34,158.24,160.0,162.88,164.1,164.92,164.07,170.7,171.37,173.0,172.41,171.38,167.03,170.78,173.74,173.5,176.75,175.51,179.27,177.87,173.72,180.0,178.26,179.42,180.77,182.7,182.06,183.16,181.59,182.02,180.45,182.01,175.64,175.4,174.98,177.99,179.81,181.77,181.6,180.17,174.18,170.78,170.62,171.66,167.02,168.31,170.76,177.33,177.17,177.82,177.75,174.88,170.29,176.24,176.67,183.61,178.43,176.97,177.69,178.19,181.85,186.58,187.24,188.89,187.62,185.54,185.04,189.11,192.57,183.16,188.32,180.03,179.83,181.81,183.22,182.64,181.16,180.28,182.16,186.26,191.49,201.03,207.04,202.89,202.49,206.88,198.69,195.21,188.08,188.15,199.05,193.16,193.8,186.86,190.17,186.6,181.36,186.52,180.64,178.88,182.55,177.82,180.26,177.0,179.92,181.46,179.59,183.38,182.41,185.55,184.97,183.78,180.93,175.02,176.29,177.72,170.94,174.14,180.99,183.69,189.21,188.61,190.53,188.22,187.54,186.5,188.85,188.12,187.24,189.11,185.04,184.86,184.94,185.81,183.14,187.05,186.23,178.07,183.32,184.84,187.67,186.47,188.52,191.52,192.51,191.13,185.61,180.34,174.19,171.88,185.41,190.04,188.54,190.05,186.94,182.81,184.97,187.98,187.9,189.82,191.55,192.85,195.56,184.89,177.19,182.48,180.05,183.04,183.34,177.82,182.65,184.77,186.03,183.14,180.25,183.22,181.93,180.4,178.56,172.7,175.64,175.2,178.68,171.24,167.52,165.17,174.4,175.75,177.39,177.64,178.1,182.08,183.91,188.63,189.31,196.51,198.87,198.35,201.68,202.06,199.88,202.5,199.64,208.27,216.61,213.17,209.25,199.57,198.45,198.48,196.5,207.83,211.5,215.2,219.44,220.78,225.83,235.74,225.32,222.32,220.61,223.47,219.51,215.33,214.86,212.6,214.25,211.14,224.36,222.82,214.75,218.66,205.1,208.64,208.19,200.42,204.87,205.19],
+"volume":[22587327,26305655,18143897,25752790,38511456,24209494,25097631,43847751,26450529,28235242,19720759,28014645,21600516,19698841,17240455,17282131,22577747,22038682,28514994,19511537,28279881,21344276,20043808,22487883,14071229,23692306,18147708,14608598,14939192,15843678,18260916,19772997,27186416,25277615,16892857,18132940,14345094,21439386,13541222,18733490,17132309,19254786,14951144,22756609,14467808,19375191,27180385,13436920,22544708,18519238,17132663,20983143,34859213,29419904,30998885,17491725,14947521,30279915,22896785,15699462,30811078,20511105,14254025,20117657,17194511,28004684,26810771,38101956,43421716,25121933,15518785,26738389,19918212,27711945,37146622,21870705,16874387,16820471,20381545,15884086,17167970,20155684,39515988,16768653,26625457,22526851,18041190,20124213,12616000,11683007,15369611,12540690,15537483,17387867,41263252,33719165,19857178,16293655,21858937,20467531,20583830,23666597,26027262,22711920,22506357,19095084,27971687,23179992,20171662,32853003,23330705,42292033,46655341,27455289,33402161,20914032,13112063,21775860,18423905,18918755,16941803,15839235,20565895,15614283,18220184,19169081,24361661,18277757,14046997,26131968,20032066,42787648,14435942,22254856,8457742,20424508,12221671,12165430,10466907,16675036,21035277,19372585,14467485,20251482,13138805,13696746,16105261,17154646,25915974,22347304,27770932,24665040,15942847,16787814,13791465,18491010,17505891,24892456,22767821,21448971,24128140,28236986,17330500,29909033,24993520,15869447,15054118,22698743,18326632,17557485,19790525,10794442,25253155,22064967,18791730,27229739,37051973,33505962,23153002,19680806,18168553,23968181,18604951,19880857,22965358,13773792,17887076,19696003,28265423,19661523,16607013,22408978,30111806,23171883,17189256,20410827,22242512,22307489,22154643,27793315,17803585,17764376,11657317,16208494,16063012,13744472,20824591,14302807,18810708,21148964,15884702,22035299,15421785,13764915,13230544,13791596,27842041,21538521,21510670,12562712,28948069,17036532,12986231,11656222,22729192,18490984,17019797,20450902,19902294,16424917,23599845,25167242,16468895,16995582,15513735,24208281,17797598,20743269,17691895,13059310,26117620,24451817,21463581,18008439,17944585,23808256,14099499,19865361,15904014,15016255,12740399]
+}, weekly:{"time": ["2021-06-15", "2021-06-21", "2021-06-28", "2021-07-06", "2021-07-12", "2021-07-19", "2021-07-26", "2021-08-02", "2021-08-09", "2021-08-16", "2021-08-23", "2021-08-30", "2021-09-07", "2021-09-13", "2021-09-20", "2021-09-27", "2021-10-04", "2021-10-11", "2021-10-18", "2021-10-25", "2021-11-01", "2021-11-08", "2021-11-15", "2021-11-22", "2021-11-29", "2021-12-06", "2021-12-13", "2021-12-20", "2021-12-27", "2022-01-03", "2022-01-10", "2022-01-18", "2022-01-24", "2022-01-31", "2022-02-07", "2022-02-14", "2022-02-22", "2022-02-28", "2022-03-07", "2022-03-14", "2022-03-21", "2022-03-28", "2022-04-04", "2022-04-11", "2022-04-18", "2022-04-25", "2022-05-02", "2022-05-09", "2022-05-16", "2022-05-23", "2022-05-31", "2022-06-06", "2022-06-13", "2022-06-21", "2022-06-27", "2022-07-05", "2022-07-11", "2022-07-18", "2022-07-25", "2022-08-01", "2022-08-08", "2022-08-15", "2022-08-22", "2022-08-29", "2022-09-06", "2022-09-12", "2022-09-19", "2022-09-26", "2022-10-03", "2022-10-10", "2022-10-17", "2022-10-24", "2022-10-31", "2022-11-07", "2022-11-14", "2022-11-21", "2022-11-28", "2022-12-05", "2022-12-12", "2022-12-19", "2022-12-27", "2023-01-03", "2023-01-09", "2023-01-17", "2023-01-23", "2023-01-30", "2023-02-06", "2023-02-13", "2023-02-21", "2023-02-27", "2023-03-06", "2023-03-13", "2023-03-20", "2023-03-27", "2023-04-03", "2023-04-10", "2023-04-17", "2023-04-24", "2023-05-01", "2023-05-08", "2023-05-15", "2023-05-22", "2023-05-30", "2023-06-05", "2023-06-12", "2023-06-20", "2023-06-26", "2023-07-03", "2023-07-10", "2023-07-17", "2023-07-24", "2023-07-31", "2023-08-07", "2023-08-14", "2023-08-21", "2023-08-28", "2023-09-05", "2023-09-11", "2023-09-18", "2023-09-25", "2023-10-02", "2023-10-09", "2023-10-16", "2023-10-23", "2023-10-30", "2023-11-06", "2023-11-13", "2023-11-20", "2023-11-27", "2023-12-04", "2023-12-11", "2023-12-18", "2023-12-26", "2024-01-02", "2024-01-08", "2024-01-16", "2024-01-22", "2024-01-29", "2024-02-05", "2024-02-12", "2024-02-20", "2024-02-26", "2024-03-04", "2024-03-11", "2024-03-18", "2024-03-25", "2024-04-01", "2024-04-08", "2024-04-15", "2024-04-22", "2024-04-29", "2024-05-06", "2024-05-13", "2024-05-20", "2024-05-28", "2024-06-03", "2024-06-10", "2024-06-17", "2024-06-24", "2024-07-01", "2024-07-08", "2024-07-15", "2024-07-22", "2024-07-29", "2024-08-05", "2024-08-12", "2024-08-19", "2024-08-26", "2024-09-03", "2024-09-09", "2024-09-16", "2024-09-23", "2024-09-30", "2024-10-07", "2024-10-14", "2024-10-21", "2024-10-28", "2024-11-04", "2024-11-11", "2024-11-18", "2024-11-25", "2024-12-02", "2024-12-09", "2024-12-16", "2024-12-23", "2024-12-30", "2025-01-06", "2025-01-13", "2025-01-21", "2025-01-27", "2025-02-03", "2025-02-10", "2025-02-18", "2025-02-24", "2025-03-03", "2025-03-10", "2025-03-17", "2025-03-24", "2025-03-31", "2025-04-07", "2025-04-14", "2025-04-21", "2025-04-28", "2025-05-05", "2025-05-12", "2025-05-19", "2025-05-27", "2025-06-02", "2025-06-09", "2025-06-16", "2025-06-23", "2025-06-30", "2025-07-07", "2025-07-14", "2025-07-21", "2025-07-28", "2025-08-04", "2025-08-11", "2025-08-18", "2025-08-25", "2025-09-02", "2025-09-08", "2025-09-15", "2025-09-22", "2025-09-29", "2025-10-06", "2025-10-13", "2025-10-20", "2025-10-27", "2025-11-03", "2025-11-10", "2025-11-17", "2025-11-24", "2025-12-01", "2025-12-08", "2025-12-15", "2025-12-22", "2025-12-29", "2026-01-05", "2026-01-12", "2026-01-20", "2026-01-26", "2026-02-02", "2026-02-09", "2026-02-17", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16", "2026-03-23", "2026-03-30", "2026-04-06", "2026-04-13", "2026-04-20", "2026-04-27", "2026-05-04", "2026-05-11", "2026-05-18", "2026-05-26", "2026-06-01", "2026-06-08"], "open": [17.92725, 18.455000000000002, 19.35225, 20.73825, 20.25, 17.91475, 19.329, 19.699, 20.456, 20.124000000000002, 20.954, 22.85, 22.812, 22.671, 21.166, 21.724, 20.503999999999998, 20.598, 21.738999999999997, 22.968, 25.637999999999998, 30.149, 30.547000000000004, 33.529, 32.38, 29.879, 30.236, 27.312, 29.655, 29.824, 26.583999999999996, 26.262, 22.339, 23.185, 24.363999999999997, 23.937, 23.027, 23.985, 22.821, 21.799, 26.508, 27.758999999999997, 26.735000000000003, 22.209, 21.2, 19.197, 18.538999999999998, 18.03, 17.511000000000003, 16.259, 18.98, 19.137999999999998, 15.998, 16.474, 17.314, 14.171000000000001, 15.516, 16.308, 17.011000000000003, 18.186, 17.500999999999998, 18.705000000000002, 17.491, 16.011000000000003, 13.724, 14.372, 13.014, 12.497, 12.353, 12.038, 11.523, 12.519, 13.77, 14.216999999999999, 16.224, 15.15, 16.027, 16.68, 17.041999999999998, 16.589, 15.072999999999999, 14.866, 15.285, 16.901, 18.072, 19.958000000000002, 20.808, 21.534, 21.003999999999998, 23.679, 23.901, 22.750999999999998, 25.622000000000003, 26.823, 27.500999999999998, 26.820999999999998, 26.574, 27.01, 27.849, 28.522000000000002, 28.512999999999998, 30.907999999999998, 40.611000000000004, 38.903, 39.2, 42.998000000000005, 42.452999999999996, 42.509, 42.679, 46.288, 44.726, 46.75, 45.118, 40.515, 44.499, 46.461, 48.230000000000004, 46.148, 42.768, 41.597, 44.035000000000004, 44.837, 45.062, 41.253, 41.091, 45.29, 48.326, 49.325, 47.792, 46.068, 47.529, 49.393, 48.968, 49.266000000000005, 49.519, 55.037, 60.047000000000004, 61.245000000000005, 68.211, 72.591, 71.949, 79.701, 84.16, 86.42999999999999, 90.38, 94.0, 90.29400000000001, 88.699, 89.099, 78.103, 87.595, 89.39099999999999, 90.477, 93.76599999999999, 110.224, 113.622, 120.35, 132.93, 123.25, 123.48, 127.49, 130.62, 120.35, 113.69, 92.11, 106.39, 124.3, 129.56, 116.01, 104.86, 116.77, 116.54, 118.3, 124.96, 136.42, 138.13, 143.03, 137.24, 148.68, 139.51, 141.92, 138.77, 138.98, 134.17, 136.24, 134.87, 148.59, 130.0, 139.24, 124.8, 114.76, 130.05, 141.27, 136.83, 123.5, 109.94, 122.73, 119.88, 105.12, 87.52, 114.15, 98.72, 109.7, 112.88, 121.96, 132.35, 134.21, 135.58, 143.21, 143.38, 142.5, 158.41, 158.28, 165.34, 172.78, 174.01, 175.17, 182.05, 180.58, 178.36, 170.06, 167.57, 175.68, 175.31, 180.35, 185.46, 187.99, 183.07, 190.0, 208.05, 195.09, 185.97, 179.47, 174.76, 182.68, 177.95, 183.91, 187.7, 191.77, 183.12, 181.9, 187.17, 187.21, 184.26, 181.77, 191.45, 175.0, 176.85, 182.95, 177.39, 168.78, 177.11, 186.0, 199.92, 209.7, 199.52, 214.01, 229.82, 216.57, 215.79, 210.16], "high": [19.3745, 19.4175, 20.50525, 20.87375, 20.53275, 19.886000000000003, 19.852, 20.732, 20.505000000000003, 20.865000000000002, 22.722, 23.043, 22.899, 22.959, 22.535, 21.799, 21.321, 21.93, 23.130000000000003, 25.708, 31.360000000000003, 32.303, 33.087, 34.61, 33.410000000000004, 32.449, 31.159, 30.057, 31.324, 30.708999999999996, 28.591, 26.633, 24.057, 25.812, 26.923000000000002, 26.581, 24.216, 24.663, 23.209, 26.568, 28.357999999999997, 28.933999999999997, 27.554000000000002, 22.777, 22.669, 20.125, 20.4, 18.255000000000003, 18.366999999999997, 18.880000000000003, 19.616999999999997, 19.337, 16.866, 17.14, 17.330000000000002, 16.035, 15.780000000000001, 18.144, 18.241999999999997, 19.27, 18.717, 19.163, 17.947, 16.336000000000002, 14.472999999999999, 14.547, 14.030000000000001, 12.822999999999999, 13.655000000000001, 12.123000000000001, 12.769, 13.85, 14.228, 16.387999999999998, 16.997999999999998, 16.527, 17.262999999999998, 17.582, 18.79, 16.625999999999998, 15.1, 15.01, 16.922, 17.871000000000002, 20.625, 21.949, 23.02, 23.047, 23.887, 23.9, 24.453, 26.397000000000002, 27.589, 27.833, 28.0, 27.787, 28.107999999999997, 27.756999999999998, 29.057, 29.22, 31.827999999999996, 39.480000000000004, 41.936, 39.708, 43.72, 43.988, 42.762, 43.213, 48.034, 47.882999999999996, 47.393, 47.123000000000005, 45.539, 45.268, 50.251999999999995, 49.927, 48.85, 46.163, 44.239999999999995, 44.137, 45.788, 47.605000000000004, 46.222, 43.697, 45.306, 48.472, 49.955, 50.547000000000004, 48.761, 47.739999999999995, 49.404, 50.432, 49.997, 49.545, 55.346000000000004, 59.5, 62.839999999999996, 66.598, 72.182, 74.6, 82.394, 82.3, 97.385, 91.96000000000001, 94.775, 96.762, 92.211, 90.732, 90.613, 88.325, 89.28, 92.212, 95.818, 106.475, 115.80999999999999, 125.582, 132.83, 140.76, 128.11, 128.84, 136.14, 131.37, 124.69, 120.16, 108.8, 125.0, 130.75, 131.26, 116.21, 120.79, 119.66, 127.66, 125.0, 135.78, 140.89, 144.41, 143.14, 149.76, 149.62, 152.89, 142.05, 146.54, 141.81, 136.7, 141.9, 144.9, 153.13, 138.7, 148.97, 129.0, 130.37, 139.2, 143.44, 138.59, 123.7, 121.88, 122.89, 122.22, 111.98, 115.1, 114.29, 111.92, 115.4, 118.68, 136.31, 137.4, 143.48, 144.0, 145.0, 146.19, 158.71, 160.98, 167.89, 174.24, 174.72, 183.29, 183.88, 183.96, 182.93, 184.46, 172.41, 180.27, 178.27, 184.55, 191.05, 195.62, 190.1, 187.47, 212.15, 211.34, 199.94, 196.0, 183.48, 185.66, 187.99, 181.07, 192.69, 192.9, 193.63, 190.43, 189.6, 194.49, 190.3, 193.66, 190.37, 197.62, 184.7, 187.62, 188.87, 181.21, 177.48, 190.0, 201.7, 210.94, 216.82, 217.79, 236.54, 230.0, 218.18, 232.28, 211.39], "low": [17.5875, 17.82275, 19.325, 19.70075, 18.075, 17.86875, 18.741, 19.221, 19.43, 18.764, 20.953, 22.122, 21.978, 21.830000000000002, 20.663, 20.203, 19.555, 20.518, 21.648, 22.774, 25.231, 28.778, 28.801, 30.880000000000003, 30.130000000000003, 28.038, 27.25, 27.147000000000002, 29.333, 27.058999999999997, 25.645, 23.262999999999998, 20.892, 23.052, 23.776, 23.1, 20.89, 22.485, 20.65, 21.162, 25.580000000000002, 26.272000000000002, 23.065, 21.166, 19.5, 18.291999999999998, 17.991999999999997, 15.568999999999999, 15.757, 15.784, 18.124000000000002, 16.869999999999997, 15.330000000000002, 15.853, 14.392, 14.055000000000001, 14.465, 16.003, 16.479, 17.994999999999997, 16.725, 17.77, 16.237000000000002, 13.27, 13.346, 12.617, 12.259, 11.948, 12.023, 10.814, 11.517, 12.065999999999999, 12.956, 13.759, 15.121, 15.080000000000002, 15.521, 15.669999999999998, 16.41, 14.883000000000001, 13.884, 14.034, 15.145, 16.731, 17.819, 18.951, 20.786, 20.963, 20.426, 22.432, 22.731, 22.297, 25.131999999999998, 25.85, 26.395, 26.22, 26.436, 26.225, 27.24, 28.046, 28.156, 29.806, 37.823, 37.356, 38.62, 42.018, 40.1, 41.35, 41.65, 44.2, 44.041000000000004, 43.4, 40.64, 40.313, 44.225, 44.9, 45.154, 43.808, 40.980000000000004, 41.182, 43.247, 44.37, 41.077999999999996, 39.888, 39.235, 44.9, 48.1, 47.747, 46.191, 45.010000000000005, 45.83, 48.1, 48.756, 47.32, 49.479, 54.739999999999995, 58.59400000000001, 60.7, 66.3, 69.63, 66.25, 77.127, 83.423, 84.17999999999999, 85.012, 89.14, 85.881, 83.022, 75.612, 76.4, 81.257, 88.24600000000001, 88.538, 93.194, 106.95, 112.003, 117.01, 124.3, 118.05, 118.83, 127.04, 116.56, 106.31, 101.37, 90.7, 106.28, 123.1, 116.74, 100.96, 103.7, 113.22, 114.87, 115.15, 124.94, 128.74, 137.46, 132.12, 135.58, 140.09, 137.16, 131.93, 137.82, 132.55, 126.87, 134.71, 133.84, 134.23, 129.51, 137.1, 116.25, 113.01, 129.08, 134.04, 116.41, 107.56, 104.77, 114.54, 109.08, 92.11, 86.63, 100.05, 95.04, 104.08, 110.83, 120.28, 129.18, 132.92, 135.4, 140.85, 142.66, 142.04, 151.5, 157.35, 162.02, 164.59, 170.89, 174.52, 178.05, 168.81, 173.14, 164.07, 166.74, 168.42, 173.12, 180.35, 182.8, 177.29, 176.77, 188.44, 178.92, 180.58, 172.94, 169.55, 173.68, 174.63, 170.31, 182.36, 185.93, 183.68, 180.83, 177.79, 185.71, 171.03, 181.59, 179.18, 176.38, 174.62, 175.58, 171.73, 167.01, 164.28, 173.66, 185.74, 197.24, 197.12, 194.76, 213.89, 214.86, 208.78, 204.34, 199.36], "close": [18.638749999999998, 19.031, 20.487000000000002, 20.05025, 18.161, 19.558, 19.499000000000002, 20.366, 20.188, 20.816, 22.636000000000003, 22.843, 22.478, 21.9, 22.081, 20.741999999999997, 20.831, 21.862000000000002, 22.726, 25.567, 29.752, 30.389999999999997, 32.985, 31.502999999999997, 30.693, 30.198, 27.801, 29.639999999999997, 29.411, 27.247000000000003, 26.942, 23.374000000000002, 22.84, 24.319, 23.949, 23.642, 24.157, 22.936, 22.1, 26.452999999999996, 27.692, 26.712, 23.119, 21.258000000000003, 19.515, 18.547, 18.675, 17.706, 16.694, 18.811, 18.72, 16.974, 15.88, 17.125999999999998, 14.523, 15.838, 15.762, 17.319, 18.163, 18.988999999999997, 18.709, 17.849, 16.259999999999998, 13.647, 14.387, 13.197999999999999, 12.516, 12.139, 12.076, 11.227, 12.466, 13.834, 14.156, 16.327, 15.409, 16.27, 16.875999999999998, 17.000999999999998, 16.571, 15.206, 14.613999999999999, 14.859, 16.899, 17.839, 20.365000000000002, 21.1, 21.265, 21.387999999999998, 23.286, 23.89, 22.965, 25.725, 26.779000000000003, 27.776999999999997, 27.037, 26.758, 27.119, 27.749000000000002, 28.68, 28.339999999999996, 31.264, 38.946, 39.327, 38.769999999999996, 42.692, 42.208999999999996, 42.302, 42.503, 45.469, 44.309, 46.75, 44.68, 40.855000000000004, 43.299, 46.018, 48.509, 45.572, 43.9, 41.61, 43.499, 45.762, 45.461, 41.387, 40.5, 45.005, 48.335, 49.298, 47.775999999999996, 46.765, 47.506, 48.89, 48.83, 49.522000000000006, 49.097, 54.71, 59.491, 61.03099999999999, 66.16, 72.13300000000001, 72.613, 78.817, 82.279, 87.52799999999999, 87.837, 94.289, 90.356, 88.00800000000001, 88.186, 76.2, 87.735, 88.789, 89.878, 92.479, 106.46900000000001, 109.633, 120.888, 131.88, 126.57, 123.54, 125.83, 129.24, 117.93, 113.06, 107.27, 104.75, 124.58, 129.37, 119.37, 102.83, 119.1, 116.0, 121.4, 124.92, 134.8, 138.0, 141.54, 135.4, 147.63, 141.98, 141.95, 138.25, 142.44, 134.25, 134.7, 137.01, 144.47, 135.91, 137.71, 142.62, 120.07, 129.84, 138.85, 134.43, 124.92, 112.69, 121.67, 117.7, 109.67, 94.31, 110.93, 101.49, 111.01, 114.5, 116.65, 135.4, 131.29, 135.13, 141.72, 141.97, 143.85, 157.75, 159.34, 164.92, 172.41, 173.5, 173.72, 182.7, 180.45, 177.99, 174.18, 167.02, 177.82, 176.67, 178.19, 187.62, 183.16, 183.22, 186.26, 202.49, 188.15, 190.17, 178.88, 177.0, 182.41, 175.02, 180.99, 190.53, 188.85, 184.86, 186.23, 187.67, 191.13, 185.41, 182.81, 189.82, 177.19, 177.82, 180.25, 172.7, 167.52, 177.39, 188.63, 201.68, 208.27, 198.45, 215.2, 225.32, 215.33, 211.14, 205.1, 205.19], "volume": [209097320.0, 182380080.0, 170743120.0, 133396760.0, 175482880.0, 212590420.0, 129054840.0, 163277460.0, 110273470.0, 240403430.0, 189267910.0, 157104740.0, 122704780.0, 151686730.0, 162888160.0, 177413300.0, 149329470.0, 117694900.0, 121207810.0, 182813430.0, 309729820.0, 230324730.0, 223532790.0, 173485280.0, 205089740.0, 221099660.0, 286697040.0, 143160470.0, 150506550.0, 194756550.0, 213789910.0, 202404250.0, 377840870.0, 237846550.0, 203191150.0, 263016560.0, 237197620.0, 195275850.0, 222417760.0, 256583860.0, 248031880.0, 192183530.0, 203243870.0, 200334970.0, 230996780.0, 245937620.0, 250178850.0, 300475950.0, 249991360.0, 292937850.0, 226225630.0, 177254190.0, 284729120.0, 177312810.0, 250852300.0, 182392750.0, 208501840.0, 260316100.0, 196248770.0, 182786060.0, 273548160.0, 189744910.0, 259629690.0, 391261050.0, 186102620.0, 305773380.0, 293587420.0, 252888650.0, 271681620.0, 314385660.0, 259009410.0, 252487270.0, 240638130.0, 280351040.0, 257636080.0, 127095580.0, 204247350.0, 203365070.0, 257863030.0, 205784930.0, 152810930.0, 150767050.0, 201926620.0, 205011700.0, 256497290.0, 263565660.0, 263813600.0, 245420030.0, 245661610.0, 219069360.0, 239221890.0, 312098810.0, 280304960.0, 183018750.0, 155048860.0, 185672430.0, 173764310.0, 136821470.0, 174378760.0, 132607130.0, 213368690.0, 318665410.0, 250240780.0, 167978190.0, 276728620.0, 151432930.0, 211854550.0, 101872720.0, 202117940.0, 236774190.0, 163374100.0, 153269560.0, 200811320.0, 244934140.0, 359396480.0, 252203720.0, 144290790.0, 179408380.0, 180295330.0, 179847530.0, 180871590.0, 176381180.0, 258353230.0, 202180440.0, 191444910.0, 198102890.0, 190137710.0, 180858510.0, 176923260.0, 163399460.0, 217822300.0, 161029120.0, 113798950.0, 135262450.0, 236730330.0, 166830910.0, 176286750.0, 163087870.0, 238433080.0, 238969370.0, 286800850.0, 188004780.0, 321867830.0, 290602940.0, 249430800.0, 166961690.0, 161810620.0, 179268980.0, 214670190.0, 219403960.0, 172292270.0, 141455620.0, 148390700.0, 218211100.0, 175293210.0, 201634090.0, 175118917.0, 219283666.0, 188420388.0, 102795450.0, 152134365.0, 151839728.0, 166085950.0, 227773229.0, 249526434.0, 165249578.0, 151393780.0, 173423057.0, 175758647.0, 165911897.0, 142418199.0, 141794268.0, 128845123.0, 136613584.0, 156040891.0, 127159246.0, 101269031.0, 102624852.0, 111756412.0, 142349894.0, 91702306.0, 101091330.0, 107561664.0, 154797402.0, 69662941.0, 97306691.0, 126916965.0, 127815742.0, 96641793.0, 338468897.0, 156410644.0, 115920848.0, 89811975.0, 199036813.0, 222527674.0, 212056299.0, 155375946.0, 135858400.0, 208581796.0, 359802906.0, 151151606.0, 148614069.0, 120386051.0, 95502482.0, 160227420.0, 129043148.0, 139418671.0, 119156119.0, 107220177.0, 108713798.0, 147840647.0, 89034761.0, 107654009.0, 111667385.0, 85459033.0, 106341622.0, 84351499.0, 92828338.0, 97005012.0, 120914161.0, 93718046.0, 104172455.0, 130229579.0, 130719035.0, 120424130.0, 113105273.0, 104086364.0, 67746791.0, 128521117.0, 112604157.0, 115465040.0, 165302744.0, 94883545.0, 91899558.0, 97931104.0, 121276436.0, 65573048.0, 51529044.0, 88265634.0, 95219931.0, 85166633.0, 97448643.0, 121053630.0, 96942460.0, 73395607.0, 138644371.0, 103575493.0, 94203086.0, 117054743.0, 105321967.0, 85515919.0, 78497886.0, 92182480.0, 84050881.0, 101596504.0, 82882426.0, 105545200.0, 90984091.0, 77612094.0, 105676678.0, 77625528.0]} };
+let NVDA_DAILY = PAM_DATA.daily, NVDA_WEEKLY = PAM_DATA.weekly;   // mutable: live fetch swaps these
+
+/* ============================================================
+   ENGINE — ported 1:1 from the validated Python reference
+   ============================================================ */
+function aggregate(daily,n){
+  const {open:o,high:h,low:l,close:c,time:t,volume:v}=daily,bars=[];
+  for(let i=0;i<c.length;i+=n){const j=Math.min(i+n,c.length);
+    bars.push({date:t[j-1],open:o[i],high:Math.max(...h.slice(i,j)),low:Math.min(...l.slice(i,j)),
+      close:c[j-1],vol:v.slice(i,j).reduce((a,b)=>a+b,0)});}
+  return bars;
+}
+function sma(v,p){const o=v.map(_=>null);for(let i=0;i<v.length;i++)if(i>=p-1){let s=0;for(let k=i-p+1;k<=i;k++)s+=v[k];o[i]=s/p;}return o;}
+function atr(b,p){const tr=b.map((x,i)=>{if(i===0)return x.high-x.low;const pc=b[i-1].close;
+  return Math.max(x.high-x.low,Math.abs(x.high-pc),Math.abs(x.low-pc));});
+  const o=b.map(_=>null);for(let i=0;i<b.length;i++)if(i>=p-1){let s=0;for(let k=i-p+1;k<=i;k++)s+=tr[k];o[i]=s/p;}return o;}
+/* ---- indicator math (for the sub-panels) ---- */
+function smaN(v,p){const o=v.map(_=>null);for(let i=0;i<v.length;i++){let s=0,ok=true;
+  for(let k=i-p+1;k<=i;k++){if(k<0||v[k]==null){ok=false;break;}s+=v[k];}if(ok)o[i]=s/p;}return o;}
+function ema(v,n){const k=2/(n+1),o=v.map(_=>null);let prev=null;
+  for(let i=0;i<v.length;i++){const xx=v[i];if(xx==null){o[i]=prev;continue;}prev=prev==null?xx:prev+k*(xx-prev);o[i]=prev;}return o;}
+function rma(v,n){const o=v.map(_=>null);let prev=null,s=0,cnt=0;        // Wilder's smoothing
+  for(let i=0;i<v.length;i++){const xx=v[i];if(xx==null)continue;
+    if(cnt<n){s+=xx;cnt++;if(cnt===n){prev=s/n;o[i]=prev;}}else{prev=(prev*(n-1)+xx)/n;o[i]=prev;}}return o;}
+function rsiWilder(c,n){const ch=c.map((x,i)=>i===0?0:x-c[i-1]);
+  const ag=rma(ch.map(d=>Math.max(d,0)),n), al=rma(ch.map(d=>Math.max(-d,0)),n), o=c.map(_=>null);
+  for(let i=0;i<c.length;i++){if(ag[i]==null||al[i]==null)continue;o[i]=al[i]===0?100:100-100/(1+ag[i]/al[i]);}return o;}
+function macdCalc(c,f,s,sig){const ef=ema(c,f),es=ema(c,s);
+  const line=c.map((_,i)=>(i<s-1)?null:ef[i]-es[i]);
+  const sg=ema(line,sig), hist=line.map((v,i)=>(v==null||sg[i]==null)?null:v-sg[i]);
+  return {line,sig:sg,hist};}
+function stochSlow(b,kLook,dSmooth){                                   // TOS StochasticSlow: SlowK=SMA(rawK,D), SlowD=SMA(SlowK,D)
+  const raw=b.map((x,i)=>{if(i<kLook-1)return null;let hh=-1e9,ll=1e9;
+    for(let j=i-kLook+1;j<=i;j++){hh=Math.max(hh,b[j].high);ll=Math.min(ll,b[j].low);}
+    return hh===ll?50:100*(b[i].close-ll)/(hh-ll);});
+  const k=smaN(raw,dSmooth); return {k, d:smaN(k,dSmooth)};}
+function atrWilder(b,n){const tr=b.map((x,i)=>i===0?x.high-x.low:Math.max(x.high-x.low,Math.abs(x.high-b[i-1].close),Math.abs(x.low-b[i-1].close)));return rma(tr,n);}
+function classifyBar(b,avg){
+  const o=b.open,h=b.high,l=b.low,c=b.close,rng=h-l;
+  if(rng<=0)return{type:'doji',dir:null,flush:false,bf:0};
+  const bf=Math.abs(c-o)/rng,top3=l+rng*2/3,bot3=l+rng/3,flush=(bf>=2/3)&&avg&&(rng>=2*avg);
+  if(o>=top3&&c>=top3)return{type:'PIN',dir:'bull',flush,bf};
+  if(o<=bot3&&c<=bot3)return{type:'PIN',dir:'bear',flush,bf};
+  if(bf>=2/3){if(c>o)return{type:flush?'FLUSH-UP':'MARK-UP',dir:'bull',flush,bf};
+              return{type:flush?'FLUSH-DOWN':'MARK-DOWN',dir:'bear',flush,bf};}
+  if(bf>=0.4&&bf<=0.6){if(c>=top3)return{type:'ICE-CREAM',dir:'bull',flush:false,bf};
+                       if(c<=bot3)return{type:'ICE-CREAM',dir:'bear',flush:false,bf};}
+  return{type:'neutral',dir:null,flush:false,bf};
+}
+function pivots(b,k){const hi=b.map(_=>false),lo=b.map(_=>false);
+  for(let i=k;i<b.length-k;i++){let mh=-1e9,ml=1e9;
+    for(let j=i-k;j<=i+k;j++){mh=Math.max(mh,b[j].high);ml=Math.min(ml,b[j].low);}
+    if(b[i].high===mh)hi[i]=true;if(b[i].low===ml)lo[i]=true;}
+  return{hi,lo};}
+function enrich(bars){
+  const c=bars.map(b=>b.close),s50=sma(c,50),s20=sma(c,20),s200=sma(c,200),a=atr(bars,14),{hi,lo}=pivots(bars,3);
+  const rg=bars.map(b=>b.high-b.low);
+  bars.forEach((b,i)=>{const w=rg.slice(Math.max(0,i-10),i),avg=w.length?w.reduce((x,y)=>x+y,0)/w.length:0;
+    b.cls=classifyBar(b,avg);b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;});
+  // sub-panel indicators (Stoch Slow 10·SMA10, RSI 14 Wilder, MACD 12·26·9 EMA, ATR 14 Wilder)
+  const _st=stochSlow(bars,10,10), _rsi=rsiWilder(c,14), _mac=macdCalc(c,12,26,9), _atrw=atrWilder(bars,14);
+  bars.forEach((b,i)=>{b.stochK=_st.k[i];b.stochD=_st.d[i];b.rsi=_rsi[i];
+    b.macd=_mac.line[i];b.macdSig=_mac.sig[i];b.macdHist=_mac.hist[i];b.atrW=_atrw[i];});
+  // Donchian channels — prior-N high/low (exclude current bar), Turtle 10/20/55
+  const chan=(arr,n,kind)=>{const out=bars.map(_=>null);
+    for(let i=0;i<bars.length;i++){if(i<n)continue;let v=kind==='hi'?-1e9:1e9;
+      for(let j=i-n;j<i;j++)v=kind==='hi'?Math.max(v,bars[j].high):Math.min(v,bars[j].low);out[i]=v;}return out;};
+  const hi10=chan(0,10,'hi'),lo10=chan(0,10,'lo'),hi20=chan(0,20,'hi'),lo20=chan(0,20,'lo'),hi55=chan(0,55,'hi'),lo55=chan(0,55,'lo');
+  bars.forEach((b,i)=>{b.hi10=hi10[i];b.lo10=lo10[i];b.hi20=hi20[i];b.lo20=lo20[i];b.hi55=hi55[i];b.lo55=lo55[i];});
+  // ---- Turtle state machine (rebuilt) ----
+  // ONE trade = entry (·1) + up to 3 pyramid adds, ONE per bar, each requiring a genuine +0.5N extension
+  // measured from the running fill price (NOT the channel level). Single exit: channel (10/20-day) OR 2N stop.
+  // N = ATR(20). Reverse mirrors on the low side. Each trade is recorded so the chart can group it.
+  const N=atr(bars,20);
+  function runTurtle(long){
+    const U=long?'ttUnit':'rtUnit',SY=long?'ttSys':'rtSys',EX=long?'ttExit':'rtExit',ES=long?'ttExSys':'rtExSys',ER=long?'ttRsn':'rtRsn';
+    const trades=[]; let cur=null,lastFill=0,stop=0;
+    for(let i=0;i<bars.length;i++){
+      const b=bars[i],n=N[i]; if(n==null||b.hi20==null)continue;
+      if(!cur){                                   // flat → look for an entry
+        let sys=0;
+        if(long){ if(b.hi55!=null&&b.high>b.hi55)sys=2; else if(b.high>b.hi20)sys=1; }
+        else    { if(b.lo55!=null&&b.low<b.lo55)sys=2; else if(b.lo20!=null&&b.low<b.lo20)sys=1; }
+        if(sys){ lastFill=b.close; stop=long?b.close-2*n:b.close+2*n;   // add/stop reference = real fill
+          cur={sys,entry:i,exit:null,units:1,reason:null}; b[U]=1; b[SY]='S'+sys; }
+      } else {                                    // in a trade → exit first, else maybe ONE add
+        const exitChan = long
+          ? (cur.sys===1 ? (b.lo10!=null&&b.low<b.lo10) : (b.lo20!=null&&b.low<b.lo20))
+          : (cur.sys===1 ? (b.hi10!=null&&b.high>b.hi10) : (b.hi20!=null&&b.high>b.hi20));
+        const stopHit = long ? b.low<stop : b.high>stop;
+        if(stopHit||exitChan){ cur.exit=i; cur.reason=stopHit?'stop':'chan';
+          b[EX]=true; b[ES]='S'+cur.sys; b[ER]=cur.reason; trades.push(cur); cur=null; }
+        else if(cur.units<4 && (long ? b.high>=lastFill+0.5*n : b.low<=lastFill-0.5*n)){
+          cur.units++; lastFill = long?lastFill+0.5*n:lastFill-0.5*n;
+          stop = long?lastFill-2*n:lastFill+2*n; b[U]=cur.units; b[SY]='S'+cur.sys; }
+      }
+    }
+    if(cur) trades.push(cur);
+    return trades;
+  }
+  bars.ttTrades=runTurtle(true); bars.rtTrades=runTurtle(false);
+  return bars;
+}
+
+/* ---- trigger scanner (ported from scan.py) ---- */
+function findForce(bars,i,win=15){
+  const b=bars[i],sh=[],sl=[];
+  for(let j=Math.max(0,i-win);j<i-2;j++){if(bars[j].swingH)sh.push(bars[j].high);if(bars[j].swingL)sl.push(bars[j].low);}
+  const top=sh.filter(lv=>lv<b.high&&lv>=b.close);
+  if(top.length)return{f:'top',lv:Math.max(...top)};
+  const bot=sl.filter(lv=>lv>b.low&&lv<=b.close);
+  if(bot.length)return{f:'bottom',lv:Math.min(...bot)};
+  return{f:null,lv:null};
+}
+function legsInPullback(bars,i,dir,win=14){
+  if(dir==='up'){let th=Math.max(0,i-win);for(let j=Math.max(0,i-win);j<i;j++)if(bars[j].swingH)th=j;
+    let n=0;for(let j=th;j<i;j++)if(bars[j].swingL)n++;return n;}
+  let tl=Math.max(0,i-win);for(let j=Math.max(0,i-win);j<i;j++)if(bars[j].swingL)tl=j;
+  let n=0;for(let j=tl;j<i;j++)if(bars[j].swingH)n++;return n;
+}
+function recentFlush(bars,i,kind,look=4){for(let j=Math.max(0,i-look);j<=i;j++)if(bars[j].cls.type===kind)return true;return false;}
+function isInside(m,b){return b.high<=m.high&&b.low>=m.low;}
+function forceStrike(bars,i){
+  for(let m=Math.max(0,i-6);m<i-1;m++){
+    if(!isInside(bars[m],bars[m+1]))continue;
+    const mom=bars[m],b=bars[i],cls=b.cls;
+    if(b.low<mom.low&&b.close>=mom.low&&cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral')return{d:'bull',lv:mom.low};
+    if(b.high>mom.high&&b.close<=mom.high&&cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral')return{d:'bear',lv:mom.high};
+  }
+  return{d:null,lv:null};
+}
+function scan(bars){
+  const out=[];
+  for(let i=50;i<bars.length;i++){
+    const b=bars[i],cls=b.cls;
+    const flow=b.close>b.sma50?'up':'down';
+    const {f:force,lv}=findForce(bars,i);
+    const eB=cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral';
+    const eS=cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral';
+    let label=null,dir=null,why=null,level=lv;
+    const fs=forceStrike(bars,i);
+    if(fs.d==='bull'){label='Bull-FS';dir='long';why='inside-bar trap — false-break down, closed back inside, bullish EXE';level=fs.lv;}
+    else if(fs.d==='bear'){label='Bear-FS';dir='short';why='inside-bar trap — false-break up, closed back inside, bearish EXE';level=fs.lv;}
+    else if(force==='bottom'&&eB){
+      if(flow==='up'){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
+        why=`up flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE reclaimed it`;}
+      else{const mf=recentFlush(bars,i,'FLUSH-DOWN');label=mf?'DR2':'DR1';dir='long';
+        why=`down flow · force-bottom at ${fmt(lv)}${mf?' after a majority flush-down':''} · bullish EXE`;}
+    }
+    else if(force==='top'&&eS){
+      if(flow==='down'){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
+        why=`down flow · force-top (bull trap) at ${fmt(lv)} · bearish EXE rejected it`;}
+      else{const mf=recentFlush(bars,i,'FLUSH-UP');label=mf?'UR2':'UR1';dir='short';
+        why=`up flow · force-top at ${fmt(lv)}${mf?' after a majority flush-up':''} · bearish EXE`;}
+    }
+    if(label){
+      const last=out[out.length-1];
+      if(last&&last.label===label&&(i-last.i)<=3)continue;   // dedupe adjacent repeats
+      out.push({i,date:b.date,label,dir,why,price:b.close,level,exe:cls.type});
+    }
+  }
+  return out;
+}
+
+/* trade structuring for a given EXE bar + direction */
+function buildTrade(bars,trig){
+  const e=bars[trig.i],atrv=e.atr||0,rng=e.high-e.low,mid=e.low+rng/2,dir=trig.dir;
+  const px=bars[bars.length-1].close;
+  if(dir==='long'){
+    const entry=mid,sl=Math.min(e.low-0.01,e.high-atrv),risk=entry-sl;
+    return{dir,entryLo:mid,entryHi:e.high,sl,risk,tgt:entry+1.7*risk,wide:risk>atrv,atr:atrv,smelly:(px-entry)>=risk};
+  }
+  const entry=mid,sl=Math.max(e.high+0.01,e.low+atrv),risk=sl-entry;
+  return{dir,entryLo:e.low,entryHi:mid,sl,risk,tgt:entry-1.7*risk,wide:risk>atrv,atr:atrv,smelly:(entry-px)>=risk};
+}
+
+/* worksheet read for the latest bar */
+function analyse(bars){
+  const last=bars[bars.length-1],px=last.close;
+  const flow=last.sma50==null?'unknown':(px>last.sma50?'up':'down');
+  const r=bars.slice(-6);
+  const flushUp=r.filter(b=>b.cls.type==='FLUSH-UP').length, flushDn=r.filter(b=>b.cls.type==='FLUSH-DOWN').length;
+  const look=bars.slice(-40),sh=look.filter(b=>b.swingH).map(b=>b.high),sl=look.filter(b=>b.swingL).map(b=>b.low);
+  const lpAbove=sh.filter(v=>v>px).sort((a,b)=>a-b)[0]||null, lpBelow=sl.filter(v=>v<px).sort((a,b)=>b-a)[0]||null;
+  const {f:force,lv:forceLevel}=findForce(bars,bars.length-1);
+  return{last,px,flow,flushUp,flushDn,lpAbove,lpBelow,force,forceLevel,near20:last.sma20,near50:last.sma50,atr:last.atr};
+}
+
+/* ============================================================
+   STATE + RENDER
+   ============================================================ */
+const S={src:'NVDA',tf:'2',lens:1,ticker:PAM_DATA.ticker,name:(PAM_DATA.name||''),effMonths:36,
+  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false}, recentOnly:false,
+  ind:{stoch:false,rsi:false,macd:false,atr:false}, span:null, start:null};
+const THEMES={dark:{grid:'#1b232c',chipBg:'#10161d',zero:'#2a3550'},light:{grid:'#e7e1d4',chipBg:'#fffdf9',zero:'#ded7ca'}};
+let THEME='dark'; try{THEME=localStorage.getItem('pam_theme')||'dark';}catch(e){}
+let TH=THEMES[THEME]||THEMES.dark;
+try{document.documentElement.setAttribute('data-theme',THEME);}catch(e){}
+function applyTheme(t){THEME=(t==='light')?'light':'dark';TH=THEMES[THEME];
+  try{document.documentElement.setAttribute('data-theme',THEME);}catch(e){}
+  try{localStorage.setItem('pam_theme',THEME);}catch(e){}
+  const tb=document.getElementById('themeToggle'); if(tb)tb.textContent=THEME==='light'?'◐ Dark':'◐ Light';
+  if(typeof draw==='function' && typeof BARS!=='undefined' && BARS && BARS.length) draw();}
+let BARS=[],A=null,TRIGS=[],ACTIVE=null,TRADE=null;
+const $=s=>document.querySelector(s);
+function fmt(x,d=2){return x==null?'—':Number(x).toFixed(d);}
+function tfLabel(){return S.tf==='W'?'WEEKLY · 3-YEAR':S.tf==='2'?'2-DAY · 1-YEAR':'DAILY';}
+function sourceBars(){
+  if(S.src==='PASTE')return enrich(aggregate(S.paste, S.tf==='2'?2:1));
+  if(S.tf==='W' && NVDA_WEEKLY) return enrich(aggregate(NVDA_WEEKLY,1));
+  const n = (S.tf==='2' || (S.tf==='W' && !NVDA_WEEKLY)) ? 2 : 1;  // weekly missing -> fall back to 2-Day
+  return enrich(aggregate(NVDA_DAILY,n));
+}
+function recompute(){
+  BARS=sourceBars(); A=analyse(BARS); TRIGS=scan(BARS);
+  const def=S.tf==='W'?156:90; S.span=Math.min(def,BARS.length); S.start=Math.max(0,BARS.length-S.span);  // reset view to newest
+  // active = a trigger on the last or 2nd-last bar
+  ACTIVE=TRIGS.filter(t=>t.i>=BARS.length-2).slice(-1)[0]||null;
+  TRADE=ACTIVE?buildTrade(BARS,ACTIVE):null;
+  renderVerdict();renderSteps();renderTrade();renderLog();draw();
+}
+
+function renderVerdict(){
+  $('#vTk').textContent=`${S.ticker} · ${tfLabel()}`;
+  const _nm=$('#vNm'); if(_nm)_nm.textContent=S.name||'';
+  $('#vPx').textContent=fmt(A.px);
+  const c=[];
+  c.push(`<span class="chip ${A.flow==='up'?'long':A.flow==='down'?'short':''}">flow ${A.flow}</span>`);
+  if(A.flushUp)c.push(`<span class="chip short">${A.flushUp} flush-up</span>`);
+  if(A.flushDn)c.push(`<span class="chip long">${A.flushDn} flush-down</span>`);
+  if(ACTIVE)c.push(`<span class="chip ${ACTIVE.dir==='long'?'long':'short'}">▶ ${ACTIVE.label} active</span>`);
+  else c.push(`<span class="chip">no active trigger</span>`);
+  $('#vChips').innerHTML=c.join('');
+}
+
+function renderSteps(){
+  const a=A;
+  const flushNote=a.flushUp?`${a.flushUp} flush-up bar(s) recently — <b>bearish</b> to the trader`
+    :a.flushDn?`${a.flushDn} flush-down bar(s) recently — <b>bullish</b> to the trader`:'wave-like, no recent flush bars';
+  const setupTxt=ACTIVE?`<b>${ACTIVE.label}</b> <span class="tag ${ACTIVE.dir==='long'?'long':'short'}">${ACTIVE.dir}</span> — ${ACTIVE.why}.`
+    :(TRIGS.length?`No trigger on the latest bar. Most recent was <b>${TRIGS[TRIGS.length-1].label}</b> on ${TRIGS[TRIGS.length-1].date}.`:'No triggers found in this window.');
+  const steps=[
+    ['1','Flow (50 SMA)',`Price ${fmt(a.px)} is <b>${a.flow==='up'?'above':'below'}</b> the 50 SMA (${fmt(a.near50)}) → <b>${a.flow} flow</b>. 20 SMA ${fmt(a.near20)}.`],
+    ['2','Momentum',flushNote+'.'],
+    ['3','LP levels',`Nearest un-breached swing levels — above <b>${fmt(a.lpAbove)}</b>, below <b>${fmt(a.lpBelow)}</b>.`],
+    ['4','Force scenario',a.force?`A force <b>${a.force}</b> at ${fmt(a.forceLevel)} is in play on the latest bar — a ${a.force==='top'?'bull trap (bearish)':'bear trap (bullish)'}.`:'No force top/bottom on the latest bar.'],
+    ['5','Latest EXE',`${a.last.cls.type}${a.last.cls.flush?' (flush)':''}, ${a.last.cls.dir||'neutral'} on ${a.last.date}.`],
+    ['6','Setup',setupTxt],
+    ['7','Trade structure',TRADE?`Structured at right from the ${ACTIVE.label} bar — entry, stop, width vs ATR, 1:1.7 target.`:'No live structure — the framework waits for the latest bar to be a trigger.'],
+    ['8','Exit watch',ACTIVE&&ACTIVE.dir==='long'?`If long: ≥2 flush-up bars, a flush into ${fmt(a.lpAbove)}, or a force-top forming → size out 40–60%.`
+      :ACTIVE&&ACTIVE.dir==='short'?`If short: ≥2 flush-down bars, a flush into ${fmt(a.lpBelow)}, or a force-bottom forming → cover 40–60%.`
+      :`In any trade: ≥2 flush bars against you, or a flush into the next LP, is the cue to scale out.`],
+  ];
+  $('#steps').innerHTML=steps.map(([n,k,v])=>`<div class="step"><div class="n">${n}</div><div><div class="k">${k}</div><div class="v">${v}</div></div></div>`).join('');
+  $('#caveat').textContent='This is the PAM framework’s reading of the chart, not a forecast. Setups fail; it is one methodology among many and is not financial advice. Sizing and risk are your call.';
+}
+
+function renderTrade(){
+  const t=TRADE;
+  if(!t){$('#trade').innerHTML=`<div class="note">No trade structured — the latest bar isn’t a trigger. The log below shows the most recent ones and the reason each fired, so you can see what the chart is reacting to.</div>`;return;}
+  const width=t.wide?`<span class="pill no">WIDE — tighten entry/stop</span>`:`<span class="pill ok">NOT WIDE — within 1 ATR</span>`;
+  const smelly=t.smelly?`<div class="note">⚠ Smelly trade: price has already run ≥1R from the planned entry — the framework would <b>cancel</b> the order; the edge is gone.</div>`:'';
+  $('#trade').innerHTML=`<table>
+    <tr><td>Trigger</td><td>${ACTIVE.label} <span class="tag ${t.dir==='long'?'long':'short'}">${t.dir}</span></td></tr>
+    <tr><td>Sweet-spot entry</td><td>${fmt(Math.min(t.entryLo,t.entryHi))} – ${fmt(Math.max(t.entryLo,t.entryHi))}</td></tr>
+    <tr><td>Stop loss</td><td>${fmt(t.sl)}</td></tr>
+    <tr><td>Risk (entry→SL)</td><td>${fmt(t.risk)}</td></tr>
+    <tr><td>Current ATR(14)</td><td>${fmt(t.atr)}</td></tr>
+    <tr><td>Width check</td><td>${width}</td></tr>
+    <tr><td>Target (1 : 1.7)</td><td>${fmt(t.tgt)}</td></tr></table>${smelly}`;
+}
+
+function renderLog(){
+  if(!TRIGS.length){$('#log').innerHTML=`<div class="empty">No triggers in this window — the framework is sitting out.</div>`;return;}
+  const rows=TRIGS.slice().reverse().slice(0,10).map(t=>{
+    const cl=t.dir==='long'?'long':'short';
+    return `<div class="logrow"><div class="dt">${t.date}</div><div class="lab ${cl}">${t.label}</div><div class="why">${t.why}.</div></div>`;
+  });
+  $('#log').innerHTML=rows.join('');
+}
+
+/* ---------- chart ---------- */
+const cv=$('#chart'),ctx=cv.getContext('2d');let GEO=null;
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/* ============================================================
+   EFFECTIVENESS — score every historical PAM / Turtle signal on
+   DAILY bars, to a rule-based exit, over a 1–5y window.
+   The full daily series is enriched + scanned ONCE (buildEff);
+   the slider only re-slices by date — no new download.
+   ============================================================ */
+let EFF=null;   // { bars, trigs }  cached daily analysis
+let EFF_OPEN={};   // which system groups are expanded { 'PAM long':true, ... }
+function effDailyBars(){
+  if(S.src==='PASTE' && S.paste) return enrich(aggregate(S.paste,1));
+  return enrich(aggregate(NVDA_DAILY,1));
+}
+function buildEff(){ try{ const bars=effDailyBars(); EFF={bars,trigs:scan(bars)}; }catch(e){ EFF=null; } }
+const EFF_WINDOWS=[3,6,12,24,36,48,60];   // selectable look-back windows, in MONTHS
+function effLabel(m){ return m<12?(m+' months'):((m/12)+(m/12===1?' year':' years')); }
+function effCutoff(months){ const last=EFF.bars[EFF.bars.length-1].date;
+  const d=new Date(last); if(isNaN(d)){return '0000-01-01';} d.setMonth(d.getMonth()-months);
+  return d.toISOString().slice(0,10); }
+// one PAM trigger -> {r, ex}: fractional P&L of a 1:1.7 trade risking 1 ATR from the trigger close, + exit bar index
+function simPam(bars,t){
+  const e=bars[t.i],atrv=e.atr; if(!atrv||atrv<=0)return null;
+  const entry=e.close,R=atrv,long=t.dir==='long';
+  const tgt=long?entry+1.7*R:entry-1.7*R, stop=long?entry-R:entry+R;
+  const cap=Math.min(bars.length-1,t.i+40);
+  for(let j=t.i+1;j<=cap;j++){const b=bars[j];
+    if(long){ if(b.low<=stop)return{r:(stop-entry)/entry,ex:j,open:false}; if(b.high>=tgt)return{r:(tgt-entry)/entry,ex:j,open:false}; }
+    else    { if(b.high>=stop)return{r:(entry-stop)/entry,ex:j,open:false}; if(b.low<=tgt)return{r:(entry-tgt)/entry,ex:j,open:false}; } }
+  const c=bars[cap].close, open=(cap===bars.length-1);   // ran to the last bar with no exit -> still open, marked at latest close
+  return{r:long?(c-entry)/entry:(entry-c)/entry,ex:cap,open};
+}
+// realise a sleeve as ONE account: take trades in entry order, skip any that open before the prior one closed,
+// then COMPOUND. Turtle/Reverse trades are already non-overlapping; PAM triggers can overlap, so this de-overlaps them.
+// Open positions (still running) are marked to the latest close and counted, with a flag.
+// -> {n: trades taken, win, avg (per trade), total (cumulative, compounded — comparable to buy & hold), open: # unrealised}
+function seqStats(trades){
+  trades.sort((a,b)=>a.entry-b.entry);
+  const taken=[]; let lastExit=-1;
+  for(const tr of trades){ if(tr.r==null)continue; if(tr.entry>lastExit){ taken.push(tr); lastExit=tr.exit; } }
+  const n=taken.length; if(!n)return{n:0,win:null,avg:null,total:null,open:0};
+  const rs=taken.map(t=>t.r), wins=rs.filter(x=>x>0).length, avg=rs.reduce((a,b)=>a+b,0)/n;
+  const openN=taken.filter(t=>t.open).length;
+  let eq=1; rs.forEach(x=>eq*=(1+Math.max(-0.99,x)));     // compounded equity, one position at a time
+  return{n,win:wins/n,avg,total:eq-1,open:openN};
+}
+function effStatus(s){ if(!s||s.n===0)return{cls:'eff-none',word:'no trades'};
+  if(s.avg<=0)return{cls:'eff-bad',word:'negative'};
+  if(s.n>=8&&s.win>=0.55)return{cls:'eff-robust',word:'robust'};
+  if(s.n>=5)return{cls:'eff-green',word:'positive'};
+  return{cls:'eff-thin',word:'too few (N<5)'}; }
+function computeEff(months){
+  const bars=EFF.bars,trigs=EFF.trigs,cut=effCutoff(months),inWin=d=>d>=cut,lastIdx=bars.length-1;
+  // PAM trades matching a predicate (label/dir), each via simPam (open flag preserved)
+  const pamBy=pred=>{const out=[];trigs.forEach(t=>{if(!inWin(t.date)||!pred(t))return;const o=simPam(bars,t);if(!o)return;out.push({entry:t.i,exit:o.ex,r:o.r,open:o.open});});return out;};
+  // Turtle/Reverse trades from an array, optional sys filter (0 = all), open trades marked to latest close
+  const ttBy=(arr,long,sys)=>{const out=[];(arr||[]).forEach(tr=>{if(!inWin(bars[tr.entry].date))return;if(sys&&tr.sys!==sys)return;const en=bars[tr.entry].close,op=tr.exit==null,exI=op?lastIdx:tr.exit,exC=bars[exI].close;out.push({entry:tr.entry,exit:exI,r:long?(exC-en)/en:(en-exC)/en,open:op});});return out;};
+  const lbl=(...ls)=>{const set=new Set(ls);return t=>set.has(t.label);};
+  const rows=[
+    {k:'PAM long',s:seqStats(pamBy(t=>t.dir==='long')),kids:[
+      {k:'Bull-FS',s:seqStats(pamBy(lbl('Bull-FS')))},
+      {k:'UC1 / UC2',s:seqStats(pamBy(lbl('UC1','UC2')))},
+      {k:'DR1 / DR2',s:seqStats(pamBy(lbl('DR1','DR2')))}]},
+    {k:'PAM short',s:seqStats(pamBy(t=>t.dir==='short')),kids:[
+      {k:'Bear-FS',s:seqStats(pamBy(lbl('Bear-FS')))},
+      {k:'DC1 / DC2',s:seqStats(pamBy(lbl('DC1','DC2')))},
+      {k:'UR1 / UR2',s:seqStats(pamBy(lbl('UR1','UR2')))}]},
+    {k:'Turtle S1/S2 long',s:seqStats(ttBy(bars.ttTrades,true,0)),kids:[
+      {k:'S1 · 20-day',s:seqStats(ttBy(bars.ttTrades,true,1))},
+      {k:'S2 · 55-day',s:seqStats(ttBy(bars.ttTrades,true,2))}]},
+    {k:'Reverse-TT short',s:seqStats(ttBy(bars.rtTrades,false,0)),kids:[
+      {k:'S1s · 20-day',s:seqStats(ttBy(bars.rtTrades,false,1))},
+      {k:'S2s · 55-day',s:seqStats(ttBy(bars.rtTrades,false,2))}]}
+  ];
+  let bh=null,start=null;
+  for(let i=0;i<bars.length;i++){ if(inWin(bars[i].date)){start=bars[i].date;bh=(bars[lastIdx].close-bars[i].close)/bars[i].close;break;} }
+  return{rows,bh,start,last:bars[lastIdx].date,bars:bars.length}; }
+function effPct(x,d){ return x==null?'—':((x*100).toFixed(d==null?1:d)+'%'); }
+function renderEffectiveness(){
+  const body=$('#effBody'),lbl=$('#effYearsLbl'),note=$('#effNote'),nm=$('#effName'); if(!body)return;
+  if(nm)nm.textContent = S.name?('· '+S.name):(S.ticker?('· '+S.ticker):'');
+  const m=S.effMonths||36; if(lbl)lbl.textContent=effLabel(m);
+  if(!EFF||!EFF.bars||EFF.bars.length<60){
+    body.innerHTML='<div class="empty">Not enough daily history to score yet (need ~60+ bars). Fetch a symbol with your key, or paste a longer series.</div>';
+    if(note)note.textContent=''; return; }
+  const e=computeEff(m);
+  const cells=s=>{const st=effStatus(s),a=s.avg,tt=s.total;
+    return `<td class="num">${s.n||0}${s.open?` <span class="opn">(${s.open} open)</span>`:''}</td>`+
+      `<td class="num">${s.win==null?'—':effPct(s.win,0)}</td>`+
+      `<td class="num avgcol ${a==null?'':a>0?'pos':'neg'}">${effPct(a)}</td>`+
+      `<td class="num ${tt==null?'':tt>0?'pos':'neg'}">${effPct(tt)}</td>`+
+      `<td><span class="effword ${st.cls}">${st.word}</span></td>`;};
+  const parent=r=>`<tr data-grp="${r.k}" class="eff-grp"><td><span class="eff-disc">${EFF_OPEN[r.k]?'▾':'▸'}</span><span class="effpill ${effStatus(r.s).cls}">${r.k}</span>${(r.kids&&r.kids.length)?`<span class="eff-cnt">${EFF_OPEN[r.k]?'hide':r.kids.length+' setups'}</span>`:''}</td>${cells(r.s)}</tr>`;
+  const kid=k=>`<tr class="eff-kid"><td><span class="eff-sub">${k.k}</span></td>${cells(k.s)}</tr>`;
+  body.innerHTML=`<table class="eff">`+
+    `<tr><th>System</th><th class="num">N</th><th class="num">Win%</th><th class="num avgcol">Avg/trade</th><th class="num">Total</th><th>Read</th></tr>`+
+    e.rows.map(r=>parent(r)+((r.kids&&EFF_OPEN[r.k])?r.kids.map(kid).join(''):'')).join('')+
+    `<tr class="bh"><td><span class="effpill eff-bh">Buy &amp; hold</span></td><td class="num">—</td><td class="num">—</td><td class="num avgcol">—</td>`+
+    `<td class="num ${e.bh==null?'':e.bh>0?'pos':'neg'}">${effPct(e.bh)}</td><td><span class="effword eff-none">benchmark</span></td></tr>`+
+    `</table>`;
+  body.onclick=ev=>{const tr=ev.target.closest&&ev.target.closest('tr[data-grp]');if(!tr)return;const k=tr.getAttribute('data-grp');EFF_OPEN[k]=!EFF_OPEN[k];renderEffectiveness();setTimeout(()=>{if(typeof saveLocal==='function')saveLocal();},0);};
+  const exb=$('#effExpand'); if(exb){const groups=e.rows.filter(r=>r.kids&&r.kids.length).map(r=>r.k);const allOpen=groups.length&&groups.every(k=>EFF_OPEN[k]);exb.textContent=allOpen?'Collapse all':'Expand all';exb.onclick=()=>{const open=!allOpen;groups.forEach(k=>EFF_OPEN[k]=open);renderEffectiveness();setTimeout(()=>{if(typeof saveLocal==='function')saveLocal();},0);};}
+  if(note)note.innerHTML=`Window: <b>${e.start||'—'} → ${e.last}</b> · ${e.bars} daily bars pulled (the slider re-slices this same pull — no new download). `+
+    `<b>Avg/trade</b> is the mean of a single trade, so it will always look tiny beside a multi-year cumulative — that's why "0.6% vs 201%" was never a fair comparison. `+
+    `<b>Total</b> is the like-for-like figure: each sleeve <b>compounded, trading one position at a time</b>, set against <b>Buy &amp; hold</b> over the same window. `+
+    `N is now trades actually taken (overlapping signals are skipped, since you can't hold two at once). Tap a system row to expand it into its individual triggers; a group de-overlaps across all of them, so its N will not equal the sum of the rows beneath. `+
+    `A position still running is <b>included and marked at the latest price</b> — shown as <b>(n open)</b> — so a winner you're still riding finally counts; being unrealised, its mark can still reverse before the trade closes. `+
+    `PAM = a 1:1.7 trade risking 1&nbsp;ATR from the trigger close; Turtle/Reverse = its own entry→exit. No costs modelled. `+
+    `<b>Read</b> = per-trade edge (robust = N≥8, Win≥55%). Small N isn't signal; setups fail; educational only.`;
+}
+function fmtAxis(d,withYear){const m=String(d).split('-');if(m.length<3)return d;
+  return withYear?(MON[+m[1]-1]+' ’'+m[0].slice(2)):(m[2]+' '+MON[+m[1]-1]);}
+function drawCore(){
+  const dpr=window.devicePixelRatio||1, W=cv.clientWidth;
+  const padL=8,padR=58,padT=16;
+  const fullN=BARS.length;
+  let span=Math.max(10,Math.min(S.span||(S.tf==='W'?156:90), fullN));
+  let start=Math.max(0,Math.min(S.start==null?(fullN-span):S.start, fullN-span));
+  S.span=span; S.start=start;                                   // write back clamped
+  const view=BARS.slice(start,start+span),i0=start,n=view.length,plotW=W-padL-padR;
+  // sync the scrollbar + visible-range label
+  {const sb=$('#scroll'); if(sb){sb.min=0;sb.max=Math.max(0,fullN-span);sb.value=start;sb.disabled=(fullN<=span);}
+   const rl=$('#rangeLbl'); if(rl&&n)rl.textContent=view[0].date+'  →  '+view[n-1].date+'   ('+n+(S.tf==='W'?' wk':S.tf==='2'?' ×2d':' d')+')';}
+  // ----- vertical layout: price panel + (ribbon strip) + indicator panels + date axis -----
+  const inds=[{key:'stoch',label:'Stoch %K/%D · 10, SMA 10'},{key:'rsi',label:'RSI 14 · Wilder'},
+              {key:'macd',label:'MACD 12·26·9'},{key:'atr',label:'ATR 14 · Wilder'}].filter(p=>S.ind[p.key]);
+  const priceH=Math.max(300,440-inds.length*18), panelH=84, panelGap=12, axisH=22;
+  const ribH=(S.layers.turtle||S.layers.reverse)?16:0;
+  const priceTop=padT, priceBot=priceTop+priceH; let cur=priceBot+ribH;
+  inds.forEach(p=>{p.top=cur+panelGap;p.bot=p.top+panelH;cur=p.bot;});
+  const chartBot=cur, H=chartBot+axisH;
+  cv.style.height=H+'px'; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  let hi=-1e9,lo=1e9;view.forEach(b=>{hi=Math.max(hi,b.high);lo=Math.min(lo,b.low);});
+  const pad=(hi-lo)*0.06;hi+=pad;lo-=pad;
+  const x=i=>padL+(n<=1?plotW/2:i/(n-1)*plotW), y=p=>priceTop+(hi-p)/(hi-lo)*priceH;
+  const cw=Math.max(2,Math.min(11,plotW/n*0.6));
+  GEO={view,x,y,i0,padR,W,priceBot};
+
+  // ----- vertical gridlines: minor (week / month) + major (month / quarter), aligned to candles -----
+  ctx.font='10px IBM Plex Mono';
+  {const wk=S.tf==='W';
+   const epoch=d=>{const m=String(d).split('-');return Date.UTC(+m[0],(+m[1])-1,+m[2])/864e5;};
+   const P=view.map(b=>{const m=String(b.date).split('-');return {y:+m[0],mo:(+m[1])-1,key:m[0]+'-'+m[1],wkb:Math.floor((epoch(b.date)-4)/7)};});
+   const major=i=>{ if(i===0)return true; const a=P[i-1],c=P[i]; if(c.y!==a.y)return true; return wk?(Math.floor(c.mo/3)!==Math.floor(a.mo/3)):(c.mo!==a.mo); };
+   const minor=i=>{ if(i===0)return false; const a=P[i-1],c=P[i]; return wk?(c.key!==a.key):(c.wkb!==a.wkb); };
+   for(let i=0;i<n;i++){ if(!minor(i)||major(i))continue; const xc=x(i);          // minor: faintest, no label
+     ctx.strokeStyle='rgba(126,143,176,0.055)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(xc,priceTop);ctx.lineTo(xc,chartBot);ctx.stroke(); }
+   let lastLabelX=-1e9,lastYr=null;
+   for(let i=0;i<n;i++){ if(!major(i))continue; const xc=x(i);                      // major: a touch brighter + label
+     ctx.strokeStyle='rgba(126,143,176,0.15)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(xc,priceTop);ctx.lineTo(xc,chartBot);ctx.stroke();
+     if(xc-lastLabelX>=44){ const c=P[i],wy=c.y!==lastYr; lastYr=c.y;
+       const lab=wy?(MON[c.mo]+' ’'+String(c.y).slice(2)):MON[c.mo];
+       ctx.fillStyle='#6b7790';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lab,xc,chartBot+5); lastLabelX=xc; } }}
+  ctx.textBaseline='middle';
+  for(let g=0;g<=4;g++){const p=lo+(hi-lo)*g/4,yy=y(p);
+    ctx.strokeStyle=TH.grid;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();
+    ctx.fillStyle='#5b667e';ctx.textAlign='left';ctx.fillText(p.toFixed(p<30?1:0),W-padR+6,yy);}
+
+  if(S.lens&&S.layers.pam){ // LP + force levels
+    [A.lpAbove,A.lpBelow].forEach(lv=>{if(lv==null||lv>hi||lv<lo)return;
+      ctx.strokeStyle='#d4a85c';ctx.globalAlpha=.45;ctx.setLineDash([2,4]);ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(padL,y(lv));ctx.lineTo(W-padR,y(lv));ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+      ctx.fillStyle='#d4a85c';ctx.textAlign='right';ctx.fillText('LP '+lv.toFixed(0),W-padR-2,y(lv)-7);});
+  }
+
+  // candles
+  view.forEach(b=>{const xc=x(b.i-i0),up=b.close>=b.open,col=up?'#5fb89e':'#cf7a64';
+    ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(xc,y(b.high));ctx.lineTo(xc,y(b.low));ctx.stroke();
+    const top=Math.min(y(b.open),y(b.close)),hg=Math.max(1.4,Math.abs(y(b.close)-y(b.open)));
+    ctx.fillRect(xc-cw/2,top,cw,hg);
+    if(S.lens&&S.layers.pam&&b.cls.flush){ctx.fillStyle='#d4a85c';ctx.font='10px IBM Plex Mono';ctx.textAlign='center';
+      ctx.fillText('✶',xc, b.cls.dir==='bull'?y(b.low)+12:y(b.high)-12);}
+  });
+
+  // shared polyline helper
+  function maLine(key,col,w,dash){ctx.strokeStyle=col;ctx.lineWidth=w;if(dash)ctx.setLineDash(dash);ctx.beginPath();let st=false;
+    view.forEach(b=>{const v=b[key];if(v==null)return;const px=x(b.i-i0),py=y(v);if(st)ctx.lineTo(px,py);else ctx.moveTo(px,py);st=true;});ctx.stroke();ctx.setLineDash([]);}
+
+  // ----- Donchian channels layer (Turtle 55 / 20 / 10) -----
+  if(S.layers.channels){
+    ctx.globalAlpha=.5;
+    maLine('hi20','#378add',1); maLine('lo20','#378add',1);            // S1 entry channel (blue)
+    maLine('hi55','#9a7fe0',1); maLine('lo55','#9a7fe0',1);            // S2 entry channel (purple)
+    maLine('hi10','#d4a85c',1,[3,3]); maLine('lo10','#d4a85c',1,[3,3]);// exit channel (amber dashed)
+    ctx.globalAlpha=1;
+  }
+  // ----- Moving averages layer (20 / 50 / 200) -----
+  if(S.layers.sma){
+    maLine('sma20','#6f7fa6',1);
+    maLine('sma200','#b07fd0',1.4);
+    if(!S.layers.pam) maLine('sma50','#d4a85c',1.4);  // plain 50 only when PAM isn't drawing the flow line
+  }
+  // ----- PAM flow line: 50 SMA coloured by flow -----
+  if(S.layers.pam){
+    ctx.lineWidth=1.8;
+    for(let k=1;k<view.length;k++){const a=view[k-1],b=view[k];if(a.sma50==null||b.sma50==null)continue;
+      ctx.strokeStyle=b.close>b.sma50?'#5fb89e':'#cf7a64';
+      ctx.beginPath();ctx.moveTo(x(a.i-i0),y(a.sma50));ctx.lineTo(x(b.i-i0),y(b.sma50));ctx.stroke();}
+  }
+  // ----- Turtle / reverse markers: arrow + coloured chip, numbered by occurrence -----
+  function drawChip(xc,anchorY,text,col,below,arrow){
+    ctx.font='600 9px IBM Plex Mono';ctx.textAlign='center';
+    if(arrow){ctx.fillStyle=col;ctx.fillText(below?'▲':'▼',xc,below?anchorY+11:anchorY-11);}
+    const tw=ctx.measureText(text).width+8, ly=below?anchorY+(arrow?24:13):anchorY-(arrow?24:13);
+    ctx.fillStyle=TH.chipBg;ctx.strokeStyle=col;ctx.lineWidth=1;ctx.globalAlpha=.96;
+    roundRect(xc-tw/2,ly-7,tw,14,3);ctx.fill();ctx.stroke();ctx.globalAlpha=1;
+    ctx.fillStyle=col;ctx.fillText(text,xc,ly);
+  }
+  // ----- Turtle / reverse: each trade grouped by a bottom ribbon; entry (arrow+system), adds ·2-4, single exit -----
+  const rcut = S.recentOnly ? BARS.length-(S.tf==='W'?52:45) : -1;
+  function ribbon(trades,col,row){ if(!trades)return;
+    trades.forEach(t=>{ let e=t.exit==null?BARS.length-1:t.exit; const lo2=Math.max(i0,rcut), hi2=i0+n-1;
+      if(e<lo2 || t.entry>hi2)return;                                  // trade outside the visible window
+      const a=Math.max(t.entry,lo2), b2=Math.min(e,hi2);
+      const xa=x(a-i0), xe=x(b2-i0), yr=priceBot+5+row*7;
+      ctx.strokeStyle=col;ctx.globalAlpha=.8;ctx.lineWidth=3;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(xa,yr);ctx.lineTo(xe,yr);ctx.stroke();
+      ctx.globalAlpha=1;ctx.lineCap='butt';});
+  }
+  if(S.layers.turtle){ ribbon(BARS.ttTrades,'#3f9af0',0);
+    view.forEach(b=>{ if(b.i<rcut)return; const xc=x(b.i-i0);
+      if(b.ttUnit){const col=b.ttSys==='S2'?'#3f9af0':'#7fc7ff';
+        drawChip(xc,y(b.low), b.ttUnit===1?b.ttSys:('·'+b.ttUnit), col, true, b.ttUnit===1);}
+      if(b.ttExit) drawChip(xc,y(b.high), b.ttRsn==='stop'?'2N stop':'exit', '#9fb2c9', false, false);});
+  }
+  if(S.layers.reverse){ ribbon(BARS.rtTrades,'#ff6f45',1);
+    view.forEach(b=>{ if(b.i<rcut)return; const xc=x(b.i-i0);
+      if(b.rtUnit){const col=b.rtSys==='S2'?'#ff6f45':'#ff9d7a';
+        drawChip(xc,y(b.high), b.rtUnit===1?b.rtSys+'s':('·'+b.rtUnit), col, false, b.rtUnit===1);}
+      if(b.rtExit) drawChip(xc,y(b.low), b.rtRsn==='stop'?'2N stop':'cover', '#c9a99f', true, false);});
+  }
+
+  // PAM trigger markers + labels
+  if(S.lens && S.layers.pam){
+    ctx.font='600 9px IBM Plex Mono';
+    const shown = S.recentOnly ? TRIGS.slice(-6) : TRIGS;
+    shown.forEach(t=>{if(t.i<i0||t.i>=i0+n)return;const b=BARS[t.i],xc=x(t.i-i0),long=t.dir==='long',col=long?'#5fb89e':'#cf7a64';
+      const ay=long?y(b.low):y(b.high);
+      ctx.fillStyle=col;ctx.textAlign='center';
+      ctx.fillText(long?'▲':'▼',xc, long?ay+11:ay-11);
+      // label chip
+      const tw=ctx.measureText(t.label).width+8, ly=long?ay+24:ay-24;
+      ctx.fillStyle=TH.chipBg;ctx.strokeStyle=col;ctx.lineWidth=1;ctx.globalAlpha=.95;
+      roundRect(xc-tw/2,ly-7,tw,14,3);ctx.fill();ctx.stroke();ctx.globalAlpha=1;
+      ctx.fillStyle=col;ctx.fillText(t.label,xc,ly);});
+  }
+
+  // active trade overlay (only when the latest bar is in view)
+  if(S.lens&&S.layers.pam&&TRADE&&(i0+n>=BARS.length)){const t=TRADE,x1=W-padR;const xr0=x(view.length-1)-cw*1.5;
+    ctx.fillStyle='#5fb89e';ctx.globalAlpha=.15;ctx.fillRect(xr0,y(Math.max(t.entryLo,t.entryHi)),x1-xr0,Math.abs(y(t.entryLo)-y(t.entryHi)));ctx.globalAlpha=1;
+    [['#cf7a64',t.sl],['#6f7fa6',t.tgt]].forEach(([c,lv])=>{if(lv>hi||lv<lo)return;
+      ctx.strokeStyle=c;ctx.setLineDash([4,3]);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(xr0,y(lv));ctx.lineTo(x1,y(lv));ctx.stroke();ctx.setLineDash([]);});
+  }
+  // ===== indicator sub-panels (share the x-axis; date gridlines already drawn behind) =====
+  function pY(p,v,vmin,vmax){return p.top+(vmax-v)/(vmax-vmin)*(p.bot-p.top);}
+  function pPoly(p,key,col,w,vmin,vmax){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();let st=false;
+    view.forEach(b=>{const v=b[key];if(v==null)return;const px=x(b.i-i0),py=pY(p,v,vmin,vmax);if(st)ctx.lineTo(px,py);else ctx.moveTo(px,py);st=true;});ctx.stroke();}
+  function pGuide(p,v,vmin,vmax,col,txt,dash){const py=pY(p,v,vmin,vmax);
+    ctx.strokeStyle=col;ctx.setLineDash(dash||[4,3]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padL,py);ctx.lineTo(W-padR,py);ctx.stroke();ctx.setLineDash([]);
+    if(txt){ctx.fillStyle='#8190a8';ctx.textAlign='left';ctx.fillText(txt,W-padR+6,py);}}
+  function pScale(p,top,bot){ctx.fillStyle='#5b667e';ctx.textAlign='left';
+    ctx.fillText(top,W-padR+6,p.top+7);ctx.fillText(bot,W-padR+6,p.bot-7);}
+  inds.forEach(p=>{
+    ctx.strokeStyle=TH.grid;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padL,p.top-panelGap/2);ctx.lineTo(W-padR,p.top-panelGap/2);ctx.stroke();
+    ctx.fillStyle='#8895ad';ctx.font='10px IBM Plex Mono';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(p.label,padL+2,p.top+1);ctx.textBaseline='middle';
+    if(p.key==='stoch'){
+      const y80=pY(p,80,0,100), y20=pY(p,20,0,100);
+      ctx.fillStyle='rgba(207,122,100,0.06)';ctx.fillRect(padL,p.top,W-padR-padL,y80-p.top);   // overbought zone >80
+      ctx.fillStyle='rgba(95,184,158,0.06)';ctx.fillRect(padL,y20,W-padR-padL,p.bot-y20);     // oversold zone <20
+      pGuide(p,80,0,100,'rgba(207,122,100,0.6)','80'); pGuide(p,20,0,100,'rgba(95,184,158,0.6)','20');
+      pPoly(p,'stochK','#5fb89e',1.4,0,100); pPoly(p,'stochD','#d4a85c',1.2,0,100);}
+    else if(p.key==='rsi'){pGuide(p,50,0,100,'rgba(139,149,173,0.65)','50'); pPoly(p,'rsi','#b07fd0',1.4,0,100); pScale(p,'100','0');}
+    else if(p.key==='macd'){let mn=1e9,mx=-1e9;view.forEach(b=>[b.macd,b.macdSig,b.macdHist].forEach(v=>{if(v!=null){mn=Math.min(mn,v);mx=Math.max(mx,v);}}));
+      if(mn===1e9){mn=-1;mx=1;} const m=Math.max(Math.abs(mn),Math.abs(mx))||1; mn=-m;mx=m;
+      const bw=Math.max(1,cw*0.8), zy=pY(p,0,mn,mx);
+      view.forEach(b=>{if(b.macdHist==null)return;const xc=x(b.i-i0),hy=pY(p,b.macdHist,mn,mx);
+        ctx.fillStyle=b.macdHist>=0?'rgba(95,184,158,.5)':'rgba(207,122,100,.5)';ctx.fillRect(xc-bw/2,Math.min(zy,hy),bw,Math.abs(hy-zy));});
+      ctx.strokeStyle=TH.zero;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padL,zy);ctx.lineTo(W-padR,zy);ctx.stroke();
+      pPoly(p,'macd','#5fb89e',1.4,mn,mx); pPoly(p,'macdSig','#d4a85c',1.2,mn,mx); pScale(p,(+mx).toFixed(2),(+mn).toFixed(2));}
+    else if(p.key==='atr'){let mx=-1e9;view.forEach(b=>{if(b.atrW!=null)mx=Math.max(mx,b.atrW);});if(mx<=0)mx=1;
+      pPoly(p,'atrW','#9a7fe0',1.4,0,mx); pScale(p,(+mx).toFixed(2),'0');}
+  });
+  function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+}
+function draw(){drawCore();}
+
+/* hover tooltip + horizontal pan/zoom */
+const tip=$('#tip');
+let drag=null;
+function clampStart(s){return Math.max(0,Math.min((BARS.length||1)-(S.span||1), s));}
+cv.style.cursor='grab';
+cv.addEventListener('mousedown',e=>{drag={x:e.clientX,start:S.start};cv.style.cursor='grabbing';tip.style.opacity=0;});
+window.addEventListener('mouseup',()=>{if(drag){drag=null;cv.style.cursor='grab';}});
+cv.addEventListener('wheel',e=>{if(!BARS.length)return;e.preventDefault();const fullN=BARS.length;
+  if(e.shiftKey||e.ctrlKey||e.metaKey){const right=S.start+S.span;let span=Math.round(S.span*(e.deltaY>0?1.18:0.85));
+    span=Math.max(12,Math.min(fullN,span));S.span=span;S.start=clampStart(right-span);}
+  else{const step=Math.max(1,Math.round(S.span*0.12))*(((e.deltaX||e.deltaY)>0)?1:-1);S.start=clampStart(S.start+step);}
+  draw();},{passive:false});
+$('#scroll').addEventListener('input',e=>{S.start=clampStart(+e.target.value);draw();});
+$('#fitAll').onclick=()=>{S.span=BARS.length;S.start=0;draw();};
+function zoomBy(f){const fullN=BARS.length,right=S.start+S.span;let span=Math.round(S.span*f);span=Math.max(12,Math.min(fullN,span));S.span=span;S.start=clampStart(right-span);draw();}
+$('#zIn').onclick=()=>zoomBy(0.8); $('#zOut').onclick=()=>zoomBy(1.25);
+/* ---- touch: 1-finger horizontal pan, 2-finger pinch zoom (vertical swipe scrolls the page) ---- */
+let touch=null;
+function tdist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
+cv.addEventListener('touchstart',e=>{ if(!BARS.length)return;
+  if(e.touches.length===1){touch={mode:'pan',x:e.touches[0].clientX,y:e.touches[0].clientY,start:S.start,decided:false,horiz:false};}
+  else if(e.touches.length>=2){touch={mode:'zoom',d0:Math.max(1,tdist(e.touches)),span0:S.span,right:S.start+S.span};}
+},{passive:true});
+cv.addEventListener('touchmove',e=>{ if(!touch||!BARS.length)return;
+  if(touch.mode==='pan'&&e.touches.length===1){
+    const dx=e.touches[0].clientX-touch.x, dy=e.touches[0].clientY-touch.y;
+    if(!touch.decided){ if(Math.abs(dx)<6&&Math.abs(dy)<6)return; touch.decided=true; touch.horiz=Math.abs(dx)>=Math.abs(dy); }
+    if(!touch.horiz)return;
+    e.preventDefault();
+    const plotW=cv.clientWidth-8-58, perBar=plotW/Math.max(1,S.span-1);
+    S.start=clampStart(touch.start-Math.round(dx/perBar)); tip.style.opacity=0; draw();
+  } else if(touch.mode==='zoom'&&e.touches.length>=2){
+    e.preventDefault(); const d=Math.max(1,tdist(e.touches));
+    let span=Math.round(touch.span0*(touch.d0/d)); span=Math.max(12,Math.min(BARS.length,span));
+    S.span=span; S.start=clampStart(touch.right-span); draw();
+  }
+},{passive:false});
+cv.addEventListener('touchend',e=>{ if(e.touches.length===0)touch=null; },{passive:true});
+
+cv.addEventListener('mousemove',ev=>{if(!GEO)return;const r=cv.getBoundingClientRect(),mx=ev.clientX-r.left;
+  if(drag){const plotW=cv.clientWidth-8-58, perBar=plotW/Math.max(1,(S.span-1)), dxBars=Math.round((ev.clientX-drag.x)/perBar);
+    S.start=clampStart(drag.start-dxBars);draw();return;}
+  let best=GEO.view[0],bd=1e9;GEO.view.forEach(b=>{const d=Math.abs(GEO.x(b.i-GEO.i0)-mx);if(d<bd){bd=d;best=b;}});
+  const b=best;if(!b)return;const trig=TRIGS.find(t=>t.i===b.i);
+  const dirw=b.cls.dir==='bull'?'<span style="color:var(--long)">bullish</span>':b.cls.dir==='bear'?'<span style="color:var(--short)">bearish</span>':'neutral';
+  const ib=[];
+  if(S.ind.stoch&&b.stochK!=null)ib.push('Stoch '+b.stochK.toFixed(0)+'/'+(b.stochD!=null?b.stochD.toFixed(0):'–'));
+  if(S.ind.rsi&&b.rsi!=null)ib.push('RSI '+b.rsi.toFixed(0));
+  if(S.ind.macd&&b.macd!=null)ib.push('MACD '+b.macd.toFixed(2));
+  if(S.ind.atr&&b.atrW!=null)ib.push('ATR '+b.atrW.toFixed(2));
+  const indLine=ib.length?`<div class="cls" style="color:#8895ad">${ib.join(' · ')}</div>`:'';
+  tip.innerHTML=`<div class="d">${b.date}</div>
+    <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
+    <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
+    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
+  tip.style.left=Math.min(mx+14,r.width-190)+'px';tip.style.top='18px';tip.style.opacity=1;});
+cv.addEventListener('mouseleave',()=>tip.style.opacity=0);
+
+/* controls */
+function segWire(id,fn){document.querySelectorAll(`#${id} button`).forEach(b=>{b.onclick=()=>{
+  document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(b);};});}
+segWire('segData',b=>{const d=b.dataset.d;$('#pasteBox').classList.toggle('show',d==='PASTE');
+  if(d==='NVDA'){S.src='NVDA';S.ticker=PAM_DATA.ticker;recompute();}});
+segWire('segTf',b=>{S.tf=b.dataset.tf;recompute();});
+segWire('segLens',b=>{S.lens=+b.dataset.l;draw();});
+document.querySelectorAll('#layers button').forEach(b=>{b.onclick=()=>{
+  b.classList.toggle('on'); S.layers[b.dataset.ly]=b.classList.contains('on'); draw();};});
+segWire('segRecent',b=>{S.recentOnly=(+b.dataset.r===1);draw();});
+document.querySelectorAll('#indicators button').forEach(b=>{b.onclick=()=>{
+  b.classList.toggle('on'); S.ind[b.dataset.in]=b.classList.contains('on'); draw();};});
+
+function parsePaste(txt){
+  const rows=txt.trim().split(/\r?\n/).filter(r=>r.trim());const o=[],h=[],l=[],c=[],t=[],v=[];
+  rows.forEach((r,i)=>{const p=r.split(/[\s,;\t]+/).filter(Boolean);let nums,date=String(i+1);
+    if(/[-\/]/.test(p[0])){date=p[0];nums=p.slice(1).map(Number);}else nums=p.map(Number);
+    if(nums.length<4||nums.slice(0,4).some(isNaN))throw new Error(`Row ${i+1}: need 4 numbers (O H L C).`);
+    o.push(nums[0]);h.push(nums[1]);l.push(nums[2]);c.push(nums[3]);v.push(nums[4]||0);t.push(date);});
+  if(c.length<55)throw new Error(`Got ${c.length} bars — need ≥55 for the 50 SMA. Paste more history.`);
+  return{open:o,high:h,low:l,close:c,time:t,volume:v};
+}
+$('#pasteRun').onclick=()=>{try{S.paste=parsePaste($('#pasteTa').value);S.src='PASTE';S.ticker='PASTED';
+  if(S.tf==='W'){S.tf='1';document.querySelectorAll('#segTf button').forEach(x=>x.classList.toggle('on',x.dataset.tf==='1'));}
+  $('#pasteErr').textContent='';S.name='';recompute();buildEff();renderEffectiveness();}catch(e){$('#pasteErr').textContent=e.message;}};
+$('#pasteSample').onclick=()=>{const a=[];let p=100;
+  for(let i=0;i<80;i++){p+= i<60?0.9+Math.sin(i/5):(i<70?1.6:-1.4);
+    const o=p,c=p+(Math.random()-0.45)*1.6,hi=Math.max(o,c)+Math.random()*1.3,loo=Math.min(o,c)-Math.random()*1.3;
+    a.push([o.toFixed(2),hi.toFixed(2),loo.toFixed(2),c.toFixed(2)].join(','));p=c;}
+  $('#pasteTa').value=a.join('\n');};
+
+/* ---- live fetch: type a symbol -> Twelve Data (CORS-enabled) -> OHLC bars ---- */
+function setStatus(msg,kind){const el=$('#fetchStatus');el.textContent=msg;
+  el.style.color = kind==='err'?'var(--short)':kind==='ok'?'var(--long)':'var(--mut)';}
+function tdSeries(j){ // Twelve Data time_series -> {time,open,high,low,close,volume} ascending
+  const v=(j.values||[]).slice().reverse();
+  return {time:v.map(r=>String(r.datetime).slice(0,10)),
+    open:v.map(r=>+r.open),high:v.map(r=>+r.high),low:v.map(r=>+r.low),
+    close:v.map(r=>+r.close),volume:v.map(r=>+(r.volume||0))};
+}
+async function tdFetch(symbol,interval,size,key){
+  const url="https://api.twelvedata.com/time_series?symbol="+encodeURIComponent(symbol)+
+    "&interval="+interval+"&outputsize="+size+"&format=JSON&apikey="+encodeURIComponent(key);
+  const r=await fetch(url); const j=await r.json();
+  if(j.status==='error'||j.code) throw new Error(j.message||('provider error'));
+  if(!j.values||!j.values.length) throw new Error('no data for '+symbol);
+  return tdSeries(j);
+}
+async function tdQuote(symbol,key){   // company name (non-fatal — falls back to ticker)
+  try{ const r=await fetch("https://api.twelvedata.com/quote?symbol="+encodeURIComponent(symbol)+"&apikey="+encodeURIComponent(key));
+    const j=await r.json(); if(j&&j.name&&!j.code)return String(j.name); }catch(e){}
+  return '';
+}
+/* Twelve Data router: direct with your own key, else through the group's
+   shared key (which lives only on the Apps Script server, never here). */
+function prettyTd(m){return m==='rate_limited'?'shared-key rate limit hit \u2014 wait a moment':m==='no_shared_key'?'the owner has not set a shared key yet':m==='not_a_member'?'your group token is not valid':m;}
+async function tdSeriesFetch(symbol,interval,size,key){
+  if(key) return tdFetch(symbol,interval,size,key);          /* your own key -> direct */
+  let j; try{ j=await groupPost('td',{endpoint:'time_series',symbol:symbol,interval:interval,outputsize:size}); }
+  catch(e){ throw new Error(prettyTd(e.message)); }
+  const p=j.data;
+  if(!p||p.status==='error'||p.code) throw new Error((p&&p.message)||'provider error');
+  if(!p.values||!p.values.length) throw new Error('no data for '+symbol);
+  return tdSeries(p);
+}
+async function tdQuoteFetch(symbol,key){
+  if(key) return tdQuote(symbol,key);
+  try{ const j=await groupPost('td',{endpoint:'quote',symbol:symbol}); const p=j.data; if(p&&p.name&&!p.code) return String(p.name); }catch(e){}
+  return '';
+}
+async function fetchSymbol(ticker){
+  ticker=(ticker||'').trim().toUpperCase();
+  const key=($('#keyInput').value||'').trim();
+  const canProxy=!!GROUP.token && !!GROUP.url && GROUP.url.indexOf('PASTE_')!==0;   /* in a group -> can use the shared key */
+  if(!ticker){setStatus('Enter a symbol first.','err');return;}
+  if(!key && !canProxy){setStatus('Paste your free Twelve Data API key first (free key ↗).','err');return;}
+  $('#fetchBtn').disabled=true; setStatus('Fetching '+ticker+' daily + weekly…');
+  try{
+    const [daily,weekly,coName]=await Promise.all([
+      tdSeriesFetch(ticker,'1day',1300,key),                  // ~5y daily — one call feeds both the chart and the effectiveness panel
+      tdSeriesFetch(ticker,'1week',300,key).catch(()=>null),  // weekly optional -> 2-Day fallback
+      tdQuoteFetch(ticker,key)                               // company name (non-fatal)
+    ]);
+    if(!daily || daily.close.length<55) throw new Error('only '+(daily?daily.close.length:0)+' daily bars — need >=55');
+    NVDA_DAILY=daily; NVDA_WEEKLY=weekly; PAM_DATA.ticker=ticker;
+    S.src='NVDA'; S.ticker=ticker; S.name=coName||''; PAM_DATA.name=S.name;
+    document.querySelectorAll('#segData button').forEach(x=>x.classList.toggle('on',x.dataset.d==='NVDA'));
+    $('#pasteBox').classList.remove('show');
+    recompute(); buildEff(); renderEffectiveness();
+    setStatus(ticker+': '+daily.close.length+' daily'+(weekly?(' · '+weekly.close.length+' weekly'):' · no weekly (2-Day fallback)')+(coName?(' · '+coName):'')+' loaded','ok');
+    S.lastSym=ticker; if(typeof logCheck==='function'){logCheck(ticker,S.name);}else if(typeof saveLocal==='function'){saveLocal();}
+  }catch(err){
+    setStatus('Couldn’t load '+ticker+': '+err.message+'. Check the symbol/key, or use “Paste data…”.','err');
+  }finally{ $('#fetchBtn').disabled=false; }
+}
+$('#fetchBtn').onclick=()=>fetchSymbol($('#tkInput').value);
+$('#tkInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchSymbol($('#tkInput').value);});
+$('#keyInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchSymbol($('#tkInput').value);});
+
+
+window.addEventListener('resize',draw);
+/* ===================== watchlist + persistence + Google Drive sync ===================== */
+const LS={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
+let WL=[];
+let CHECKLOG=[];
+function chipBtn(txt){const b=document.createElement('button');b.textContent=txt;b.style.cssText='font-family:var(--mono);font-size:11.5px;background:var(--onbg);color:var(--txt);border:1px solid #34467a;border-radius:8px 0 0 8px;padding:6px 9px;cursor:pointer';return b;}
+function renderWL(){const c=$('#wlChips');if(!c)return;c.innerHTML='';
+  if(!WL.length){c.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--faint)">none yet \u2014 Fetch a symbol, then \u2605 Add</span>';return;}
+  WL.forEach(sym=>{const wrap=document.createElement('span');wrap.style.cssText='display:inline-flex;align-items:center;margin-right:2px';
+    const a=chipBtn(sym);a.onclick=()=>{$('#tkInput').value=sym;fetchSymbol(sym);};
+    const x=document.createElement('button');x.textContent='\u2715';x.title='remove';x.style.cssText='font-family:var(--mono);font-size:10px;background:var(--btnbg);color:var(--mut);border:1px solid #34467a;border-left:none;border-radius:0 8px 8px 0;padding:6px 7px;cursor:pointer';
+    x.onclick=()=>{WL=WL.filter(s=>s!==sym);renderWL();saveLocal();};
+    wrap.appendChild(a);wrap.appendChild(x);c.appendChild(wrap);});}
+function addWL(sym){sym=(sym||'').trim().toUpperCase();if(!sym)return;if(!WL.includes(sym))WL.push(sym);renderWL();saveLocal();}
+function fmtTs(t){try{return new Date(t).toLocaleString([], {year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return new Date(t).toLocaleString();}}
+function renderCheckLog(){const c=$('#checklog');if(!c)return;
+  if(!CHECKLOG.length){c.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">no counters checked yet</div>';return;}
+  c.innerHTML='';
+  CHECKLOG.forEach(e=>{const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #18223a';
+    const a=document.createElement('button');a.textContent=e.s;a.title='Load '+e.s;a.style.cssText='font-family:var(--mono);font-size:12px;font-weight:600;color:var(--long);background:none;border:none;cursor:pointer;padding:0;flex:none';a.onclick=()=>{$('#tkInput').value=e.s;fetchSymbol(e.s);};
+    const nm=document.createElement('span');nm.textContent=e.n?('— '+e.n):'';nm.style.cssText='font-family:var(--body);font-size:12px;color:var(--mut);flex:1;min-width:0;margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    const t=document.createElement('span');t.textContent=fmtTs(e.t);t.style.cssText='font-family:var(--mono);font-size:11px;color:var(--mut);flex:none';
+    row.appendChild(a);row.appendChild(nm);row.appendChild(t);c.appendChild(row);});}
+function logCheck(sym,name){sym=(sym||'').trim().toUpperCase();if(!sym)return;CHECKLOG.unshift({s:sym,n:(name||''),t:Date.now()});if(CHECKLOG.length>500)CHECKLOG.length=500;renderCheckLog();saveLocal();if(typeof groupLog==='function')groupLog(sym);}
+function clogClear(){CHECKLOG=[];renderCheckLog();saveLocal();}
+function clogCsv(){if(!CHECKLOG.length)return;const rows=[['symbol','name','checked_at_iso','checked_at_local']].concat(CHECKLOG.map(e=>[e.s,(e.n||''),new Date(e.t).toISOString(),new Date(e.t).toLocaleString()]));
+  const csv=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pam-check-log.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+function syncToggleUI(){
+  document.querySelectorAll('#layers button').forEach(b=>b.classList.toggle('on',!!S.layers[b.dataset.ly]));
+  document.querySelectorAll('#indicators button').forEach(b=>b.classList.toggle('on',!!S.ind[b.dataset.in]));
+  document.querySelectorAll('#segTf button').forEach(b=>b.classList.toggle('on',b.dataset.tf===S.tf));
+  document.querySelectorAll('#segLens button').forEach(b=>b.classList.toggle('on',(+b.dataset.l)===S.lens));
+  document.querySelectorAll('#segRecent button').forEach(b=>b.classList.toggle('on',((+b.dataset.r)===1)===S.recentOnly));}
+function localState(){return {v:1,apiKey:($('#keyInput').value||'').trim(),watchlist:WL.slice(),lastSym:S.lastSym||'',tf:S.tf,layers:S.layers,ind:S.ind,lens:S.lens,recentOnly:S.recentOnly,effMonths:S.effMonths,name:S.name||'',checklog:CHECKLOG.slice(),updatedAt:Date.now()};}
+function applyState(st){if(!st)return;
+  if(st.apiKey&&$('#keyInput'))$('#keyInput').value=st.apiKey;
+  if(Array.isArray(st.watchlist))WL=st.watchlist.slice();
+  if(st.tf)S.tf=st.tf;
+  if(st.layers)Object.assign(S.layers,st.layers);
+  if(st.ind)Object.assign(S.ind,st.ind);
+  if(typeof st.lens==='number')S.lens=st.lens;
+  if(typeof st.recentOnly==='boolean')S.recentOnly=st.recentOnly;
+  if(st.lastSym)S.lastSym=st.lastSym;
+  if(st.effMonths)S.effMonths=st.effMonths; else if(st.effYears)S.effMonths=st.effYears*12;
+  if(st.name)S.name=st.name;
+  if(Array.isArray(st.checklog))CHECKLOG=st.checklog.slice();renderWL();renderCheckLog();syncToggleUI();}
+function saveLocal(){const st=localState();LS.set('pam_state',JSON.stringify(st));LS.set('pam_upd',String(st.updatedAt));schedulePush();}
+/* ---- Google Drive (appData) sync ---- */
+const DRIVE={cid:'940138922266-bhvinnurb192hsrkscqtrtnllu06b45k.apps.googleusercontent.com',token:'',exp:0,tc:null,fileId:null,connected:false,_then:null};
+function gReady(){return typeof google!=='undefined'&&google.accounts&&google.accounts.oauth2;}
+function syncStatus(m,kind){const e=$('#syncStatus');if(e){e.textContent=m;e.style.color=kind==='err'?'var(--short)':kind==='ok'?'var(--long)':'var(--mut)';}}
+function driveInit(){if(!gReady()||!DRIVE.cid)return false;
+  DRIVE.tc=google.accounts.oauth2.initTokenClient({client_id:DRIVE.cid,scope:'https://www.googleapis.com/auth/drive.appdata',
+    callback:r=>{if(r&&r.access_token){DRIVE.token=r.access_token;DRIVE.exp=Date.now()+((r.expires_in||3000)*1000)-60000;const f=DRIVE._then;DRIVE._then=null;if(f)f();}else{syncStatus('Google sign-in failed','err');}},
+    error_callback:()=>{syncStatus('Google sign-in dismissed','err');}});
+  return true;}
+function withToken(fn,interactive){if(DRIVE.token&&Date.now()<DRIVE.exp){fn();return;}if(!DRIVE.tc&&!driveInit()){syncStatus('Add your Client ID, then Connect','err');return;}DRIVE._then=fn;try{DRIVE.tc.requestAccessToken({prompt:interactive?'consent':''});}catch(e){syncStatus('Drive error: '+e.message,'err');}}
+async function dApi(url,opts){opts=opts||{};opts.headers=Object.assign({Authorization:'Bearer '+DRIVE.token},opts.headers||{});const r=await fetch(url,opts);if(r.status===401){DRIVE.token='';throw new Error('auth expired \u2014 Connect again');}if(!r.ok)throw new Error('Drive '+r.status);return r;}
+async function dFind(){const r=await dApi("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q="+encodeURIComponent("name='pam-sync.json'"));const j=await r.json();return (j.files&&j.files[0])?j.files[0].id:null;}
+async function dRead(){const id=await dFind();DRIVE.fileId=id;if(!id)return null;const r=await dApi("https://www.googleapis.com/drive/v3/files/"+id+"?alt=media");return await r.json();}
+async function dWrite(st){const body=JSON.stringify(st);
+  if(DRIVE.fileId){await dApi("https://www.googleapis.com/upload/drive/v3/files/"+DRIVE.fileId+"?uploadType=media",{method:'PATCH',headers:{'Content-Type':'application/json'},body});}
+  else{const bd='pam'+Date.now();const mp="--"+bd+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+JSON.stringify({name:'pam-sync.json',parents:['appDataFolder']})+"\r\n--"+bd+"\r\nContent-Type: application/json\r\n\r\n"+body+"\r\n--"+bd+"--";
+    const r=await dApi("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+bd},body:mp});const j=await r.json();DRIVE.fileId=j.id;}}
+let pushT=null;
+function schedulePush(){if(!DRIVE.connected)return;clearTimeout(pushT);pushT=setTimeout(()=>{withToken(()=>{const st=localState();dWrite(st).then(()=>syncStatus('Synced \u2713 '+new Date().toLocaleTimeString(),'ok')).catch(e=>syncStatus('Sync failed: '+e.message,'err'));});},1400);}
+async function syncMerge(){try{const remote=await dRead();
+    if(remote){
+      const seen=new Set(CHECKLOG.map(e=>e.s+'|'+e.t));                       // union check-log (no lost entries across devices)
+      (remote.checklog||[]).forEach(e=>{const k=e.s+'|'+e.t;if(!seen.has(k)){CHECKLOG.push(e);seen.add(k);}});
+      CHECKLOG.sort((a,b)=>b.t-a.t); if(CHECKLOG.length>500)CHECKLOG.length=500;
+      (remote.watchlist||[]).forEach(s=>{if(!WL.includes(s))WL.push(s);});      // union watchlist
+      if((remote.updatedAt||0)>+(LS.get('pam_upd')||0)){                        // newer scalar settings win
+        if(remote.apiKey&&$('#keyInput'))$('#keyInput').value=remote.apiKey;
+        if(remote.tf)S.tf=remote.tf; if(remote.layers)Object.assign(S.layers,remote.layers); if(remote.ind)Object.assign(S.ind,remote.ind);
+        if(typeof remote.lens==='number')S.lens=remote.lens; if(typeof remote.recentOnly==='boolean')S.recentOnly=remote.recentOnly;
+        if(remote.lastSym)S.lastSym=remote.lastSym;}
+      renderWL();renderCheckLog();syncToggleUI();recompute();}
+    const st=localState();LS.set('pam_state',JSON.stringify(st));LS.set('pam_upd',String(st.updatedAt));await dWrite(st);  // push merged
+    syncStatus('Synced \u2713 '+new Date().toLocaleTimeString(),'ok');
+    if(remote&&remote.lastSym&&($('#keyInput').value||'').trim()){$('#tkInput').value=remote.lastSym;fetchSymbol(remote.lastSym);}}
+  catch(e){syncStatus('Sync error: '+e.message,'err');}}
+function connectDrive(){DRIVE.cid=($('#cid').value||'').trim();if(!DRIVE.cid){syncStatus('Paste your Google Client ID first','err');return;}LS.set('pam_cid',DRIVE.cid);
+  if(!gReady()){syncStatus('Google library still loading \u2014 try again in a moment','err');return;}driveInit();syncStatus('Connecting to Google\u2026');
+  withToken(()=>{DRIVE.connected=true;LS.set('pam_drive','1');syncMerge();},true);}
+function attachSavers(){
+  ['#layers','#indicators','#segTf','#segLens','#segRecent'].forEach(sel=>document.querySelectorAll(sel+' button').forEach(b=>b.addEventListener('click',()=>setTimeout(saveLocal,0))));
+  const k=$('#keyInput');if(k)k.addEventListener('input',()=>setTimeout(saveLocal,0));
+  const ey=$('#effYears');if(ey){ey.min='0';ey.max=String(EFF_WINDOWS.length-1);ey.step='1';ey.value=String(Math.max(0,EFF_WINDOWS.indexOf(S.effMonths||36)));ey.addEventListener('input',()=>{S.effMonths=EFF_WINDOWS[+ey.value]||36;renderEffectiveness();setTimeout(saveLocal,0);});}
+  const wa=$('#wlAdd');if(wa)wa.onclick=()=>addWL(($('#tkInput').value||S.lastSym||''));
+  const stg=$('#syncToggle');if(stg)stg.onclick=()=>{const p=$('#syncPanel');p.style.display=p.style.display==='none'?'block':'none';};
+  const cd=$('#connectDrive');if(cd)cd.onclick=connectDrive;
+  const sn=$('#syncNow');if(sn)sn.onclick=()=>{if(!DRIVE.connected){syncStatus('Connect Drive first','err');return;}withToken(()=>syncMerge());};
+  const cc=$('#clogCsv');if(cc)cc.onclick=clogCsv;
+  const cl=$('#clogClear');if(cl)cl.onclick=clogClear;}
+function waitGoogle(fn,tries){tries=tries||0;if(gReady()){fn();return;}if(tries>40)return;setTimeout(()=>waitGoogle(fn,tries+1),250);}
+/* ============================================================
+   GROUP  —  shared members-only check-log
+   Sends ONLY { token, action, ticker } to your Apps Script.
+   The Twelve Data key is NEVER sent here and never stored in
+   the group log. The token lives only in this browser.
+   ============================================================ */
+const GROUP = {
+  url: 'https://script.google.com/macros/s/AKfycbxLi4PmJDITMNgzZwpv8Nkxzi2xO9A5QbdoKTSDmPPKCbHzLCdryOAWCo7k3cCJr1Apqg/exec',   /* <-- owner: paste your deployed Apps Script /exec URL once */
+  token: '',
+  timer: null
+};
+function groupStatus(m,kind){const e=$('#groupStatus');if(e){e.textContent=m;e.style.color=kind==='err'?'var(--short)':kind==='ok'?'var(--long)':'var(--mut)';}}
+async function groupPost(action,extra){
+  if(!GROUP.url||GROUP.url.indexOf('PASTE_')===0)throw new Error('group URL not set');
+  if(!GROUP.token)throw new Error('no token');
+  const body=JSON.stringify(Object.assign({token:GROUP.token,action:action},extra||{}));
+  /* text/plain avoids a CORS preflight that Apps Script cannot answer */
+  const r=await fetch(GROUP.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
+  const j=await r.json();
+  if(!j.ok)throw new Error(j.error||'group error');
+  return j;
+}
+function renderGroupFeed(list){
+  const c=$('#groupFeed');if(!c)return;
+  if(!list||!list.length){c.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">no group activity yet</div>';return;}
+  c.innerHTML='';
+  list.forEach(e=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #18223a';
+    const left=document.createElement('div');left.style.cssText='display:flex;gap:8px;align-items:baseline;min-width:0';
+    const sym=document.createElement('button');
+    sym.textContent=e.ticker;                                  /* textContent -> no HTML injection from other users */
+    sym.title='Load '+e.ticker;
+    sym.style.cssText='font-family:var(--mono);font-size:12px;font-weight:600;color:var(--long);background:none;border:none;cursor:pointer;padding:0;flex:none';
+    sym.onclick=()=>{$('#tkInput').value=e.ticker;fetchSymbol(e.ticker);};
+    const who=document.createElement('span');who.textContent=e.name||'\u2014';   /* textContent -> safe */
+    who.style.cssText='font-size:11.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    left.appendChild(sym);left.appendChild(who);
+    const dt=document.createElement('div');
+    dt.textContent=new Date(e.t).toLocaleString();
+    dt.style.cssText='font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:none';
+    row.appendChild(left);row.appendChild(dt);
+    c.appendChild(row);
+  });
+}
+function renderPresence(active,you){
+  const el=$('#groupPresence');if(!el)return;
+  active=Array.isArray(active)?active:[];
+  const names=active.map(n=>n===you?'you':n);          /* label yourself */
+  let label;
+  if(!active.length){label='nobody active right now';}
+  else{const shown=names.slice(0,4);label=active.length+' active in 10 min \u00b7 '+shown.join(', ')+(names.length>4?' +'+(names.length-4)+' more':'');}
+  el.innerHTML='';
+  const d=document.createElement('span');
+  d.style.cssText='display:inline-block;width:7px;height:7px;border-radius:50%;background:'+(active.length?'var(--long)':'var(--faint)')+';margin-right:6px;vertical-align:middle';
+  const t=document.createElement('span');
+  t.textContent=label;                                  /* textContent -> names can't inject HTML */
+  t.style.cssText='font-family:var(--mono);font-size:11px;color:var(--mut);vertical-align:middle';
+  el.appendChild(d);el.appendChild(t);
+}
+async function groupPull(){
+  if(!GROUP.token)return;
+  try{const j=await groupPost('list');renderGroupFeed(j.log);renderPresence(j.active,j.you);groupStatus('In group as '+j.you+' \u00b7 '+new Date().toLocaleTimeString(),'ok');}
+  catch(err){groupStatus(err.message==='not_a_member'?'Token not recognised \u2014 ask the owner to add you':'Group: '+err.message,'err');}
+}
+async function groupLog(sym){
+  if(!GROUP.token)return;                       /* not in a group -> stays local-only */
+  try{const j=await groupPost('log',{ticker:sym});renderGroupFeed(j.log);renderPresence(j.active,j.you);}
+  catch(err){groupStatus('Group: '+err.message,'err');}
+}
+function groupJoin(){
+  GROUP.token=($('#grpToken').value||'').trim();
+  LS.set('pam_grp_token',GROUP.token);
+  if(!GROUP.token){groupStatus('Paste your token, then Join','err');renderGroupFeed([]);return;}
+  groupStatus('Checking\u2026');groupPull();
+}
+function groupInit(){
+  GROUP.token=LS.get('pam_grp_token')||'';
+  const ti=$('#grpToken');if(ti)ti.value=GROUP.token;
+  const jb=$('#grpJoin');if(jb)jb.onclick=groupJoin;
+  const rb=$('#grpRefresh');if(rb)rb.onclick=groupPull;
+  const rb2=$('#grpRefresh2');if(rb2)rb2.onclick=groupPull;
+  const tg=$('#grpToggle');if(tg)tg.onclick=()=>{const p=$('#groupPanel');p.style.display=p.style.display==='none'?'block':'none';};
+  if(GROUP.token){groupPull();}
+  clearInterval(GROUP.timer);
+  GROUP.timer=setInterval(()=>{if(GROUP.token&&!document.hidden)groupPull();},45000);  /* auto-refresh the feed */
+}
+/* ---- Scan by trigger — reads scan_results.json (the whole-market precompute) ---- */
+const SCAN = { data:null, sel:null };
+const TRIG_DIR = {'Bull-FS':'long','UC1':'long','UC2':'long','DR1':'long','DR2':'long','S1':'long','S2':'long',
+  'Bear-FS':'short','DC1':'short','DC2':'short','UR1':'short','UR2':'short','S1s':'short','S2s':'short'};
+function scanRenderChips(){
+  const c=$('#scanChips'); if(!c)return; c.innerHTML='';
+  const d=SCAN.data;
+  if(!d){ c.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--faint)">load a scan_results.json (paste its URL, or use \u201cLoad file\u2026\u201d) to begin</span>'; return; }
+  const counts=d.counts||{};
+  const order=(d.trigger_types||Object.keys(counts)).filter(t=>counts[t]>0);
+  if(!order.length){ c.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--faint)">no triggers fired in this scan window</span>'; return; }
+  order.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='chip scanchip '+(TRIG_DIR[t]||'')+(SCAN.sel===t?' sel':'');
+    b.innerHTML=t+' <span class="n">'+counts[t]+'</span>';
+    b.onclick=()=>{ SCAN.sel=(SCAN.sel===t)?null:t; scanRenderChips(); scanRenderList(); };
+    c.appendChild(b);
+  });
+}
+function scanRenderList(){
+  const body=$('#scanBody'); if(!body)return; body.innerHTML='';
+  const d=SCAN.data; if(!d||!SCAN.sel)return;
+  const rows=(d.rows||[]).filter(r=>r.trig===SCAN.sel).sort((a,b)=>(a.ago-b.ago)||(a.t<b.t?-1:a.t>b.t?1:0));
+  const head=document.createElement('div');
+  head.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:8px';
+  head.textContent=rows.length+' counter'+(rows.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart it';
+  body.appendChild(head);
+  rows.forEach(r=>{
+    const row=document.createElement('div'); row.className='scanrow';
+    const a=document.createElement('button'); a.textContent=r.t; a.title='Load '+r.t;
+    a.style.cssText='font-family:var(--mono);font-size:13px;font-weight:600;color:var(--'+(r.dir==='long'?'long':'short')+');background:none;border:none;cursor:pointer;padding:0;flex:none';
+    a.onclick=()=>{ $('#tkInput').value=r.t; fetchSymbol(r.t); };
+    const meta=document.createElement('span');
+    const bits=[ r.ago===0?'latest bar':(r.ago+' bar'+(r.ago===1?'':'s')+' back') ];
+    if(r.sys) bits.push(r.sys===2?'55-day':'20-day');
+    if(r.smelly) bits.push('already past entry');
+    meta.textContent=bits.join('  \u00b7  ');
+    meta.style.cssText='font-family:var(--mono);font-size:11px;color:var(--'+(r.smelly?'force':'mut')+');flex:1;text-align:right;min-width:0';
+    row.appendChild(a); row.appendChild(meta); body.appendChild(row);
+  });
+}
+function scanApply(d){
+  SCAN.data=d; SCAN.sel=null;
+  const a=$('#scanAsof');
+  if(a)a.textContent=d?(' \u00b7 '+((d.rows||[]).length)+' triggers across '+(d.scanned||'?')+' counters \u00b7 asof '+(d.asof||'?')):'';
+  const note=$('#scanNote');
+  if(note)note.textContent=d?('Daily bars, last '+(d.fresh_within||2)+' candles \u00b7 '+(d.provider||'')+' '+(d.feed||'')+' \u00b7 generated '+(d.generated_at?new Date(d.generated_at).toLocaleString():'?')+'. Whole US market, ETFs and leveraged products included \u2014 analytical only, not financial advice.'):'';
+  scanRenderChips(); scanRenderList();
+}
+async function scanLoadUrl(silent){
+  const el=$('#scanUrl'); const url=((el&&el.value)||'').trim();
+  if(!url){ if(!silent)alert('Paste the scan_results.json URL first, or use \u201cLoad file\u2026\u201d.'); return; }
+  try{
+    const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('HTTP '+r.status);
+    scanApply(await r.json());
+    try{localStorage.setItem('pam_scan_url',url);}catch(e){}
+  }catch(e){ if(!silent)alert('Could not load that URL: '+e.message); }
+}
+function scanLoadFile(file){
+  const rd=new FileReader();
+  rd.onload=()=>{ try{ scanApply(JSON.parse(rd.result)); }catch(e){ alert('That file is not valid JSON: '+e.message); } };
+  rd.readAsText(file);
+}
+function scanInit(){
+  const lb=$('#scanLoad'); if(lb)lb.onclick=()=>scanLoadUrl(false);
+  const fb=$('#scanFileBtn'), fi=$('#scanFile');
+  if(fb&&fi){ fb.onclick=()=>fi.click(); fi.onchange=()=>{ if(fi.files&&fi.files[0])scanLoadFile(fi.files[0]); fi.value=''; }; }
+  try{ const u=localStorage.getItem('pam_scan_url'); if(u&&$('#scanUrl')){ $('#scanUrl').value=u; scanLoadUrl(true); } }catch(e){}
+  scanRenderChips();
+}
+(function initSync(){
+  DRIVE.cid=LS.get('pam_cid')||'';if(DRIVE.cid&&$('#cid'))$('#cid').value=DRIVE.cid;
+  const saved=LS.get('pam_state');if(saved){try{applyState(JSON.parse(saved));}catch(e){}}
+  attachSavers();renderWL();renderCheckLog();
+  if(LS.get('pam_drive')==='1'){DRIVE.connected=true;syncStatus('Reconnecting to Drive\u2026');waitGoogle(()=>{if(driveInit())withToken(()=>syncMerge());});}
+})();
+recompute(); buildEff(); renderEffectiveness();
+groupInit();
+scanInit();
+if(S.lastSym && ($('#keyInput').value||'').trim() && !DRIVE.connected){ $('#tkInput').value=S.lastSym; fetchSymbol(S.lastSym); }
+/* ---- declutter: Settings + Indicators drawers ---- */
+(function(){
+  const sBtn=$('#settingsToggle'), sPan=$('#settingsPanel');
+  if(sBtn&&sPan)sBtn.onclick=()=>{const open=sPan.style.display==='none';sPan.style.display=open?'block':'none';sBtn.classList.toggle('open',open);};
+  const iBtn=$('#indToggle'), iPan=$('#indPanel'), iState=$('#indState');
+  function updInd(){const on=Object.values(S.ind).filter(Boolean).length;if(iState){iState.textContent=on?(on+' on'):'off';iState.style.color=on?'var(--long)':'var(--faint)';}}
+  if(iBtn&&iPan)iBtn.onclick=()=>{const open=iPan.style.display==='none';iPan.style.display=open?'block':'none';iBtn.classList.toggle('open',open);};
+  document.querySelectorAll('#indicators button').forEach(b=>b.addEventListener('click',()=>setTimeout(updInd,0)));
+  updInd();
+})();
+(function(){ const tb=document.getElementById('themeToggle'); if(tb){ tb.textContent=THEME==='light'?'◐ Dark':'◐ Light'; tb.onclick=()=>applyTheme(THEME==='light'?'dark':'light'); } applyTheme(THEME); })();
+</script>
+</body>
+</html>
