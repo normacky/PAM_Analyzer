@@ -39,11 +39,11 @@ const CFG = {
   adjustment:  process.env.PAM_ADJ      || 'split',
   exchanges:  (process.env.PAM_EXCH || 'NYSE,NASDAQ,ARCA,AMEX,BATS').split(','),
   limit:       parseInt(process.env.PAM_LIMIT    || '0', 10),   // 0 = whole market
-  fmpBatch:    parseInt(process.env.FMP_BATCH    || '50', 10),  // symbols per FMP profile request
-  fmpGapMs:    parseInt(process.env.FMP_GAP_MS   || '400', 10), // pause between FMP requests
+  fundGapMs:   parseInt(process.env.FUND_GAP_MS  || '1100', 10),  // pause between fundamentals calls (~55/min, under Finnhub's 60/min)
+  fundTimeout: parseInt(process.env.FUND_TIMEOUT || '15000', 10), // per-request timeout (ms)
 };
 
-const FMP_KEY = process.env.FMP_KEY;   // free key from financialmodelingprep.com — adds market cap + industry
+const FINNHUB_KEY = process.env.FINNHUB_KEY;   // free key from finnhub.io — adds market cap + industry
 
 const KEY    = process.env.ALPACA_KEY;
 const SECRET = process.env.ALPACA_SECRET;
@@ -134,27 +134,33 @@ async function fetchUniverse(cfg) {
 /* ---- 4b. market cap + sector + industry for the fired tickers (FMP, optional) ---- */
 async function addFundamentals(meta, cfg) {
   const tickers = Object.keys(meta);
-  if (!FMP_KEY) { console.error('No FMP_KEY set — skipping market cap / industry (rows still carry name + price).'); return; }
+  if (!FINNHUB_KEY) { console.error('No FINNHUB_KEY set — skipping market cap / industry (rows still carry name + price).'); return; }
   if (!tickers.length) return;
-  console.error(`Looking up market cap + industry for ${tickers.length} counters via FMP…`);
-  for (let i = 0; i < tickers.length; i += cfg.fmpBatch) {
-    const batch = tickers.slice(i, i + cfg.fmpBatch);
+  const mins = Math.ceil(tickers.length * cfg.fundGapMs / 60000);
+  console.error(`Looking up market cap + industry for ${tickers.length} counters via Finnhub (~${mins} min at ~${Math.round(60000 / cfg.fundGapMs)}/min)…`);
+  let ok = 0, err = 0;
+  for (let i = 0; i < tickers.length; i++) {
+    const t = tickers[i];
     try {
-      const r = await fetch('https://financialmodelingprep.com/api/v3/profile/' + batch.join(',') + '?apikey=' + FMP_KEY);
-      if (!r.ok) { console.error('  FMP ' + r.status + ' on a batch — skipping'); await sleep(cfg.fmpGapMs); continue; }
-      const arr = await r.json();
-      if (Array.isArray(arr)) for (const p of arr) {
-        const t = p.symbol; if (!t || !meta[t]) continue;
-        meta[t].mc = (p.mktCap != null ? p.mktCap : (p.marketCap != null ? p.marketCap : null)); // raw USD
-        meta[t].sector = p.sector || '';
-        meta[t].industry = p.industry || '';
-        if (!meta[t].name && p.companyName) meta[t].name = p.companyName;
+      const r = await fetch('https://finnhub.io/api/v1/stock/profile2?symbol=' + encodeURIComponent(t) + '&token=' + FINNHUB_KEY,
+        { signal: AbortSignal.timeout(cfg.fundTimeout) });
+      if (r.status === 429) { await sleep(2000); err++; continue; }   // throttled this one — pause and move on
+      if (!r.ok) { if (err < 8) console.error('  Finnhub ' + r.status + ' on ' + t); err++; }
+      else {
+        const p = await r.json();
+        if (p && (p.marketCapitalization != null || p.finnhubIndustry)) {
+          if (p.marketCapitalization != null) meta[t].mc = p.marketCapitalization * 1e6;   // Finnhub reports millions → USD
+          if (p.finnhubIndustry) meta[t].industry = p.finnhubIndustry;
+          if (!meta[t].name && p.name) meta[t].name = p.name;
+          ok++;
+        }
       }
-    } catch (e) { console.error('  FMP batch error: ' + e.message); }
-    await sleep(cfg.fmpGapMs);
-    process.stderr.write(`  fundamentals ${Math.min(i + cfg.fmpBatch, tickers.length)}/${tickers.length}\r`);
+    } catch (e) { if (err < 8) console.error('  Finnhub error on ' + t + ': ' + e.message); err++; }
+    await sleep(cfg.fundGapMs);
+    if (i % 100 === 0) process.stderr.write(`  fundamentals ${i}/${tickers.length}\r`);
   }
   process.stderr.write('\n');
+  console.error(`Fundamentals done: ${ok} enriched, ${err} misses, of ${tickers.length} counters.`);
 }
 
 async function fetchBars(symbols, cfg) {
@@ -222,7 +228,7 @@ async function main() {
   const result = {
     asof, timeframe: '1day', agg_mult: CFG.aggMult, fresh_within: CFG.freshWithin,
     generated_at: new Date().toISOString(), provider: 'alpaca', feed: CFG.feed, adjustment: CFG.adjustment,
-    fundamentals: FMP_KEY ? 'fmp' : 'none',
+    fundamentals: FINNHUB_KEY ? 'finnhub' : 'none',
     universe: syms.length, scanned, fired: Object.keys(meta).length,
     trigger_types: TRIGGER_TYPES, counts, rows, meta,
   };
