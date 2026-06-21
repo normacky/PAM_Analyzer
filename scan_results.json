@@ -3,7 +3,7 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-06-21T14:04:35.950Z",
+ "generated_at": "2026-06-21T14:34:10.305Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
