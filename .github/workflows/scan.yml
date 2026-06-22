@@ -4,7 +4,7 @@ name: PAM market scan
 
 on:
   schedule:
-    - cron: '0 22 * * 1-5'    # 22:00 UTC, Mon-Fri (after the US market close)
+    - cron: '17 22 * * 1-5'   # 22:17 UTC, Mon-Fri (after US close). Off the top of the hour so GitHub is less likely to delay or skip it. 22:17 UTC = 6:17 AM Singapore, Tue-Sat.
   workflow_dispatch:           # also lets you run it on demand from the Actions tab
 
 permissions:
@@ -26,7 +26,7 @@ jobs:
         env:
           ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
           ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
-          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}   # market cap + industry enrichment (matches pam_scan.js)
           PAM_HTML: pam_analyzer.html
           PAM_LIMIT: '0'         # 0 = the whole market
         run: node pam_scan.js
