@@ -32,7 +32,7 @@
   html,body{margin:0;background:var(--ink);color:var(--txt);font-family:var(--body);
     -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
   a{color:var(--long)}
-  .wrap{max-width:1160px;margin:0 auto;padding:34px 28px 96px}
+  .wrap{max-width:1760px;margin:0 auto;padding:34px 32px 96px}
 
   header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
     gap:16px;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:30px}
@@ -178,6 +178,7 @@
   .sccell-tk .n{font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
   .sccell-px{font-family:var(--mono);font-size:12px;color:var(--txt);text-align:right;white-space:nowrap}
   .sccell-cap{font-family:var(--mono);font-size:11.5px;color:var(--mut);text-align:right;white-space:nowrap}
+  .sccell-unit{font-family:var(--mono);font-size:11.5px;color:var(--txt);text-align:right;white-space:nowrap}
   .sccell-ind{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .scannum{font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:5px 7px;width:56px}
   .scansel{font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:5px 7px;max-width:190px}
@@ -274,7 +275,7 @@
   @media(min-width:981px){
     .stage{display:flex;gap:20px;align-items:flex-start}
     .stage-chart{flex:1 1 0;min-width:0;position:sticky;top:14px}
-    .stage-panels{flex:0 0 452px;width:452px;min-width:0;position:sticky;top:14px;display:flex;flex-direction:column}
+    .stage-panels{flex:0 0 460px;width:460px;min-width:0;position:sticky;top:14px;display:flex;flex-direction:column}
     .stage-panels > .tabbar-top{flex:none}
     .stage-panels > .tabpanel.on{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
     /* scan: pin trigger + filters, scroll the counter table inside the box */
@@ -482,19 +483,22 @@
   </div>
   <div class="tabpanel on" data-tab="scan">
   <div class="card" id="scanCard" style="margin-top:18px">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
         <h2 style="margin:0">Scan by trigger <span id="scanAsof" style="color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0"></span></h2>
-        <div class="lead" style="margin-top:2px">pick a trigger &mdash; every US counter that fired it on the last 2 daily bars &middot; tap one to chart it</div>
+        <div class="lead" id="scanLead" style="margin-top:2px">pick a trigger &mdash; every US counter that fired it on the last 2 daily bars &middot; tap one to chart it</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button class="btn drawer-btn" id="scanControlsToggle" style="padding:5px 11px;font-size:11px;flex:none">Hide ▴</button>
+    </div>
+    <div id="scanSummary" style="display:none;margin-top:11px;align-items:center;gap:9px;flex-wrap:wrap;cursor:pointer"></div>
+    <div id="scanControls">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px">
         <input id="scanUrl" type="text" placeholder="scan_results.json URL" autocomplete="off" spellcheck="false" style="font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:220px;max-width:100%">
         <button class="btn" id="scanLoad" style="padding:5px 11px;font-size:11px">Load</button>
         <button class="btn" id="scanFileBtn" style="padding:5px 11px;font-size:11px">Load file&hellip;</button>
         <input id="scanFile" type="file" accept="application/json,.json" style="display:none">
       </div>
-    </div>
-    <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
+      <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
     <div id="scanFilters" style="display:none;margin-top:12px;flex-wrap:wrap;gap:12px 18px;align-items:center;padding:12px 14px;background:var(--panel-in);border:1px solid var(--hair);border-radius:10px">
       <span id="fCapWrap" style="display:inline-flex;align-items:center;gap:5px">
         <span class="ctl-label">Cap&nbsp;$B</span>
@@ -525,6 +529,7 @@
       <button class="unitbtn" data-unit="3">3rd</button>
       <button class="unitbtn" data-unit="4">4th</button>
     </div>
+    </div><!-- /scanControls -->
     <div id="scanBody" style="margin-top:12px"></div>
     <div class="caveat" id="scanNote"></div>
   </div>
@@ -1572,7 +1577,7 @@ function scanRenderChips(){
     const b=document.createElement('button');
     b.className='chip scanchip '+(TRIG_DIR[t]||'')+(SCAN.sel===t?' sel':'');
     b.innerHTML=t+' <span class="n">'+counts[t]+'</span>';
-    b.onclick=()=>{ SCAN.sel=(SCAN.sel===t)?null:t; scanRenderChips(); scanRenderList(); };
+    b.onclick=()=>{ const picked=(SCAN.sel!==t); SCAN.sel=picked?t:null; scanRenderChips(); scanRenderList(); if(picked && window.innerWidth>=981) scanSetControls(false); };
     c.appendChild(b);
   });
 }
@@ -1598,13 +1603,16 @@ function scanRenderList(){
     ? all.length+' counter'+(all.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart'
     : rows.length+' of '+all.length+' '+SCAN.sel+' counters match \u2014 tap any to chart';
   body.appendChild(head);
+  if(typeof scanUpdateSummary==='function')scanUpdateSummary();
   if(!rows.length){ const e=document.createElement('div'); e.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint);padding:6px 8px'; e.textContent=all.length?'none match the current filters':'no counters'; body.appendChild(e); return; }
 
   const metas=rows.map(r=>SCAN.meta[r.t]||{});
   const hasPx=metas.some(m=>m.px!=null), hasCap=metas.some(m=>m.mc!=null), hasInd=metas.some(m=>m.industry);
+  const hasUnit=(TURTLE_TRIGS.indexOf(SCAN.sel)>=0) && rows.some(r=>r.unit!=null);
 
   const cols=[{k:'fresh',by:'fresh'},{k:'ticker',lbl:'Ticker',by:'ticker'}];
   const tmpl=['22px','minmax(0,1.35fr)'];
+  if(hasUnit){ cols.push({k:'unit',lbl:'Unit',by:'unit',right:true}); tmpl.push('46px'); }
   if(hasPx){ cols.push({k:'px',lbl:'Price',by:'px',right:true}); tmpl.push('66px'); }
   if(hasCap){ cols.push({k:'cap',lbl:'Mkt cap',by:'cap',right:true}); tmpl.push('62px'); }
   if(hasInd){ cols.push({k:'ind',lbl:'Industry',by:'industry'}); tmpl.push('minmax(0,1fr)'); }
@@ -1636,6 +1644,7 @@ function scanRenderList(){
     tk.appendChild(s);
     if(m.name){ const n=document.createElement('div'); n.className='n'; n.textContent=m.name; n.title=m.name; tk.appendChild(n); }
     row.appendChild(tk);
+    if(hasUnit){ const uc=document.createElement('div'); uc.className='sccell-unit'; const u=r.unit; uc.textContent=(u!=null)?(u+(['th','st','nd','rd'][(u%10<4&&!(u%100>10&&u%100<14))?u%10:0])):'–'; if(u!=null&&u>1)uc.style.color='var(--force)'; uc.title=(u!=null)?('unit '+u+' of the pyramid'):''; row.appendChild(uc); }
     if(hasPx){ const px=document.createElement('div'); px.className='sccell-px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'\u2013'; row.appendChild(px); }
     if(hasCap){ const cap=document.createElement('div'); cap.className='sccell-cap'; cap.textContent=(m.mc!=null)?scanFmtCapShort(m.mc):'\u2013'; row.appendChild(cap); }
     if(hasInd){ const ind=document.createElement('div'); ind.className='sccell-ind'; ind.textContent=m.industry||'\u2013'; ind.title=m.industry||''; row.appendChild(ind); }
@@ -1696,6 +1705,7 @@ function scanCmp(a,b){
   else if(by==='name'){ const x=(ma.name||a.t).toLowerCase(), y=(mb.name||b.t).toLowerCase(); c=(x<y?-1:x>y?1:0); }
   else if(by==='cap'){ const x=(ma.mc!=null?ma.mc:-Infinity), y=(mb.mc!=null?mb.mc:-Infinity); c=(x<y?-1:x>y?1:0); }
   else if(by==='px'){ const x=(ma.px!=null?+ma.px:-Infinity), y=(mb.px!=null?+mb.px:-Infinity); c=(x<y?-1:x>y?1:0); }
+  else if(by==='unit'){ const x=(a.unit!=null?a.unit:-Infinity), y=(b.unit!=null?b.unit:-Infinity); c=(x<y?-1:x>y?1:0); }
   else if(by==='industry'){ const x=(ma.industry||'\uffff'), y=(mb.industry||'\uffff'); c=(x<y?-1:x>y?1:0); }
   else { c=(a.ago-b.ago); }
   if(c===0) c=(a.t<b.t?-1:a.t>b.t?1:0);
@@ -1770,6 +1780,34 @@ function scanLoadFile(file){
   rd.onload=()=>{ try{ scanApply(JSON.parse(rd.result)); }catch(e){ alert('That file is not valid JSON: '+e.message); } };
   rd.readAsText(file);
 }
+function scanActiveFilterCount(){
+  const f=SCAN.filt; let n=0;
+  if(f.capMin!=null)n++; if(f.capMax!=null)n++;
+  if(f.pxMin!=null||f.pxMax!=null)n++;
+  if(f.ind)n++;
+  if(f.units&&f.units.length)n++;
+  return n;
+}
+function scanUpdateSummary(){
+  const sum=$('#scanSummary'); if(!sum)return;
+  const sel=SCAN.sel, counts=(SCAN.data&&SCAN.data.counts)||{}, dir=sel?(TRIG_DIR[sel]||''):'';
+  const n=scanActiveFilterCount();
+  sum.innerHTML =
+    (sel ? '<span class="chip scanchip '+dir+' sel" style="pointer-events:none">'+sel+' <span class="n">'+(counts[sel]||0)+'</span></span>'
+         : '<span style="color:var(--mut);font-family:var(--mono);font-size:12px">no trigger selected</span>')
+    + (n ? '<span style="color:var(--faint);font-family:var(--mono);font-size:11px">'+n+' filter'+(n>1?'s':'')+' on</span>' : '')
+    + '<span style="margin-left:auto;color:var(--long);font-family:var(--mono);font-size:11px">Change ▾</span>';
+}
+function scanSetControls(open){
+  SCAN.controlsOpen=open;
+  const c=$('#scanControls'), sum=$('#scanSummary'), lead=$('#scanLead'), btn=$('#scanControlsToggle');
+  if(c)c.style.display=open?'block':'none';
+  if(sum)sum.style.display=open?'none':'flex';
+  if(lead)lead.style.display=open?'block':'none';
+  if(btn)btn.textContent=open?'Hide ▴':'Filters ▾';
+  if(!open)scanUpdateSummary();
+  try{localStorage.setItem('pam_scanControls',open?'1':'0');}catch(e){}
+}
 function scanInit(){
   const lb=$('#scanLoad'); if(lb)lb.onclick=()=>scanLoadUrl(false);
   const fb=$('#scanFileBtn'), fi=$('#scanFile');
@@ -1779,6 +1817,10 @@ function scanInit(){
   const fc=$('#fClear'); if(fc)fc.onclick=()=>{ scanResetFilters(); scanRenderList(); };
   document.querySelectorAll('#scanSort .sortbtn').forEach(b=>{ b.onclick=()=>scanSetSort(b.getAttribute('data-by')); });
   document.querySelectorAll('#scanUnits .unitbtn').forEach(b=>{ b.onclick=()=>scanSetUnit(parseInt(b.getAttribute('data-unit'),10)); });
+  const ct=$('#scanControlsToggle'); if(ct)ct.onclick=()=>scanSetControls(!SCAN.controlsOpen);
+  const ss=$('#scanSummary'); if(ss)ss.onclick=()=>scanSetControls(true);
+  let openInit=true; try{ const v=localStorage.getItem('pam_scanControls'); if(v==='0')openInit=false; }catch(e){}
+  scanSetControls(openInit);
   const plo=$('#pxLo'), phi=$('#pxHi');
   if(plo)plo.addEventListener('pointerdown',e=>pxDrag('lo',e));
   if(phi)phi.addEventListener('pointerdown',e=>pxDrag('hi',e));
