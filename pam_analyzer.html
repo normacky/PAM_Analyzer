@@ -228,6 +228,14 @@
   .eff tr.eff-grp:hover .eff-disc{border-color:var(--force);color:var(--force);background:var(--panel-in)}
   .eff-cnt{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-left:10px;vertical-align:middle}
   .eff tr.eff-grp:hover .eff-cnt{color:var(--mut)}
+  /* ---- themed scrollbars for the locked right-box scroll regions ---- */
+  #scanBody, .tabpanel > .card{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  #scanBody::-webkit-scrollbar, .tabpanel > .card::-webkit-scrollbar{width:11px;height:11px}
+  #scanBody::-webkit-scrollbar-track, .tabpanel > .card::-webkit-scrollbar-track{background:transparent}
+  #scanBody::-webkit-scrollbar-thumb, .tabpanel > .card::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:3px solid var(--panel);background-clip:padding-box}
+  #scanBody::-webkit-scrollbar-thumb:hover, .tabpanel > .card::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+  #scanBody::-webkit-scrollbar-button, .tabpanel > .card::-webkit-scrollbar-button{display:none;width:0;height:0}
+  #scanBody::-webkit-scrollbar-corner, .tabpanel > .card::-webkit-scrollbar-corner{background:transparent}
 
   /* ---- mobile hardening ---- */
   @media(max-width:760px){.wrap{padding:24px 18px 76px}}
@@ -1032,8 +1040,20 @@ function drawCore(){
   let inds=[{key:'stoch',label:'Stoch %K/%D · 10, SMA 10'},{key:'rsi',label:'RSI 14 · Wilder'},
               {key:'macd',label:'MACD 12·26·9'},{key:'atr',label:'ATR 14 · Wilder'}].filter(p=>S.ind[p.key]);
   const narrowCV=(window.innerWidth||1200)<981; if(narrowCV)inds=[];   /* phones: pinned chart shows price-only so it stays compact */
-  const priceH=narrowCV?255:Math.max(300,440-inds.length*18), panelH=84, panelGap=12, axisH=22;
+  let priceH=narrowCV?255:Math.max(300,440-inds.length*18), panelH=84, panelGap=12; const axisH=22;
   const ribH=(S.layers.turtle||S.layers.reverse)?16:0;
+  /* desktop: keep the whole chart inside the viewport so the sticky box stays locked to the right panel */
+  if(!narrowCV && (window.innerWidth||0)>=981){
+    let reserve=224;
+    try{ const sc=cv.closest('.stage-chart'); if(sc){ const c=(sc.offsetHeight-cv.offsetHeight)+28; if(c>110&&c<340)reserve=c; } }catch(e){}
+    const maxH=Math.max(320,(window.innerHeight||800)-reserve);
+    const fixed=padT+ribH+axisH;
+    if(fixed+priceH+inds.length*(panelH+panelGap)>maxH){
+      const p=maxH-fixed-inds.length*(panelH+panelGap);
+      if(p>=210){ priceH=p; }
+      else { priceH=210; const rem=maxH-fixed-priceH; if(inds.length>0){ panelH=Math.max(38, Math.floor(rem/inds.length)-panelGap); } }
+    }
+  }
   const priceTop=padT, priceBot=priceTop+priceH; let cur=priceBot+ribH;
   inds.forEach(p=>{p.top=cur+panelGap;p.bot=p.top+panelH;cur=p.bot;});
   const chartBot=cur, H=chartBot+axisH;
