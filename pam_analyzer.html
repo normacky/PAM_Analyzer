@@ -266,7 +266,14 @@
   @media(min-width:981px){
     .stage{display:flex;gap:20px;align-items:flex-start}
     .stage-chart{flex:1 1 0;min-width:0;position:sticky;top:14px}
-    .stage-panels{flex:0 0 452px;width:452px;min-width:0}
+    .stage-panels{flex:0 0 452px;width:452px;min-width:0;position:sticky;top:14px;display:flex;flex-direction:column}
+    .stage-panels > .tabbar-top{flex:none}
+    .stage-panels > .tabpanel.on{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+    /* scan: pin trigger + filters, scroll the counter table inside the box */
+    .tabpanel[data-tab="scan"].on > #scanCard{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    #scanCard > #scanBody{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding-right:4px}
+    /* other tabs: scroll the whole card inside the box */
+    .tabpanel:not([data-tab="scan"]).on > .card{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
     .stage-chart .tabbar{display:none}
     .tabbar-top{display:flex}
   }
@@ -1806,15 +1813,17 @@ if(S.lastSym && ($('#keyInput').value||'').trim() && !DRIVE.connected){ $('#tkIn
 (function(){
   const v=document.querySelector('.pinned-verdict'), tt=document.querySelector('.tabbar-top');
   if(!v||!tt)return;
+  const chart=document.querySelector('.stage-chart'), panels=document.querySelector('.stage-panels');
   function align(){
     if(window.innerWidth>=981){
       const vh=v.getBoundingClientRect().height + (parseFloat(getComputedStyle(v).marginBottom)||0);
       const th=tt.getBoundingClientRect().height;
       tt.style.marginBottom=Math.max(0, Math.round(vh-th))+'px';
-    } else { tt.style.marginBottom=''; }
+      if(chart&&panels){ panels.style.height=Math.max(360, Math.round(window.innerHeight-28))+'px'; }
+    } else { tt.style.marginBottom=''; if(panels)panels.style.height=''; }
   }
   align();
-  try{ if(window.ResizeObserver) new ResizeObserver(align).observe(v); }catch(e){}
+  try{ if(window.ResizeObserver){ const ro=new ResizeObserver(align); ro.observe(v); if(chart)ro.observe(chart); } }catch(e){}
   window.addEventListener('resize',align);
 })();
 </script>
