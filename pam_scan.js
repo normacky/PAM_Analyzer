@@ -99,15 +99,17 @@ function detectFresh(sym, series, eng, cfg) {
     try { smelly = !!eng.buildTrade(bars, t).smelly; } catch (e) {}   // price already ran >=1R past entry
     rows.push({ t: sym, trig: t.label, dir: t.dir, bar: t.date, ago: last - t.i, smelly });
   }
-  // Turtle long entries (S1 = 20-day break, S2 = 55-day break)
-  for (const tr of (bars.ttTrades || [])) {
-    if (!fresh(tr.entry)) continue;
-    rows.push({ t: sym, trig: 'S' + tr.sys, dir: 'long', bar: bars[tr.entry].date, ago: last - tr.entry, sys: tr.sys });
-  }
-  // Reverse-Turtle short entries (S1s / S2s)
-  for (const tr of (bars.rtTrades || [])) {
-    if (!fresh(tr.entry)) continue;
-    rows.push({ t: sym, trig: 'S' + tr.sys + 's', dir: 'short', bar: bars[tr.entry].date, ago: last - tr.entry, sys: tr.sys });
+  // Turtle long (S1/S2) + reverse-short (S1s/S2s): entries (unit 1) AND pyramid adds (units 2-4) inside the fresh window
+  for (let k = last; k >= 0 && (last - k) < cfg.freshWithin; k--) {
+    const b = bars[k];
+    if (b.ttUnit) {                                    // long: unit 1 = entry, 2/3/4 = pyramid add
+      const sys = b.ttSys === 'S2' ? 2 : 1;
+      rows.push({ t: sym, trig: 'S' + sys, dir: 'long', bar: b.date, ago: last - k, sys, unit: b.ttUnit });
+    }
+    if (b.rtUnit) {                                    // reverse-short: unit 1 = entry, 2/3/4 = pyramid add
+      const sys = b.rtSys === 'S2' ? 2 : 1;
+      rows.push({ t: sym, trig: 'S' + sys + 's', dir: 'short', bar: b.date, ago: last - k, sys, unit: b.rtUnit });
+    }
   }
   return rows;
 }
