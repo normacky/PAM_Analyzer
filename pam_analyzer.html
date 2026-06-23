@@ -32,7 +32,7 @@
   html,body{margin:0;background:var(--ink);color:var(--txt);font-family:var(--body);
     -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
   a{color:var(--long)}
-  .wrap{max-width:1160px;margin:0 auto;padding:34px 28px 96px}
+  .wrap{max-width:1760px;margin:0 auto;padding:34px 32px 96px}
 
   header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
     gap:16px;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:30px}
@@ -160,6 +160,26 @@
   .scanrow .px{font-family:var(--mono);font-size:12px;color:var(--txt);flex:none}
   .scanrow .sub{font-family:var(--mono);font-size:10.5px;color:var(--faint);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .scanrow .tm{font-family:var(--mono);font-size:10.5px;flex:none}
+  /* ---- scan results table (sortable columns) ---- */
+  .sccount{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:6px}
+  .sctab-head,.sctr{display:grid;gap:9px;align-items:center;padding:7px 8px}
+  .sctab-head{position:sticky;top:0;z-index:2;background:var(--panel);border-bottom:1px solid var(--line)}
+  .scth{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;-webkit-user-select:none;user-select:none;min-width:0}
+  .scth:hover{color:var(--txt)}
+  .scth.on{color:var(--txt)}
+  .scth.r{justify-content:flex-end}
+  .scth .ar{font-size:8.5px}
+  .scth .ar.off{opacity:.28}
+  .sctr{border-bottom:1px solid var(--hair);cursor:pointer;border-radius:6px}
+  .sctr:hover{background:var(--panel-in)}
+  .scdot{width:7px;height:7px;border-radius:50%;justify-self:center}
+  .sccell-tk{min-width:0}
+  .sccell-tk .s{font-family:var(--mono);font-size:13px;font-weight:600;line-height:1.15}
+  .sccell-tk .n{font-size:10.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .sccell-px{font-family:var(--mono);font-size:12px;color:var(--txt);text-align:right;white-space:nowrap}
+  .sccell-cap{font-family:var(--mono);font-size:11.5px;color:var(--mut);text-align:right;white-space:nowrap}
+  .sccell-unit{font-family:var(--mono);font-size:11.5px;color:var(--txt);text-align:right;white-space:nowrap}
+  .sccell-ind{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .scannum{font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:5px 7px;width:56px}
   .scansel{font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:5px 7px;max-width:190px}
   .sortbtn,.unitbtn{font-family:var(--mono);font-size:11px;background:var(--panel-in);color:var(--mut);border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer}
@@ -209,6 +229,14 @@
   .eff tr.eff-grp:hover .eff-disc{border-color:var(--force);color:var(--force);background:var(--panel-in)}
   .eff-cnt{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-left:10px;vertical-align:middle}
   .eff tr.eff-grp:hover .eff-cnt{color:var(--mut)}
+  /* ---- themed scrollbars for the locked right-box scroll regions ---- */
+  #scanBody, .tabpanel > .card{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  #scanBody::-webkit-scrollbar, .tabpanel > .card::-webkit-scrollbar{width:11px;height:11px}
+  #scanBody::-webkit-scrollbar-track, .tabpanel > .card::-webkit-scrollbar-track{background:transparent}
+  #scanBody::-webkit-scrollbar-thumb, .tabpanel > .card::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:3px solid var(--panel);background-clip:padding-box}
+  #scanBody::-webkit-scrollbar-thumb:hover, .tabpanel > .card::-webkit-scrollbar-thumb:hover{background:var(--mut)}
+  #scanBody::-webkit-scrollbar-button, .tabpanel > .card::-webkit-scrollbar-button{display:none;width:0;height:0}
+  #scanBody::-webkit-scrollbar-corner, .tabpanel > .card::-webkit-scrollbar-corner{background:transparent}
 
   /* ---- mobile hardening ---- */
   @media(max-width:760px){.wrap{padding:24px 18px 76px}}
@@ -226,6 +254,52 @@
     .eff th,.eff td{padding-left:7px;padding-right:7px}
     .eff-cnt{display:none}
   }
+
+  /* ===== pinned chart + tabbed workspace ===== */
+  .stage{margin-top:18px}
+  .pinned-verdict{display:flex;align-items:baseline;gap:10px 12px;text-align:left;margin:0 0 12px;flex-wrap:wrap}
+  .pinned-verdict .tk{font-size:15px;color:var(--txt);font-family:var(--mono);font-weight:600;letter-spacing:.03em;white-space:nowrap}
+  .pinned-verdict .nm{margin:0;font-size:12px;align-self:center;max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pinned-verdict .px{font-size:22px;font-family:var(--disp);font-weight:700;margin-left:auto}
+  .pinned-verdict .chips{margin-top:0;justify-content:flex-start;flex-basis:100%}
+  .tabbar{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--line);margin-top:12px}
+  .tabbar::-webkit-scrollbar{height:0}
+  .tabbar-top{display:none;margin-top:0}
+  .tabbtn{flex:none;font-family:var(--mono);font-size:12px;color:var(--mut);background:none;border:0;border-bottom:2px solid transparent;padding:10px 0;margin:0 16px 0 0;cursor:pointer;white-space:nowrap}
+  .tabbtn:first-child{margin-left:2px}
+  .tabbtn:hover{color:var(--txt)}
+  .tabbtn.on{color:var(--txt);border-bottom-color:var(--long)}
+  .tabpanel{display:none}
+  .tabpanel.on{display:block}
+  .tabpanel > .card{margin-top:0 !important}
+  @media(min-width:981px){
+    .stage{display:flex;gap:20px;align-items:flex-start}
+    .stage-chart{flex:1 1 0;min-width:0;position:sticky;top:14px}
+    .stage-panels{flex:0 0 460px;width:460px;min-width:0;position:sticky;top:14px;display:flex;flex-direction:column}
+    .stage-panels > .tabbar-top{flex:none}
+    .stage-panels > .tabpanel.on{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+    /* scan: pin trigger + filters, scroll the counter table inside the box */
+    .tabpanel[data-tab="scan"].on > #scanCard{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+    #scanCard > #scanBody{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding-right:4px}
+    /* other tabs: scroll the whole card inside the box */
+    .tabpanel:not([data-tab="scan"]).on > .card{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+    .stage-chart .tabbar{display:none}
+    .tabbar-top{display:flex}
+  }
+  .chart-collapse-btn{display:none;align-items:center;justify-content:center;gap:7px;width:100%;
+    font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--mut);background:var(--panel-in);
+    border:1px solid var(--line);border-radius:9px;padding:8px;margin:2px 0 8px;cursor:pointer;-webkit-user-select:none;user-select:none}
+  .chart-collapse-btn:hover{color:var(--txt);border-color:var(--mut)}
+  @media(max-width:980px){
+    .stage-chart{position:sticky;top:0;z-index:30;background:var(--ink);padding-top:6px;box-shadow:0 16px 22px -12px rgba(0,0,0,.5)}
+    [data-theme="light"] .stage-chart{box-shadow:0 16px 22px -12px rgba(60,52,40,.2)}
+    .stage-chart .legend{display:none}
+    .chart-collapse-btn{display:flex}
+    .stage-chart.chart-collapsed .chartcard{display:none}
+    .stage-chart.chart-collapsed{box-shadow:0 10px 16px -12px rgba(0,0,0,.5)}
+    .stage-panels{padding-top:14px;min-height:82vh}
+    .tabbar{margin-top:8px}
+  }
 </style>
 
 <div class="wrap">
@@ -236,12 +310,7 @@
       <div class="sub">Reads a chart the way the framework does, then marks only the <b>genuine triggers</b> —
         each labelled with which of the setups fired and why. Type a symbol to pull its data, or paste any chart in ⚙ Settings.</div>
     </div>
-    <div class="verdict">
-      <div class="tk" id="vTk">—</div>
-      <div class="nm" id="vNm"></div>
-      <div class="px" id="vPx">—</div>
-      <div class="chips" id="vChips"></div>
-    </div>
+
   </header>
 
     <div class="controls" id="mainBar">
@@ -264,7 +333,6 @@
 
     <button class="btn drawer-btn" id="indToggle">Indicators <span id="indState" style="color:var(--faint)">off</span> ▾</button>
     <button class="btn drawer-btn" id="settingsToggle">⚙ Settings</button>
-    <button class="btn drawer-btn" id="themeToggle">◐ Light</button>
   </div>
 
   <div class="controls" id="statusBar" style="margin-top:-8px">
@@ -283,6 +351,13 @@
 
   <div class="drawer" id="settingsPanel" style="display:none">
     <div class="drawer-grid">
+      <div class="drawer-group">
+        <div class="drawer-h">Appearance</div>
+        <div class="drawer-row">
+          <span class="ctl-label">Theme</span>
+          <button class="btn drawer-btn" id="themeToggle">◐ Light</button>
+        </div>
+      </div>
       <div class="drawer-group">
         <div class="drawer-h">Data &amp; API</div>
         <div class="drawer-row">
@@ -367,6 +442,15 @@
     </div>
   </div>
 
+  <div class="stage">
+  <div class="stage-chart">
+    <div class="verdict pinned-verdict">
+      <div class="tk" id="vTk">—</div>
+      <div class="nm" id="vNm"></div>
+      <div class="px" id="vPx">—</div>
+      <div class="chips" id="vChips"></div>
+    </div>
+    <button class="chart-collapse-btn" id="chartCollapse" type="button">▾ Hide chart</button>
   <div class="chartcard">
     <canvas id="chart"></canvas>
     <div class="tip" id="tip"></div>
@@ -384,25 +468,46 @@
       <span style="color:var(--long)">▲</span><span style="color:var(--short)">▼ PAM trigger</span>
       <span style="color:#378add">Donchian 20</span><span style="color:#9a7fe0">55</span><span style="color:#d4a85c">10 (exit)</span>
       <span style="color:#3f9af0">S1/S2 long</span><span style="color:#ff6f45">S1s/S2s reverse</span>
-      <span style="color:#5b667e">drag chart or scroll · Shift-scroll to zoom</span>
+      <span style="color:#5b667e">drag · scroll · Shift-scroll zooms · swipe panels ‹ ›</span>
     </div>
   </div>
-
+  <div class="tabbar" id="tabbar">
+    <button class="tabbtn on" data-tab="scan">Scan</button>
+    <button class="tabbtn" data-tab="eff">Effectiveness</button>
+    <button class="tabbtn" data-tab="read">Read</button>
+    <button class="tabbtn" data-tab="trade">Trade</button>
+    <button class="tabbtn" data-tab="log">Check log</button>
+    <button class="tabbtn" data-tab="group">Group</button>
+  </div>
+  </div><!-- /stage-chart -->
+  <div class="stage-panels">
+  <div class="tabbar tabbar-top" id="tabbarTop">
+    <button class="tabbtn on" data-tab="scan">Scan</button>
+    <button class="tabbtn" data-tab="eff">Effectiveness</button>
+    <button class="tabbtn" data-tab="read">Read</button>
+    <button class="tabbtn" data-tab="trade">Trade</button>
+    <button class="tabbtn" data-tab="log">Check log</button>
+    <button class="tabbtn" data-tab="group">Group</button>
+  </div>
+  <div class="tabpanel on" data-tab="scan">
   <div class="card" id="scanCard" style="margin-top:18px">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
         <h2 style="margin:0">Scan by trigger <span id="scanAsof" style="color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0"></span></h2>
-        <div class="lead" style="margin-top:2px">pick a trigger &mdash; every US counter that fired it on the last 2 daily bars &middot; tap one to chart it</div>
+        <div class="lead" id="scanLead" style="margin-top:2px">pick a trigger &mdash; every US counter that fired it on the last 2 daily bars &middot; tap one to chart it</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <button class="btn drawer-btn" id="scanControlsToggle" style="padding:5px 11px;font-size:11px;flex:none">Hide ▴</button>
+    </div>
+    <div id="scanSummary" style="display:none;margin-top:11px;align-items:center;gap:9px;flex-wrap:wrap;cursor:pointer"></div>
+    <div id="scanControls">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px">
         <input id="scanUrl" type="text" placeholder="scan_results.json URL" autocomplete="off" spellcheck="false" style="font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:220px;max-width:100%">
         <button class="btn" id="scanLoad" style="padding:5px 11px;font-size:11px">Load</button>
         <button class="btn" id="scanFileBtn" style="padding:5px 11px;font-size:11px">Load file&hellip;</button>
         <input id="scanFile" type="file" accept="application/json,.json" style="display:none">
       </div>
-    </div>
-    <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
-    <div id="scanFilters" style="display:none;margin-top:12px;flex-wrap:wrap;gap:14px;align-items:center;padding:10px 0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)">
+      <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div id="scanFilters" style="display:none;margin-top:12px;flex-wrap:wrap;gap:12px 18px;align-items:center;padding:12px 14px;background:var(--panel-in);border:1px solid var(--hair);border-radius:10px">
       <span id="fCapWrap" style="display:inline-flex;align-items:center;gap:5px">
         <span class="ctl-label">Cap&nbsp;$B</span>
         <input id="fCapMin" class="scannum" type="number" min="0" step="0.1" placeholder="min">
@@ -425,14 +530,6 @@
       </span>
       <button class="btn" id="fClear" style="padding:4px 10px;font-size:11px">Clear</button>
     </div>
-    <div id="scanSort" style="display:none;margin-top:10px;align-items:center;gap:6px;flex-wrap:wrap">
-      <span class="ctl-label">Sort</span>
-      <button class="sortbtn" data-by="fresh">Fresh</button>
-      <button class="sortbtn" data-by="ticker">Ticker</button>
-      <button class="sortbtn" data-by="name" id="sortName">Name</button>
-      <button class="sortbtn" data-by="cap" id="sortCap">Mkt&nbsp;cap</button>
-      <button class="sortbtn" data-by="industry" id="sortInd">Industry</button>
-    </div>
     <div id="scanUnits" style="display:none;margin-top:8px;align-items:center;gap:6px;flex-wrap:wrap">
       <span class="ctl-label">Unit</span>
       <button class="unitbtn" data-unit="1">1st</button>
@@ -440,10 +537,12 @@
       <button class="unitbtn" data-unit="3">3rd</button>
       <button class="unitbtn" data-unit="4">4th</button>
     </div>
+    </div><!-- /scanControls -->
     <div id="scanBody" style="margin-top:12px"></div>
     <div class="caveat" id="scanNote"></div>
   </div>
-
+  </div><!-- /scan panel -->
+  <div class="tabpanel" data-tab="eff">
   <div class="card" id="effCard" style="margin-top:18px">
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div>
@@ -460,15 +559,16 @@
     <div id="effBody" style="margin-top:14px"></div>
     <div class="caveat" id="effNote"></div>
   </div>
-
-  <div class="grid2">
+  </div><!-- /eff panel -->
+  <div class="tabpanel" data-tab="read">
     <div class="card">
       <h2>The read</h2>
       <div class="lead">worked through in the framework's order — latest bar on the right edge</div>
       <div id="steps"></div>
       <div class="caveat" id="caveat"></div>
     </div>
-
+  </div><!-- /read panel -->
+  <div class="tabpanel" data-tab="trade">
     <div class="card">
       <h2>Trade structure</h2>
       <div class="lead">drawn only when the latest bar is itself a trigger</div>
@@ -492,7 +592,8 @@
         </div>
       </details>
     </div>
-  </div>
+  </div><!-- /trade panel -->
+  <div class="tabpanel" data-tab="log">
   <div class="card" id="checklogCard" style="margin-top:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
       <div>
@@ -506,6 +607,8 @@
     </div>
     <div class="log" id="checklog" style="margin-top:10px;max-height:260px;overflow:auto"></div>
   </div>
+  </div><!-- /log panel -->
+  <div class="tabpanel" data-tab="group">
   <div class="card" id="groupCard" style="margin-top:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
       <div>
@@ -517,6 +620,9 @@
     </div>
     <div class="log" id="groupFeed" style="margin-top:10px;max-height:300px;overflow:auto"></div>
   </div>
+  </div><!-- /group panel -->
+  </div><!-- /stage-panels -->
+  </div><!-- /stage -->
 </div>
 
 <script>
@@ -944,10 +1050,23 @@ function drawCore(){
   {const sb=$('#scroll'); if(sb){sb.min=0;sb.max=Math.max(0,fullN-span);sb.value=start;sb.disabled=(fullN<=span);}
    const rl=$('#rangeLbl'); if(rl&&n)rl.textContent=view[0].date+'  →  '+view[n-1].date+'   ('+n+(S.tf==='W'?' wk':S.tf==='2'?' ×2d':' d')+')';}
   // ----- vertical layout: price panel + (ribbon strip) + indicator panels + date axis -----
-  const inds=[{key:'stoch',label:'Stoch %K/%D · 10, SMA 10'},{key:'rsi',label:'RSI 14 · Wilder'},
+  let inds=[{key:'stoch',label:'Stoch %K/%D · 10, SMA 10'},{key:'rsi',label:'RSI 14 · Wilder'},
               {key:'macd',label:'MACD 12·26·9'},{key:'atr',label:'ATR 14 · Wilder'}].filter(p=>S.ind[p.key]);
-  const priceH=Math.max(300,440-inds.length*18), panelH=84, panelGap=12, axisH=22;
+  const narrowCV=(window.innerWidth||1200)<981; if(narrowCV)inds=[];   /* phones: pinned chart shows price-only so it stays compact */
+  let priceH=narrowCV?255:Math.max(300,440-inds.length*18), panelH=84, panelGap=12; const axisH=22;
   const ribH=(S.layers.turtle||S.layers.reverse)?16:0;
+  /* desktop: keep the whole chart inside the viewport so the sticky box stays locked to the right panel */
+  if(!narrowCV && (window.innerWidth||0)>=981){
+    let reserve=224;
+    try{ const sc=cv.closest('.stage-chart'); if(sc){ const c=(sc.offsetHeight-cv.offsetHeight)+28; if(c>110&&c<340)reserve=c; } }catch(e){}
+    const maxH=Math.max(320,(window.innerHeight||800)-reserve);
+    const fixed=padT+ribH+axisH;
+    if(fixed+priceH+inds.length*(panelH+panelGap)>maxH){
+      const p=maxH-fixed-inds.length*(panelH+panelGap);
+      if(p>=210){ priceH=p; }
+      else { priceH=210; const rem=maxH-fixed-priceH; if(inds.length>0){ panelH=Math.max(38, Math.floor(rem/inds.length)-panelGap); } }
+    }
+  }
   const priceTop=padT, priceBot=priceTop+priceH; let cur=priceBot+ribH;
   inds.forEach(p=>{p.top=cur+panelGap;p.bot=p.top+panelH;cur=p.bot;});
   const chartBot=cur, H=chartBot+axisH;
@@ -1467,7 +1586,7 @@ function scanRenderChips(){
     const b=document.createElement('button');
     b.className='chip scanchip '+(TRIG_DIR[t]||'')+(SCAN.sel===t?' sel':'');
     b.innerHTML=t+' <span class="n">'+counts[t]+'</span>';
-    b.onclick=()=>{ SCAN.sel=(SCAN.sel===t)?null:t; scanRenderChips(); scanRenderList(); };
+    b.onclick=()=>{ const picked=(SCAN.sel!==t); SCAN.sel=picked?t:null; scanRenderChips(); scanRenderList(); if(picked && window.innerWidth>=981) scanSetControls(false); };
     c.appendChild(b);
   });
 }
@@ -1487,33 +1606,58 @@ function scanRenderList(){
   if(!d||!SCAN.sel)return;
   const all=(d.rows||[]).filter(r=>r.trig===SCAN.sel);
   const rows=all.filter(scanRowPasses).sort(scanCmp);
-  const head=document.createElement('div');
-  head.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.04em;margin-bottom:8px';
+
+  const head=document.createElement('div'); head.className='sccount';
   head.textContent=(rows.length===all.length)
-    ? all.length+' counter'+(all.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart it'
-    : rows.length+' of '+all.length+' '+SCAN.sel+' counters match \u2014 tap any to chart it';
+    ? all.length+' counter'+(all.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart'
+    : rows.length+' of '+all.length+' '+SCAN.sel+' counters match \u2014 tap any to chart';
   body.appendChild(head);
-  if(!rows.length){ const e=document.createElement('div'); e.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint)'; e.textContent=all.length?'none match the current filters':'no counters'; body.appendChild(e); return; }
+  if(typeof scanUpdateSummary==='function')scanUpdateSummary();
+  if(!rows.length){ const e=document.createElement('div'); e.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint);padding:6px 8px'; e.textContent=all.length?'none match the current filters':'no counters'; body.appendChild(e); return; }
+
+  const metas=rows.map(r=>SCAN.meta[r.t]||{});
+  const hasPx=metas.some(m=>m.px!=null), hasCap=metas.some(m=>m.mc!=null), hasInd=metas.some(m=>m.industry);
+  const hasUnit=(TURTLE_TRIGS.indexOf(SCAN.sel)>=0) && rows.some(r=>r.unit!=null);
+
+  const cols=[{k:'fresh',by:'fresh'},{k:'ticker',lbl:'Ticker',by:'ticker'}];
+  const tmpl=['22px','minmax(0,1.35fr)'];
+  if(hasUnit){ cols.push({k:'unit',lbl:'Unit',by:'unit',right:true}); tmpl.push('46px'); }
+  if(hasPx){ cols.push({k:'px',lbl:'Price',by:'px',right:true}); tmpl.push('66px'); }
+  if(hasCap){ cols.push({k:'cap',lbl:'Mkt cap',by:'cap',right:true}); tmpl.push('62px'); }
+  if(hasInd){ cols.push({k:'ind',lbl:'Industry',by:'industry'}); tmpl.push('minmax(0,1fr)'); }
+  const gt=tmpl.join(' ');
+
+  const hr=document.createElement('div'); hr.className='sctab-head'; hr.style.gridTemplateColumns=gt;
+  cols.forEach(col=>{
+    const active=SCAN.sort.by===col.by, arr=SCAN.sort.dir>0?'\u2191':'\u2193';
+    const c=document.createElement('div'); c.className='scth'+(col.right?' r':'')+(active?' on':'');
+    if(col.k==='fresh'){ c.title='Sort by recency'; c.style.justifyContent='center'; c.innerHTML='<span style="font-size:11px">\u21BB</span>'+(active?'<span class="ar">'+arr+'</span>':''); }
+    else { c.innerHTML=col.lbl+' <span class="ar'+(active?'':' off')+'">'+(active?arr:'\u2195')+'</span>'; }
+    c.onclick=()=>scanSetSort(col.by);
+    hr.appendChild(c);
+  });
+  body.appendChild(hr);
+
   rows.forEach(r=>{
     const m=SCAN.meta[r.t]||{};
-    const row=document.createElement('div'); row.className='scanrow'; row.title='Load '+r.t;
-    row.onclick=()=>{ $('#tkInput').value=r.t; fetchSymbol(r.t); };
-    const l1=document.createElement('div'); l1.className='l1';
-    const sym=document.createElement('span'); sym.className='sym'; sym.textContent=r.t; sym.style.color='var(--'+(r.dir==='long'?'long':'short')+')';
-    const nm=document.createElement('span'); nm.className='nm'; nm.textContent=m.name||'';
-    const px=document.createElement('span'); px.className='px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'';
-    l1.appendChild(sym); l1.appendChild(nm); l1.appendChild(px);
-    const l2=document.createElement('div'); l2.className='l2';
-    const sub=document.createElement('span'); sub.className='sub';
-    const sb=[]; if(m.mc!=null)sb.push(scanFmtCap(m.mc)); if(m.industry)sb.push(m.industry);
-    sub.textContent=sb.join('  \u00b7  ');
-    const tm=document.createElement('span'); tm.className='tm';
-    const tb=[ r.ago===0?'latest bar':(r.ago+' bar'+(r.ago===1?'':'s')+' back') ];
-    if(r.sys)tb.push(r.sys===2?'55-day':'20-day');
-    if(r.unit>1)tb.push('+'+r.unit+' add'); else if(r.smelly)tb.push('past entry');
-    tm.textContent=tb.join(' \u00b7 '); tm.style.color='var(--'+((r.unit>1||r.smelly)?'force':'mut')+')';
-    l2.appendChild(sub); l2.appendChild(tm);
-    row.appendChild(l1); row.appendChild(l2); body.appendChild(row);
+    const row=document.createElement('div'); row.className='sctr'; row.style.gridTemplateColumns=gt; row.title='Load '+r.t;
+    row.onclick=()=>{ if(window.pamExpandChart)window.pamExpandChart(); $('#tkInput').value=r.t; fetchSymbol(r.t); };
+    const fresh=r.ago===0, warn=(r.unit>1||r.smelly);
+    const dot=document.createElement('span'); dot.className='scdot'; dot.style.background='var(--'+(warn?'force':fresh?'long':'faint')+')';
+    const ageTxt=r.ago===0?'latest bar':(r.ago+' bar'+(r.ago===1?'':'s')+' back');
+    const extra=[]; if(r.sys)extra.push(r.sys===2?'55-day':'20-day'); if(r.unit>1)extra.push('+'+r.unit+' add'); else if(r.smelly)extra.push('past entry');
+    dot.title=ageTxt+(extra.length?' \u00b7 '+extra.join(' \u00b7 '):'');
+    row.appendChild(dot);
+    const tk=document.createElement('div'); tk.className='sccell-tk';
+    const s=document.createElement('div'); s.className='s'; s.textContent=r.t; s.style.color='var(--'+(r.dir==='long'?'long':'short')+')';
+    tk.appendChild(s);
+    if(m.name){ const n=document.createElement('div'); n.className='n'; n.textContent=m.name; n.title=m.name; tk.appendChild(n); }
+    row.appendChild(tk);
+    if(hasUnit){ const uc=document.createElement('div'); uc.className='sccell-unit'; const u=r.unit; uc.textContent=(u!=null)?(u+(['th','st','nd','rd'][(u%10<4&&!(u%100>10&&u%100<14))?u%10:0])):'–'; if(u!=null&&u>1)uc.style.color='var(--force)'; uc.title=(u!=null)?('unit '+u+' of the pyramid'):''; row.appendChild(uc); }
+    if(hasPx){ const px=document.createElement('div'); px.className='sccell-px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'\u2013'; row.appendChild(px); }
+    if(hasCap){ const cap=document.createElement('div'); cap.className='sccell-cap'; cap.textContent=(m.mc!=null)?scanFmtCapShort(m.mc):'\u2013'; row.appendChild(cap); }
+    if(hasInd){ const ind=document.createElement('div'); ind.className='sccell-ind'; ind.textContent=m.industry||'\u2013'; ind.title=m.industry||''; row.appendChild(ind); }
+    body.appendChild(row);
   });
 }
 function scanBuildFilters(){
@@ -1562,12 +1706,15 @@ function scanReadFilters(){
   scanRenderList();
 }
 function scanFmtCap(mc){ return '$'+(mc/1e9).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' B'; }
+function scanFmtCapShort(mc){ const b=mc/1e9; if(b>=1000)return '$'+(b/1000).toFixed(b>=10000?0:1)+'T'; if(b>=10)return '$'+b.toFixed(0)+'B'; return '$'+b.toFixed(1)+'B'; }
 function scanCmp(a,b){
   const by=SCAN.sort.by, dir=SCAN.sort.dir, ma=SCAN.meta[a.t]||{}, mb=SCAN.meta[b.t]||{};
   let c=0;
   if(by==='ticker'){ c=(a.t<b.t?-1:a.t>b.t?1:0); }
   else if(by==='name'){ const x=(ma.name||a.t).toLowerCase(), y=(mb.name||b.t).toLowerCase(); c=(x<y?-1:x>y?1:0); }
   else if(by==='cap'){ const x=(ma.mc!=null?ma.mc:-Infinity), y=(mb.mc!=null?mb.mc:-Infinity); c=(x<y?-1:x>y?1:0); }
+  else if(by==='px'){ const x=(ma.px!=null?+ma.px:-Infinity), y=(mb.px!=null?+mb.px:-Infinity); c=(x<y?-1:x>y?1:0); }
+  else if(by==='unit'){ const x=(a.unit!=null?a.unit:-Infinity), y=(b.unit!=null?b.unit:-Infinity); c=(x<y?-1:x>y?1:0); }
   else if(by==='industry'){ const x=(ma.industry||'\uffff'), y=(mb.industry||'\uffff'); c=(x<y?-1:x>y?1:0); }
   else { c=(a.ago-b.ago); }
   if(c===0) c=(a.t<b.t?-1:a.t>b.t?1:0);
@@ -1575,7 +1722,7 @@ function scanCmp(a,b){
 }
 function scanSetSort(by){
   if(SCAN.sort.by===by){ SCAN.sort.dir*=-1; }
-  else { SCAN.sort={ by, dir:(by==='cap'?-1:1) }; }
+  else { SCAN.sort={ by, dir:(by==='cap'||by==='px'?-1:1) }; }
   scanRenderSort(); scanRenderList();
 }
 function scanRenderSort(){
@@ -1642,6 +1789,34 @@ function scanLoadFile(file){
   rd.onload=()=>{ try{ scanApply(JSON.parse(rd.result)); }catch(e){ alert('That file is not valid JSON: '+e.message); } };
   rd.readAsText(file);
 }
+function scanActiveFilterCount(){
+  const f=SCAN.filt; let n=0;
+  if(f.capMin!=null)n++; if(f.capMax!=null)n++;
+  if(f.pxMin!=null||f.pxMax!=null)n++;
+  if(f.ind)n++;
+  if(f.units&&f.units.length)n++;
+  return n;
+}
+function scanUpdateSummary(){
+  const sum=$('#scanSummary'); if(!sum)return;
+  const sel=SCAN.sel, counts=(SCAN.data&&SCAN.data.counts)||{}, dir=sel?(TRIG_DIR[sel]||''):'';
+  const n=scanActiveFilterCount();
+  sum.innerHTML =
+    (sel ? '<span class="chip scanchip '+dir+' sel" style="pointer-events:none">'+sel+' <span class="n">'+(counts[sel]||0)+'</span></span>'
+         : '<span style="color:var(--mut);font-family:var(--mono);font-size:12px">no trigger selected</span>')
+    + (n ? '<span style="color:var(--faint);font-family:var(--mono);font-size:11px">'+n+' filter'+(n>1?'s':'')+' on</span>' : '')
+    + '<span style="margin-left:auto;color:var(--long);font-family:var(--mono);font-size:11px">Change ▾</span>';
+}
+function scanSetControls(open){
+  SCAN.controlsOpen=open;
+  const c=$('#scanControls'), sum=$('#scanSummary'), lead=$('#scanLead'), btn=$('#scanControlsToggle');
+  if(c)c.style.display=open?'block':'none';
+  if(sum)sum.style.display=open?'none':'flex';
+  if(lead)lead.style.display=open?'block':'none';
+  if(btn)btn.textContent=open?'Hide ▴':'Filters ▾';
+  if(!open)scanUpdateSummary();
+  try{localStorage.setItem('pam_scanControls',open?'1':'0');}catch(e){}
+}
 function scanInit(){
   const lb=$('#scanLoad'); if(lb)lb.onclick=()=>scanLoadUrl(false);
   const fb=$('#scanFileBtn'), fi=$('#scanFile');
@@ -1651,6 +1826,10 @@ function scanInit(){
   const fc=$('#fClear'); if(fc)fc.onclick=()=>{ scanResetFilters(); scanRenderList(); };
   document.querySelectorAll('#scanSort .sortbtn').forEach(b=>{ b.onclick=()=>scanSetSort(b.getAttribute('data-by')); });
   document.querySelectorAll('#scanUnits .unitbtn').forEach(b=>{ b.onclick=()=>scanSetUnit(parseInt(b.getAttribute('data-unit'),10)); });
+  const ct=$('#scanControlsToggle'); if(ct)ct.onclick=()=>scanSetControls(!SCAN.controlsOpen);
+  const ss=$('#scanSummary'); if(ss)ss.onclick=()=>scanSetControls(true);
+  let openInit=true; try{ const v=localStorage.getItem('pam_scanControls'); if(v==='0')openInit=false; }catch(e){}
+  scanSetControls(openInit);
   const plo=$('#pxLo'), phi=$('#pxHi');
   if(plo)plo.addEventListener('pointerdown',e=>pxDrag('lo',e));
   if(phi)phi.addEventListener('pointerdown',e=>pxDrag('hi',e));
@@ -1678,6 +1857,63 @@ if(S.lastSym && ($('#keyInput').value||'').trim() && !DRIVE.connected){ $('#tkIn
   updInd();
 })();
 (function(){ const tb=document.getElementById('themeToggle'); if(tb){ tb.textContent=THEME==='light'?'◐ Dark':'◐ Light'; tb.onclick=()=>applyTheme(THEME==='light'?'dark':'light'); } applyTheme(THEME); })();
+/* ===== tabbed workspace + swipe ===== */
+(function(){
+  const TABS=['scan','eff','read','trade','log','group'];
+  window.__pamTab='scan';
+  function setTab(t){ if(TABS.indexOf(t)<0)t='scan'; window.__pamTab=t;
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.toggle('on',p.getAttribute('data-tab')===t));
+    document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-tab')===t));
+    document.querySelectorAll('.tabbar').forEach(tbar=>{ const btn=tbar.querySelector('.tabbtn[data-tab="'+t+'"]'); if(btn){ const want=btn.offsetLeft-40; if(Math.abs(tbar.scrollLeft-want)>4) tbar.scrollLeft=Math.max(0,want); } });
+    try{localStorage.setItem('pam_tab',t);}catch(e){}
+  }
+  window.pamSetTab=setTab;
+  document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>setTab(b.getAttribute('data-tab'))));
+  let init='scan'; try{init=localStorage.getItem('pam_tab')||'scan';}catch(e){}
+  setTab(init);
+  const sp=document.querySelector('.stage-panels'); let x0=null,y0=null;
+  if(sp){
+    sp.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;},{passive:true});
+    sp.addEventListener('touchend',e=>{ if(x0==null)return; const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;
+      if(Math.abs(dx)>56 && Math.abs(dx)>Math.abs(dy)*1.5){ let i=TABS.indexOf(window.__pamTab||'scan');
+        i = dx<0 ? Math.min(TABS.length-1,i+1) : Math.max(0,i-1); setTab(TABS[i]); }
+      x0=y0=null; },{passive:true});
+  }
+})();
+/* ===== desktop: align right panel top with the chart box (offset past the symbol/price header) ===== */
+(function(){
+  const v=document.querySelector('.pinned-verdict'), tt=document.querySelector('.tabbar-top');
+  if(!v||!tt)return;
+  const chart=document.querySelector('.stage-chart'), panels=document.querySelector('.stage-panels');
+  function align(){
+    if(window.innerWidth>=981){
+      const vh=v.getBoundingClientRect().height + (parseFloat(getComputedStyle(v).marginBottom)||0);
+      const th=tt.getBoundingClientRect().height;
+      tt.style.marginBottom=Math.max(0, Math.round(vh-th))+'px';
+      if(chart&&panels){ panels.style.height=Math.max(360, Math.round(window.innerHeight-28))+'px'; }
+    } else { tt.style.marginBottom=''; if(panels)panels.style.height=''; }
+  }
+  align();
+  try{ if(window.ResizeObserver){ const ro=new ResizeObserver(align); ro.observe(v); if(chart)ro.observe(chart); } }catch(e){}
+  window.addEventListener('resize',align);
+})();
+/* ===== mobile: collapsible chart ===== */
+(function(){
+  const sc=document.querySelector('.stage-chart'), btn=document.getElementById('chartCollapse');
+  if(!sc||!btn)return;
+  function set(collapsed){
+    sc.classList.toggle('chart-collapsed', collapsed);
+    btn.innerHTML = collapsed ? '\u25b8 Show chart' : '\u25be Hide chart';
+    btn.setAttribute('aria-expanded', collapsed?'false':'true');
+    try{ localStorage.setItem('pam_chartCollapsed', collapsed?'1':'0'); }catch(e){}
+    if(!collapsed && typeof draw==='function' && typeof BARS!=='undefined' && BARS && BARS.length){ try{ draw(); }catch(e){} }
+  }
+  btn.onclick=()=>set(!sc.classList.contains('chart-collapsed'));
+  let init=false; try{ init=localStorage.getItem('pam_chartCollapsed')==='1'; }catch(e){}
+  set(init);
+  /* tapping a counter (or any fetch) should bring the chart back into view on mobile */
+  window.pamExpandChart=function(){ if(window.innerWidth<=980 && sc.classList.contains('chart-collapsed')) set(false); };
+})();
 </script>
 </body>
 </html>
