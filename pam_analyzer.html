@@ -1289,7 +1289,7 @@ function segWire(id,fn){document.querySelectorAll(`#${id} button`).forEach(b=>{b
   document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(b);};});}
 segWire('segData',b=>{const d=b.dataset.d;$('#pasteBox').classList.toggle('show',d==='PASTE');
   if(d==='NVDA'){S.src='NVDA';S.ticker=PAM_DATA.ticker;recompute();}});
-segWire('segTf',b=>{S.tf=b.dataset.tf;recompute();});
+segWire('segTf',b=>{S.tf=b.dataset.tf;recompute();if(SCAN.full)scanSetTf(S.tf,false);});
 segWire('segLens',b=>{S.lens=+b.dataset.l;draw();});
 document.querySelectorAll('#layers button').forEach(b=>{b.onclick=()=>{
   b.classList.toggle('on'); S.layers[b.dataset.ly]=b.classList.contains('on'); draw();};});
@@ -1579,6 +1579,7 @@ function scanRenderChips(){
   const c=$('#scanChips'); if(!c)return; c.innerHTML='';
   const d=SCAN.data;
   if(!d){ c.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--faint)">load a scan_results.json (paste its URL, or use \u201cLoad file\u2026\u201d) to begin</span>'; return; }
+  if(d._missingTf){ c.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--faint)">no '+scanTfLabel(d._missingTf).toLowerCase()+' data in this scan \u2014 re-run the scanner (updated pam_scan.js) to include 2-day &amp; weekly</span>'; return; }
   const counts=d.counts||{};
   const order=(d.trigger_types||Object.keys(counts)).filter(t=>counts[t]>0);
   if(!order.length){ c.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--faint)">no triggers fired in this scan window</span>'; return; }
@@ -1767,13 +1768,35 @@ function pxDrag(which,startEv){
   document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
 }
 function scanApply(d){
-  SCAN.data=d; SCAN.sel=null; SCAN.meta=(d&&d.meta)||{};
-  scanResetFilters(); scanBuildFilters();
+  SCAN.full=d; SCAN.meta=(d&&d.meta)||{};
+  if(!d){ SCAN.data=null; scanResetFilters(); scanBuildFilters(); scanRenderChips(); scanRenderList(); return; }
+  scanResetFilters(); scanBuildFilters();            // filter UI is meta-based, so it's built once and persists across timeframe switches
+  const initTf=(typeof S!=='undefined'&&S.tf)?S.tf:'1';
+  scanSetTf(initTf, true);
+}
+function scanTfBlock(tf){
+  const d=SCAN.full; if(!d)return null;
+  if(d.tf && d.tf[tf]) return d.tf[tf];              // new file: 2-day / weekly blocks
+  if(tf==='1' && (d.rows||d.counts))                 // 1-day lives at the top level (new and older files)
+    return { rows:d.rows||[], counts:d.counts||{}, asof:d.asof, scanned:d.scanned, fired:d.fired, timeframe:d.timeframe||'1day', agg_mult:d.agg_mult||1, fresh_within:d.fresh_within };
+  return null;                                       // older single-timeframe file + 2-day/weekly -> "re-run the scanner" note
+}
+function scanTfLabel(tf){ return tf==='W'?'Weekly':tf==='2'?'2-day':'Daily'; }
+function scanSetTf(tf, fresh){
+  const d=SCAN.full; if(!d)return;
+  SCAN.tf=tf;
+  const blk=scanTfBlock(tf);
+  SCAN.data = blk
+    ? { rows:blk.rows||[], counts:blk.counts||{}, meta:d.meta, asof:blk.asof||d.asof, scanned:(blk.scanned!=null?blk.scanned:d.scanned), fired:blk.fired, timeframe:blk.timeframe, agg_mult:blk.agg_mult, fresh_within:blk.fresh_within||d.fresh_within, provider:d.provider, feed:d.feed, fundamentals:d.fundamentals, generated_at:d.generated_at, trigger_types:d.trigger_types }
+    : { rows:[], counts:{}, meta:d.meta, asof:d.asof, scanned:d.scanned, timeframe:tf, fresh_within:d.fresh_within, provider:d.provider, feed:d.feed, fundamentals:d.fundamentals, generated_at:d.generated_at, trigger_types:d.trigger_types, _missingTf:tf };
+  if(fresh) SCAN.sel=null;
+  else if(SCAN.sel && !((SCAN.data.counts||{})[SCAN.sel]>0)) SCAN.sel=null;   // keep the picked trigger only if it exists in this timeframe
+  const sr=$('#scanSort'); if(sr)sr.style.display=((SCAN.data.rows||[]).length)?'flex':'none';
   const a=$('#scanAsof');
-  if(a)a.textContent=d?(' \u00b7 '+((d.rows||[]).length)+' triggers across '+(d.scanned||'?')+' counters \u00b7 asof '+(d.asof||'?')):'';
+  if(a)a.textContent=' \u00b7 '+((SCAN.data.rows||[]).length)+' '+scanTfLabel(tf).toLowerCase()+' triggers across '+(SCAN.data.scanned||'?')+' counters \u00b7 asof '+(SCAN.data.asof||'?');
   const note=$('#scanNote');
-  if(note)note.textContent=d?('Daily bars, last '+(d.fresh_within||2)+' candles \u00b7 '+(d.provider||'')+' '+(d.feed||'')+(d.fundamentals==='fmp'?' \u00b7 fundamentals: FMP':'')+' \u00b7 generated '+(d.generated_at?new Date(d.generated_at).toLocaleString():'?')+'. Whole US market, ETFs and leveraged products included \u2014 analytical only, not financial advice.'):'';
-  scanRenderChips(); scanRenderList();
+  if(note)note.textContent=scanTfLabel(tf)+' bars, last '+(SCAN.data.fresh_within||2)+' candles \u00b7 '+(d.provider||'')+' '+(d.feed||'')+(d.fundamentals==='finnhub'?' \u00b7 cap+industry: Finnhub':'')+' \u00b7 generated '+(d.generated_at?new Date(d.generated_at).toLocaleString():'?')+'. Whole US market, ETFs and leveraged products included \u2014 analytical only, not financial advice.';
+  scanRenderChips(); scanRenderList(); if(typeof scanUpdateSummary==='function')scanUpdateSummary();
 }
 async function scanLoadUrl(silent){
   const el=$('#scanUrl'); const url=((el&&el.value)||'').trim();
