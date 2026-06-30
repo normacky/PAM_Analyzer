@@ -4,8 +4,7 @@ name: PAM market scan
 
 on:
   schedule:
-    - cron: '30 20 * * 1-5'   # 20:30 UTC = 16:30 New York in US summer (EDT) -> runs. In winter this is 15:30 ET (market still open), so the gate below skips it.
-    - cron: '30 21 * * 1-5'   # 21:30 UTC = 16:30 New York in US winter (EST) -> runs. In summer this is 17:30 ET, so the gate below skips it (it already ran at 20:30).
+    - cron: '30 20 * * 1-5'   # 20:30 UTC. The run step waits until 16:25 New York before scanning, which self-adjusts for US daylight saving and never skips a run GitHub starts late.
   workflow_dispatch:           # also lets you run it on demand from the Actions tab
 
 permissions:
@@ -31,14 +30,19 @@ jobs:
           PAM_HTML: pam_analyzer.html
           PAM_LIMIT: '0'         # 0 = the whole market
         run: |
-          # Auto-DST gate: the two cron times straddle the 4 PM ET close in both seasons.
-          # Proceed only at 16:30 New York time, so exactly one slot fires each weekday all year.
-          # A manual "Run workflow" is not a 'schedule' event, so it always runs.
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(TZ=America/New_York date +%H)" != "16" ]; then
-            echo "Scheduled at $(TZ=America/New_York date '+%H:%M') ET - not the post-close slot this season; skipping."
-            exit 0
+          # The cron fires at 20:30 UTC. In US summer that is 16:30 New York (right after the 4 PM
+          # close); in US winter it is 15:30 New York (market still open), so we WAIT until 16:25
+          # New York before scanning. This self-adjusts for daylight saving and, unlike a fixed-time
+          # check, NEVER skips a run that GitHub starts late. A manual "Run workflow" scans at once.
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            while :; do
+              ET=$(TZ=America/New_York date +%H%M)
+              [ "$((10#$ET))" -ge 1625 ] && break
+              echo "Market still open - waiting (now $(TZ=America/New_York date '+%H:%M') New York)..."
+              sleep 120
+            done
           fi
-          echo "Running scan at $(TZ=America/New_York date '+%H:%M') ET"
+          echo "Running scan at $(TZ=America/New_York date '+%H:%M') New York"
           node pam_scan.js
 
       - name: Publish scan_results.json
