@@ -29,6 +29,7 @@ jobs:
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}   # market cap + industry enrichment (matches pam_scan.js)
           PAM_HTML: pam_analyzer.html
           PAM_LIMIT: '0'         # 0 = the whole market
+          PAM_OPT_MIN_MC: '2000000000'   # options enrichment only for fired tickers >= $2bn market cap (edit here anytime)
         run: |
           # The cron fires at 20:30 UTC. In US summer that is 16:30 New York (right after the 4 PM
           # close); in US winter it is 15:30 New York (market still open), so we WAIT until 16:25
@@ -50,5 +51,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add scan_results.json
+          git add iv_history.json 2>/dev/null || true   # the IV history accumulator (may not exist on the very first run)
           git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || echo "nothing to commit"
           git push
