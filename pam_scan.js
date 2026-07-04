@@ -408,7 +408,17 @@ function ivPercentile(hist, sym, iv) {
   return Math.round(100 * a.filter(v => v < iv).length / a.length);
 }
 
-async function enrichOptions(meta, cfg) {
+// daily SMA-20 vs SMA-50 trend for a stock (Bull Put Spread card: stock must be in an uptrend).
+// Uses the tool's own 20/50 SMAs so the pill matches what the chart draws. up = 20-SMA above 50-SMA.
+function dailySmaTrend(closes) {
+  if (!closes || closes.length < 50) return null;
+  const mean = n => { let s = 0; for (let i = closes.length - n; i < closes.length; i++) s += closes[i]; return s / n; };
+  const s20 = mean(20), s50 = mean(50);
+  return { sma20: Math.round(s20 * 100) / 100, sma50: Math.round(s50 * 100) / 100, up: s20 > s50 };
+}
+
+async function enrichOptions(meta, cfg, stockTrend) {
+  stockTrend = stockTrend || {};
   if (!cfg.optEnable) { console.error('Options enrichment disabled (PAM_OPT=0).'); return null; }
   // Market-cap gate: only enrich fired tickers at/above the floor (default $2bn, PAM_OPT_MIN_MC).
   // Judgment call: tickers with UNKNOWN market cap (Finnhub miss / no key) are skipped too —
@@ -455,7 +465,10 @@ async function enrichOptions(meta, cfg) {
         iv_low:  atmIV != null ? atmIV < cfg.ivLow  : null,       // met → debit spreads (Bull Call/Bear Put) favoured
         earnings_inside: earn ? earn.inside : null,               // credit cards: must be false; null = could not check
         earnings_date:   earn ? earn.date   : null,
-        spy_bear: spy ? spy.bear : null,                          // Card 20 awareness flag — NEVER used to filter
+        spy_bear: spy ? spy.bear : null,                          // market-regime flag: S&P 500 50MA<150MA (BPS card's "S&P in a bull market" check)
+        stock_sma20: (stockTrend[sym] || {}).sma20 != null ? stockTrend[sym].sma20 : null,   // stock's own daily SMAs (tool's 20/50)
+        stock_sma50: (stockTrend[sym] || {}).sma50 != null ? stockTrend[sym].sma50 : null,
+        stock_trend_up: (stockTrend[sym] || {}).up != null ? stockTrend[sym].up : null,       // met (up) = daily 20-SMA > 50-SMA — BPS card's "stock in an uptrend"
       },
       spreads: buildSpreads(spot, atmIV, picked.dte, picked.calls, picked.puts, cfg),
     };
@@ -515,6 +528,7 @@ async function main() {
     'W': { tf: 'W', aggMult: 1, rows: [], scanned: 0, asof: '' },
   };
   const noteFire = (sym, series) => { meta[sym] = meta[sym] || { name: names[sym] || '', px: +series.close[series.close.length - 1] }; };
+  const stockTrend = {};   // sym -> { sma20, sma50, up } daily trend, computed in Phase 1, consumed by the options enrichment
 
   /* ---- Phase 1: one DAILY pull feeds BOTH the 1-Day and 2-Day scans ---- */
   console.error(`Universe: ${syms.length} symbols. Phase 1/2 — pulling daily bars (~${CFG.dailyDays} calendar days) for the 1-Day + 2-Day timeframes…`);
@@ -523,6 +537,7 @@ async function main() {
     const arr = daily[sym];
     if (arr && arr.length >= 60) {
       const series = seriesFromAlpaca(arr);
+      stockTrend[sym] = dailySmaTrend(series.close);   // stock's daily 20/50 SMA trend for the options card's stock-uptrend check
       const lastDate = series.time[series.time.length - 1];
       for (const tf of ['1', '2']) {
         const a = acc[tf];
@@ -559,7 +574,7 @@ async function main() {
 
   // options enrichment: vertical-spread candidates + IV flags for every fired ticker (PAM_OPT=0 to skip)
   let opt = null;
-  try { opt = await enrichOptions(meta, CFG); }
+  try { opt = await enrichOptions(meta, CFG, stockTrend); }
   catch (e) { console.error('Options enrichment failed (scan results are still complete): ' + e.message); }
 
   // per-timeframe counts, stable sort, and distinct-ticker count
