@@ -1725,14 +1725,10 @@ function optMoney(x){ return x==null?'\u2013':'$'+(+x).toFixed(2); }
 // true only if EVERY criterion shown on this spread's pill row is met (green). Unknown/missing => not met.
 function optSpreadAllMet(kind,sp,o){
   if(!sp||!sp.ok||!o||!o.flags) return false;
-  const spy=(scanOptBlock()||{}).spy;
-  const long=(kind==='bps'||kind==='bull_call');                 // bps/bull_call are the bullish pair; bcs/bear_put the bearish
-  const spyOk=(spy&&typeof spy.bear==='boolean')?(long?!spy.bear:spy.bear):false;
-  const trendOk=(typeof o.flags.stock_trend_up==='boolean')?(long?o.flags.stock_trend_up:!o.flags.stock_trend_up):false;   // stock 20/50 SMA aligns with direction
   const credit=(kind==='bps'||kind==='bcs');
   return credit
-    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.liquidity===true && sp.ok.credit_4x===true && spyOk && trendOk)
-    : (o.flags.iv_low===true  && sp.ok.liquidity===true && sp.ok.rr_1to2===true && spyOk && trendOk);
+    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.liquidity===true && sp.ok.credit_4x===true)
+    : (o.flags.iv_low===true  && sp.ok.liquidity===true && sp.ok.rr_1to2===true);
 }
 function optSpreadCard(kind,sp,o,favoured,alignedLong){
   const card=document.createElement('div'); card.className='optspread'+(favoured?' fav':'');
@@ -1766,19 +1762,6 @@ function optSpreadCard(kind,sp,o,favoured,alignedLong){
     fl.appendChild(optPill('IV<30%',o.flags.iv_low));
     fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
     fl.appendChild(optPill('R:R \u22651:2',sp.ok?sp.ok.rr_1to2:null));
-  }
-  const spy=(scanOptBlock()||{}).spy;
-  if(spy&&typeof spy.bear==='boolean'){
-    const label=spy.bear?'SPY 50<150':'SPY 50>150';
-    const aligned=alignedLong?!spy.bear:spy.bear;   // green when the market backdrop matches the trade direction
-    fl.appendChild(optPill(label,aligned));
-  }
-  // stock's own daily trend (tool's 20/50 SMA) — BPS card wants the stock itself in an uptrend
-  if(typeof o.flags.stock_trend_up==='boolean'){
-    const up=o.flags.stock_trend_up;
-    const label=up?'stock 20>50':'stock 20<50';
-    const aligned=alignedLong?up:!up;               // bullish trade wants 20>50; bearish wants 20<50
-    fl.appendChild(optPill(label,aligned));
   }
   card.appendChild(fl);
   return card;
