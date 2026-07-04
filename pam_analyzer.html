@@ -1723,12 +1723,15 @@ function optPill(label,state){
 }
 function optMoney(x){ return x==null?'\u2013':'$'+(+x).toFixed(2); }
 // true only if EVERY criterion shown on this spread's pill row is met (green). Unknown/missing => not met.
+// true only if every GATING criterion for this spread is met (green). Liquidity is shown as a
+// reference pill on the card but deliberately does NOT gate the green button (user's call —
+// wide markets are a fill-quality warning, not a disqualifier).
 function optSpreadAllMet(kind,sp,o){
   if(!sp||!sp.ok||!o||!o.flags) return false;
   const credit=(kind==='bps'||kind==='bcs');
   return credit
-    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.liquidity===true && sp.ok.credit_4x===true)
-    : (o.flags.iv_low===true  && sp.ok.liquidity===true && sp.ok.rr_1to2===true);
+    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.credit_4x===true)
+    : (o.flags.iv_low===true  && sp.ok.rr_1to2===true);
 }
 function optSpreadCard(kind,sp,o,favoured,alignedLong){
   const card=document.createElement('div'); card.className='optspread'+(favoured?' fav':'');

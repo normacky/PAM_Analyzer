@@ -280,6 +280,11 @@ function pickExpiry(contracts) {
 
 const r2 = x => x == null ? null : Math.round(x * 100) / 100;
 const legLiquid = (leg, maxSpread) => leg && leg.bid != null && leg.ask != null && leg.bid > 0 && (leg.ask - leg.bid) <= maxSpread;
+// per-leg MID price — matches the broker mark (e.g. the ToS order ticket). Judgment call CHANGED from
+// touch pricing after a live DIS check: on wide chains the touch produced a negative "credit" (sell at
+// bid, buy at ask) while ToS showed +$0.20 at the mid. Mid is the standard mark for evaluating spreads;
+// the per-leg liquidity flag stays as the warning that a wide market makes the mid hard to fill.
+const legMid = c => (c && c.bid != null && c.ask != null && c.ask > 0) ? (c.bid + c.ask) / 2 : null;
 
 // contract whose delta is closest to `target` (must land within ±0.10 of it)
 function byDelta(list, target) {
@@ -308,8 +313,9 @@ function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
     const sp = byDelta(puts, -0.225);
     const below = sp ? puts.filter(p => p.k < sp.k) : [];
     const lp = below.length ? below[below.length - 1] : null;   // adjacent strike below
-    if (sp && lp && sp.bid != null && lp.ask != null) {
-      const credit = r2(sp.bid - lp.ask), width = r2(sp.k - lp.k), maxLoss = r2(width - credit);
+    const msP = legMid(sp), mlP = legMid(lp);
+    if (sp && lp && msP != null && mlP != null) {
+      const credit = r2(msP - mlP), width = r2(sp.k - lp.k), maxLoss = r2(width - credit);
       S.bps = { short_k: sp.k, long_k: lp.k, short_delta: r2(sp.delta), credit, width, max_loss: maxLoss,
                 breakeven: r2(sp.k - credit),
                 ok: { credit_4x: credit > 0 && maxLoss <= 4 * credit,
@@ -321,8 +327,9 @@ function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
     const sc = byDelta(calls, 0.225);
     const above = sc ? calls.filter(c => c.k > sc.k) : [];
     const lc = above.length ? above[0] : null;                  // adjacent strike above
-    if (sc && lc && sc.bid != null && lc.ask != null) {
-      const credit = r2(sc.bid - lc.ask), width = r2(lc.k - sc.k), maxLoss = r2(width - credit);
+    const msC = legMid(sc), mlC = legMid(lc);
+    if (sc && lc && msC != null && mlC != null) {
+      const credit = r2(msC - mlC), width = r2(lc.k - sc.k), maxLoss = r2(width - credit);
       S.bcs = { short_k: sc.k, long_k: lc.k, short_delta: r2(sc.delta), credit, width, max_loss: maxLoss,
                 breakeven: r2(sc.k + credit),
                 ok: { credit_4x: credit > 0 && maxLoss <= 4 * credit,
@@ -336,8 +343,9 @@ function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
       const target = spot + oneSD, minK = lc.k + 5;
       const cands = calls.filter(c => c.k >= minK);
       const sc = cands.length ? cands.reduce((a, c) => Math.abs(c.k - target) < Math.abs(a.k - target) ? c : a) : null;
-      if (sc && lc.ask != null && sc.bid != null) {
-        const debit = r2(lc.ask - sc.bid), width = r2(sc.k - lc.k), maxProfit = r2(width - debit);
+      const mLong = legMid(lc), mShort = legMid(sc);
+      if (sc && mLong != null && mShort != null) {
+        const debit = r2(mLong - mShort), width = r2(sc.k - lc.k), maxProfit = r2(width - debit);
         S.bull_call = { long_k: lc.k, short_k: sc.k, long_delta: r2(lc.delta), debit, width, max_profit: maxProfit,
                         breakeven: r2(lc.k + debit),
                         ok: { rr_1to2: debit > 0 && maxProfit >= 2 * debit,
@@ -352,8 +360,9 @@ function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
       const target = spot - oneSD;
       const cands = puts.filter(p => p.k < lp.k);
       const sp = cands.length ? cands.reduce((a, p) => Math.abs(p.k - target) < Math.abs(a.k - target) ? p : a) : null;
-      if (sp && lp.ask != null && sp.bid != null) {
-        const debit = r2(lp.ask - sp.bid), width = r2(lp.k - sp.k), maxProfit = r2(width - debit);
+      const mLongP = legMid(lp), mShortP = legMid(sp);
+      if (sp && mLongP != null && mShortP != null) {
+        const debit = r2(mLongP - mShortP), width = r2(lp.k - sp.k), maxProfit = r2(width - debit);
         S.bear_put = { long_k: lp.k, short_k: sp.k, long_delta: r2(lp.delta), debit, width, max_profit: maxProfit,
                        breakeven: r2(lp.k - debit),
                        ok: { rr_1to2: debit > 0 && maxProfit >= 2 * debit,
