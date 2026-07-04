@@ -300,6 +300,34 @@
     .stage-panels{padding-top:14px;min-height:82vh}
     .tabbar{margin-top:8px}
   }
+  /* ---- options enrichment card (vertical-spread candidates from the opt block) ---- */
+  .pill.info{color:var(--mut);background:var(--panel-in);border:1px solid var(--line)}
+  .optbadge{font-family:var(--mono);font-size:10px;letter-spacing:.02em;color:var(--force);background:transparent;border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-top:3px;cursor:pointer;transition:.15s}
+  .optbadge:hover{border-color:var(--force)}
+  .optbadge.on{background:#231c10;border-color:#534522}
+  .optcard{border:1px solid var(--line);border-left:3px solid var(--force);border-radius:9px;background:var(--panel-in);margin:2px 8px 10px;padding:11px 13px 12px}
+  .optcard .oh{font-family:var(--mono);font-size:12px;color:var(--txt);line-height:1.5}
+  .optcard .ohk{color:var(--force);letter-spacing:.14em;font-size:10.5px;margin-right:6px}
+  .optcard .ohiv{font-size:9.5px;padding:1px 6px;border-radius:4px;margin-left:4px;letter-spacing:.06em}
+  .optcard .ohiv.high{color:var(--force);background:#231c10;border:1px solid #534522}
+  .optcard .ohiv.low{color:var(--long);background:#0f211d;border:1px solid #1f4d44}
+  .optcard .ohiv.mid{color:var(--mut);background:var(--panel);border:1px solid var(--line)}
+  .optcard .ohwarn{font-size:9.5px;color:var(--short);background:#231310;border:1px solid #532f27;padding:1px 6px;border-radius:4px;margin-left:4px}
+  .optcard .ohsub{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:3px}
+  .optcard .ohguide{font-size:12px;color:var(--mut);margin:7px 0 2px}
+  .optspread{border:1px solid var(--hair);border-radius:8px;background:var(--panel);padding:9px 11px;margin-top:8px}
+  .optspread.fav{border-color:var(--force);box-shadow:0 0 0 1px #53452233}
+  .optspread .osh{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .optspread .osname{font-family:var(--disp);font-weight:600;font-size:13px;color:var(--txt)}
+  .optspread .ostag{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;padding:1px 6px;border-radius:4px;text-transform:uppercase}
+  .optspread .ostag.cr{color:var(--long);background:#0f211d;border:1px solid #1f4d44}
+  .optspread .ostag.db{color:var(--neutral);background:var(--panel-in);border:1px solid var(--line)}
+  .optspread .ostag.fav{color:var(--force);background:#231c10;border:1px solid #534522}
+  .optspread .oslegs{font-family:var(--mono);font-size:13px;color:var(--txt);margin-top:6px;font-weight:600}
+  .optspread .oseco{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:4px}
+  .optspread .osnone{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:5px;font-style:italic}
+  .optspread .osflags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .optcard .ohfoot{font-size:10.5px;color:var(--faint);margin-top:10px;line-height:1.5}
 </style>
 
 <div class="wrap">
@@ -1658,8 +1686,106 @@ function scanRenderList(){
     if(hasPx){ const px=document.createElement('div'); px.className='sccell-px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'\u2013'; row.appendChild(px); }
     if(hasCap){ const cap=document.createElement('div'); cap.className='sccell-cap'; cap.textContent=(m.mc!=null)?scanFmtCapShort(m.mc):'\u2013'; row.appendChild(cap); }
     if(hasInd){ const ind=document.createElement('div'); ind.className='sccell-ind'; ind.textContent=m.industry||'\u2013'; ind.title=m.industry||''; row.appendChild(ind); }
-    body.appendChild(row);
+    // options enrichment: if this ticker has a spread block, add a toggle + collapsible detail. Row-tap still charts.
+    const _o=scanOptFor(r.t);
+    if(_o&&_o.has_options){
+      const det=optDetailCard(r.t,r.dir); det.style.display='none';
+      const tg=document.createElement('button'); tg.type='button'; tg.className='optbadge';
+      tg.textContent='options \u25be'; tg.title='Show vertical-spread candidates';
+      tg.onclick=(e)=>{ e.stopPropagation(); const open=(det.style.display==='none');
+        det.style.display=open?'block':'none'; tg.textContent='options '+(open?'\u25b4':'\u25be'); tg.classList.toggle('on',open); };
+      tk.appendChild(tg);
+      body.appendChild(row);
+      body.appendChild(det);
+    } else {
+      body.appendChild(row);
+    }
   });
+}
+/* ---- options enrichment display — reads the opt block written by pam_scan.js ---- */
+function scanOptBlock(){ return (SCAN.full&&SCAN.full.opt)||null; }
+function scanOptFor(t){ const b=scanOptBlock(); return (b&&b.symbols&&b.symbols[t])||null; }
+const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread'};
+function optPill(label,state){
+  const p=document.createElement('span');
+  p.className='pill '+(state===true?'ok':state===false?'no':'info');
+  p.textContent=label+' '+(state===true?'\u2713':state===false?'\u2717':'\u00b7');
+  return p;
+}
+function optMoney(x){ return x==null?'\u2013':'$'+(+x).toFixed(2); }
+function optSpreadCard(kind,sp,o,favoured,alignedLong){
+  const card=document.createElement('div'); card.className='optspread'+(favoured?' fav':'');
+  const credit=(kind==='bps'||kind==='bcs');
+  const head=document.createElement('div'); head.className='osh';
+  const nm=document.createElement('span'); nm.className='osname'; nm.textContent=OPT_NAME[kind];
+  const tp=document.createElement('span'); tp.className='ostag '+(credit?'cr':'db'); tp.textContent=credit?'credit':'debit';
+  head.appendChild(nm); head.appendChild(tp);
+  if(favoured){ const f=document.createElement('span'); f.className='ostag fav'; f.textContent='IV-favoured'; head.appendChild(f); }
+  card.appendChild(head);
+  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid strikes in the '+o.dte+'-DTE chain (thin or wide market)'; card.appendChild(e); return card; }
+  const legs=document.createElement('div'); legs.className='oslegs';
+  legs.textContent = kind==='bps' ? 'Sell '+sp.short_k+'P  /  Buy '+sp.long_k+'P'
+                   : kind==='bcs' ? 'Sell '+sp.short_k+'C  /  Buy '+sp.long_k+'C'
+                   : kind==='bull_call' ? 'Buy '+sp.long_k+'C  /  Sell '+sp.short_k+'C'
+                   : 'Buy '+sp.long_k+'P  /  Sell '+sp.short_k+'P';
+  card.appendChild(legs);
+  const eco=document.createElement('div'); eco.className='oseco';
+  eco.textContent = credit
+    ? 'credit '+optMoney(sp.credit)+'  \u00b7  width '+optMoney(sp.width)+'  \u00b7  max loss '+optMoney(sp.max_loss)+'  \u00b7  BE '+optMoney(sp.breakeven)
+    : 'debit '+optMoney(sp.debit)+'  \u00b7  width '+optMoney(sp.width)+'  \u00b7  max profit '+optMoney(sp.max_profit)+'  \u00b7  BE '+optMoney(sp.breakeven);
+  card.appendChild(eco);
+  const fl=document.createElement('div'); fl.className='osflags';
+  if(credit){
+    fl.appendChild(optPill('IV>35%',o.flags.iv_high));
+    const ei=o.flags.earnings_inside;
+    fl.appendChild(optPill(ei===false?'no earnings':ei===true?('earnings '+(o.flags.earnings_date||'')):'earnings ?', ei===false?true:ei===true?false:null));
+    fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
+    fl.appendChild(optPill('max-loss \u22644\u00d7',sp.ok?sp.ok.credit_4x:null));
+  } else {
+    fl.appendChild(optPill('IV<30%',o.flags.iv_low));
+    fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
+    fl.appendChild(optPill('R:R \u22651:2',sp.ok?sp.ok.rr_1to2:null));
+  }
+  const spy=(scanOptBlock()||{}).spy;
+  if(spy&&typeof spy.bear==='boolean'){
+    const label=spy.bear?'SPY 50<150':'SPY 50>150';
+    const aligned=alignedLong?!spy.bear:spy.bear;   // green when the market backdrop matches the trade direction
+    fl.appendChild(optPill(label,aligned));
+  }
+  card.appendChild(fl);
+  return card;
+}
+function optDetailCard(t,dir){
+  const o=scanOptFor(t);
+  const wrap=document.createElement('div'); wrap.className='optcard';
+  const long=(dir==='long');
+  const oh=document.createElement('div'); oh.className='oh';
+  const ivPct=o.atm_iv!=null?Math.round(o.atm_iv*100):null;
+  const ivTag=o.flags.iv_high?'HIGH':o.flags.iv_low?'LOW':'MID';
+  oh.innerHTML='<span class="ohk">OPTIONS</span> exp '+o.expiry+' \u00b7 '+o.dte+' DTE \u00b7 ATM IV '+(ivPct!=null?ivPct+'%':'n/a')
+    +(ivPct!=null?' <span class="ohiv '+ivTag.toLowerCase()+'">'+ivTag+'</span>':'')
+    +(o.dte_off_window?' <span class="ohwarn">DTE off-window</span>':'');
+  wrap.appendChild(oh);
+  const pl=document.createElement('div'); pl.className='ohsub';
+  const _blk=scanOptBlock()||{};
+  const _hi=(_blk.iv_high_threshold!=null)?Math.round(_blk.iv_high_threshold*100):35;
+  const _lo=(_blk.iv_low_threshold!=null)?Math.round(_blk.iv_low_threshold*100):30;
+  pl.textContent='IV measure: absolute ATM IV \u2014 HIGH above '+_hi+'%, LOW below '+_lo+'%';
+  wrap.appendChild(pl);
+  const g=document.createElement('div'); g.className='ohguide';
+  const favTxt = o.flags.iv_high ? (long?'Bull Put (credit)':'Bear Call (credit)')
+               : o.flags.iv_low ? (long?'Bull Call (debit)':'Bear Put (debit)') : null;
+  g.textContent = favTxt ? ('Ruleset lean: '+favTxt+' favoured at this IV')
+                         : 'IV in the 30\u201335% dead zone \u2014 neither credit nor debit strongly favoured; your call';
+  wrap.appendChild(g);
+  const pair = long ? ['bps','bull_call'] : ['bcs','bear_put'];
+  const favKind = o.flags.iv_high ? pair[0] : o.flags.iv_low ? pair[1] : null;
+  const sps=o.spreads||{};
+  pair.forEach(k=>wrap.appendChild(optSpreadCard(k,sps[k],o,k===favKind,long)));
+  const ft=document.createElement('div'); ft.className='ohfoot';
+  ft.textContent='Strikes/prices are a starting point priced at the touch \u2014 verify in IBKR. Flags highlight ruleset conditions; the decision is yours. Not financial advice.';
+  wrap.appendChild(ft);
+  return wrap;
 }
 function scanBuildFilters(){
   const box=$('#scanFilters');
