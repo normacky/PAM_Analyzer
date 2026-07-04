@@ -30,6 +30,20 @@
  *   PAM_WEEKLY_DAYS  calendar days of weekly bars to pull  (default 1400 ≈ 200 weeks)
  *   PAM_FEED         alpaca feed                   (default sip)
  *   PAM_ADJ          price adjustment              (default split)
+ *
+ * NEW — options enrichment (runs AFTER the market scan, on fired tickers only):
+ *   pulls each fired ticker's option chain from Alpaca's free "indicative" feed,
+ *   pre-computes the four vertical spreads (Bull Put / Bear Call credit spreads,
+ *   Bull Call / Bear Put debit spreads) per the Options Master Ruleset, flags every
+ *   precondition as met/not-met WITHOUT filtering anything, and appends each
+ *   ticker's ATM IV to iv_history.json (the IV history accumulator).
+ *   PAM_OPT             set to 0 to disable the options step entirely
+ *   PAM_OPT_DTE_MIN/MAX expiry window in days              (default 30 / 45)
+ *   PAM_IV_HIGH         absolute ATM IV "high" threshold   (default 0.35)
+ *   PAM_IV_LOW          absolute ATM IV "low" threshold    (default 0.30)
+ *   PAM_OPT_SPREAD_MAX  max per-leg bid/ask spread in $    (default 0.50)
+ *   PAM_OPT_MIN_MC      market-cap floor for enrichment    (default 2e9 = $2bn)
+ *   PAM_IV_HIST         IV history file                    (default iv_history.json)
  * ========================================================================== */
 
 const fs = require('fs');
@@ -50,6 +64,19 @@ const CFG = {
   limit:       parseInt(process.env.PAM_LIMIT    || '0', 10),   // 0 = whole market
   fundGapMs:   parseInt(process.env.FUND_GAP_MS  || '1100', 10),  // pause between fundamentals calls (~55/min, under Finnhub's 60/min)
   fundTimeout: parseInt(process.env.FUND_TIMEOUT || '15000', 10), // per-request timeout (ms)
+  /* ---- options enrichment (vertical-spread candidates for fired tickers) ---- */
+  optEnable:   process.env.PAM_OPT !== '0',                        // PAM_OPT=0 turns the whole options step off
+  optFeed:     process.env.PAM_OPT_FEED || 'indicative',           // Alpaca's free options feed (Basic plan)
+  optDteMin:   parseInt(process.env.PAM_OPT_DTE_MIN || '30', 10),  // ruleset: credit verticals 30-45 DTE
+  optDteMax:   parseInt(process.env.PAM_OPT_DTE_MAX || '45', 10),
+  ivHigh:      parseFloat(process.env.PAM_IV_HIGH  || '0.35'),     // per Kam's call: ABSOLUTE ATM IV > 35% = "high IV" (credit side favoured)
+  ivLow:       parseFloat(process.env.PAM_IV_LOW   || '0.30'),     // ruleset: buy premium when IV < 30 (debit side favoured)
+  optSpreadMax:parseFloat(process.env.PAM_OPT_SPREAD_MAX || '0.50'),// ruleset liquidity: per-leg bid/ask spread <= $0.40-0.50 — using the loose end
+  optMinMc:    parseFloat(process.env.PAM_OPT_MIN_MC || '2e9'),    // only enrich fired tickers with market cap >= this (USD). Keeps runtime sane —
+                                                                   // thousands fire daily but most are optionless small caps. Tickers below the floor
+                                                                   // still appear in the trigger list; they just skip the options step.
+  ivHistFile:  process.env.PAM_IV_HIST || 'iv_history.json',       // the IV history accumulator file (committed back to the repo)
+  ivHistKeep:  parseInt(process.env.PAM_IV_HIST_KEEP || '300', 10),// keep up to ~300 daily IV readings per symbol (~14 months)
 };
 
 const FINNHUB_KEY = process.env.FINNHUB_KEY;   // free key from finnhub.io — adds market cap + industry
@@ -175,6 +202,272 @@ async function addFundamentals(meta, cfg) {
   console.error(`Fundamentals done: ${ok} enriched, ${err} misses, of ${tickers.length} counters.`);
 }
 
+/* ---- 4c. options enrichment — vertical-spread candidates for FIRED tickers only ----
+ * For every ticker that fired a trigger (any timeframe) this pulls its option chain
+ * from Alpaca's free "indicative" feed and pre-computes the four vertical spreads
+ * from the Options Master Ruleset (Cards 17-20):
+ *   bps       Bull Put Spread   (credit, bullish)  short put  ~0.20-0.25 delta, long 1 strike below
+ *   bcs       Bear Call Spread  (credit, bearish)  short call ~0.20-0.25 delta, long 1 strike above
+ *   bull_call Bull Call Spread  (debit,  bullish)  long call  ~0.50-0.60 delta, short at +1SD (and >= $5 above long, per the card)
+ *   bear_put  Bear Put Spread   (debit,  bearish)  long put   ~0.50-0.60 delta, short at -1SD
+ * NOTHING IS FILTERED OUT. Every ruleset precondition is reported as a met/not-met
+ * flag (IV level, earnings inside expiry, per-leg liquidity, max-loss<=4x-credit,
+ * R:R>=1:2, SPY regime) and the go/no-go decision stays with the trader.
+ *
+ * Judgment calls, documented:
+ *   - Expiry = the one closest to 37 DTE inside the 30-45 window (middle of the ruleset range).
+ *     If the window is empty (thin chains), it widens once to 25-60 and flags dte_off_window.
+ *   - Strike query is bounded to spot ±35% to keep the chain pull to one page for most names.
+ *   - "Long leg 1-2 strikes further OTM" (credit cards) → implemented as the ADJACENT strike (1 strike).
+ *   - Credit is priced conservatively at the touch: short leg BID minus long leg ASK. Debit = long ASK minus short BID.
+ *   - ATM IV = average of the call and put IV at the strike nearest spot.
+ *   - 1SD move for the debit-spread target = spot × ATM-IV × sqrt(DTE/365).
+ */
+
+// OCC option symbol → { expiry:'YYYY-MM-DD', type:'C'|'P', strike:Number } (e.g. AAPL240315C00172500)
+function parseOcc(occ, underlying) {
+  const rest = occ.slice(underlying.length);
+  const m = /^(\d{6})([CP])(\d{8})$/.exec(rest);
+  if (!m) return null;
+  return { expiry: '20' + m[1].slice(0, 2) + '-' + m[1].slice(2, 4) + '-' + m[1].slice(4, 6),
+           type: m[2], strike: parseInt(m[3], 10) / 1000 };
+}
+
+async function fetchOptionChain(sym, spot, cfg, dteMin, dteMax) {
+  const d = n => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+  const contracts = [];
+  let pageToken = null;
+  do {
+    const u = new URL(DATA_API + '/v1beta1/options/snapshots/' + encodeURIComponent(sym));
+    u.searchParams.set('feed', cfg.optFeed);
+    u.searchParams.set('limit', '1000');
+    u.searchParams.set('expiration_date_gte', d(dteMin));
+    u.searchParams.set('expiration_date_lte', d(dteMax));
+    u.searchParams.set('strike_price_gte', (spot * 0.65).toFixed(2));
+    u.searchParams.set('strike_price_lte', (spot * 1.35).toFixed(2));
+    if (pageToken) u.searchParams.set('page_token', pageToken);
+    const j = await alpacaGet(u.toString());
+    const snaps = j.snapshots || {};
+    for (const occ in snaps) {
+      const p = parseOcc(occ, sym); if (!p) continue;
+      const s = snaps[occ] || {};
+      contracts.push({
+        expiry: p.expiry, type: p.type, k: p.strike,
+        bid: s.latestQuote && s.latestQuote.bp != null ? s.latestQuote.bp : null,
+        ask: s.latestQuote && s.latestQuote.ap != null ? s.latestQuote.ap : null,
+        delta: s.greeks && s.greeks.delta != null ? s.greeks.delta : null,
+        iv: s.impliedVolatility != null ? s.impliedVolatility : null,
+      });
+    }
+    pageToken = j.next_page_token || null;
+  } while (pageToken);
+  return contracts;
+}
+
+// choose the expiry closest to 37 DTE among the pulled contracts
+function pickExpiry(contracts) {
+  const today = new Date().toISOString().slice(0, 10);
+  const dteOf = exp => Math.round((new Date(exp) - new Date(today)) / 86400000);
+  const expiries = [...new Set(contracts.map(c => c.expiry))];
+  if (!expiries.length) return null;
+  expiries.sort((a, b) => Math.abs(dteOf(a) - 37) - Math.abs(dteOf(b) - 37));
+  const expiry = expiries[0], dte = dteOf(expiry);
+  const inExp = contracts.filter(c => c.expiry === expiry);
+  const calls = inExp.filter(c => c.type === 'C').sort((a, b) => a.k - b.k);
+  const puts  = inExp.filter(c => c.type === 'P').sort((a, b) => a.k - b.k);
+  return { expiry, dte, calls, puts };
+}
+
+const r2 = x => x == null ? null : Math.round(x * 100) / 100;
+const legLiquid = (leg, maxSpread) => leg && leg.bid != null && leg.ask != null && leg.bid > 0 && (leg.ask - leg.bid) <= maxSpread;
+
+// contract whose delta is closest to `target` (must land within ±0.10 of it)
+function byDelta(list, target) {
+  let best = null, bestD = 0.10;
+  for (const c of list) {
+    if (c.delta == null) continue;
+    const d = Math.abs(c.delta - target);
+    if (d < bestD) { bestD = d; best = c; }
+  }
+  return best;
+}
+
+// ATM IV = mean of call+put IV at the strike nearest spot
+function atmIvOf(calls, puts, spot) {
+  const nearest = list => list.reduce((a, c) => (a == null || Math.abs(c.k - spot) < Math.abs(a.k - spot)) ? c : a, null);
+  const ivs = [nearest(calls), nearest(puts)].filter(c => c && c.iv != null).map(c => c.iv);
+  return ivs.length ? ivs.reduce((a, b) => a + b, 0) / ivs.length : null;
+}
+
+function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
+  const S = {};
+  const oneSD = atmIV != null ? spot * atmIV * Math.sqrt(Math.max(dte, 1) / 365) : null;
+
+  // ---- Bull Put Spread (credit): sell put 0.20-0.25 delta, buy the adjacent strike below
+  {
+    const sp = byDelta(puts, -0.225);
+    const below = sp ? puts.filter(p => p.k < sp.k) : [];
+    const lp = below.length ? below[below.length - 1] : null;   // adjacent strike below
+    if (sp && lp && sp.bid != null && lp.ask != null) {
+      const credit = r2(sp.bid - lp.ask), width = r2(sp.k - lp.k), maxLoss = r2(width - credit);
+      S.bps = { short_k: sp.k, long_k: lp.k, short_delta: r2(sp.delta), credit, width, max_loss: maxLoss,
+                breakeven: r2(sp.k - credit),
+                ok: { credit_4x: credit > 0 && maxLoss <= 4 * credit,
+                      liquidity: legLiquid(sp, cfg.optSpreadMax) && legLiquid(lp, cfg.optSpreadMax) } };
+    }
+  }
+  // ---- Bear Call Spread (credit): sell call 0.20-0.25 delta, buy the adjacent strike above
+  {
+    const sc = byDelta(calls, 0.225);
+    const above = sc ? calls.filter(c => c.k > sc.k) : [];
+    const lc = above.length ? above[0] : null;                  // adjacent strike above
+    if (sc && lc && sc.bid != null && lc.ask != null) {
+      const credit = r2(sc.bid - lc.ask), width = r2(lc.k - sc.k), maxLoss = r2(width - credit);
+      S.bcs = { short_k: sc.k, long_k: lc.k, short_delta: r2(sc.delta), credit, width, max_loss: maxLoss,
+                breakeven: r2(sc.k + credit),
+                ok: { credit_4x: credit > 0 && maxLoss <= 4 * credit,
+                      liquidity: legLiquid(sc, cfg.optSpreadMax) && legLiquid(lc, cfg.optSpreadMax) } };
+    }
+  }
+  // ---- Bull Call Spread (debit): buy call 0.50-0.60 delta; short at the +1SD target, and >= $5 above the long (per Card 17)
+  if (oneSD != null) {
+    const lc = byDelta(calls, 0.55);
+    if (lc) {
+      const target = spot + oneSD, minK = lc.k + 5;
+      const cands = calls.filter(c => c.k >= minK);
+      const sc = cands.length ? cands.reduce((a, c) => Math.abs(c.k - target) < Math.abs(a.k - target) ? c : a) : null;
+      if (sc && lc.ask != null && sc.bid != null) {
+        const debit = r2(lc.ask - sc.bid), width = r2(sc.k - lc.k), maxProfit = r2(width - debit);
+        S.bull_call = { long_k: lc.k, short_k: sc.k, long_delta: r2(lc.delta), debit, width, max_profit: maxProfit,
+                        breakeven: r2(lc.k + debit),
+                        ok: { rr_1to2: debit > 0 && maxProfit >= 2 * debit,
+                              liquidity: legLiquid(lc, cfg.optSpreadMax) && legLiquid(sc, cfg.optSpreadMax) } };
+      }
+    }
+  }
+  // ---- Bear Put Spread (debit): buy put 0.50-0.60 delta; short at the -1SD target (no $5 rule on the card — nearest strike below the long)
+  if (oneSD != null) {
+    const lp = byDelta(puts, -0.55);
+    if (lp) {
+      const target = spot - oneSD;
+      const cands = puts.filter(p => p.k < lp.k);
+      const sp = cands.length ? cands.reduce((a, p) => Math.abs(p.k - target) < Math.abs(a.k - target) ? p : a) : null;
+      if (sp && lp.ask != null && sp.bid != null) {
+        const debit = r2(lp.ask - sp.bid), width = r2(lp.k - sp.k), maxProfit = r2(width - debit);
+        S.bear_put = { long_k: lp.k, short_k: sp.k, long_delta: r2(lp.delta), debit, width, max_profit: maxProfit,
+                       breakeven: r2(lp.k - debit),
+                       ok: { rr_1to2: debit > 0 && maxProfit >= 2 * debit,
+                             liquidity: legLiquid(lp, cfg.optSpreadMax) && legLiquid(sp, cfg.optSpreadMax) } };
+      }
+    }
+  }
+  return S;
+}
+
+// earnings date inside the chosen expiry? (Finnhub earnings calendar; null = could not check)
+async function earningsCheck(sym, expiry, cfg) {
+  if (!FINNHUB_KEY) return null;
+  try {
+    const from = new Date().toISOString().slice(0, 10);
+    const r = await fetch('https://finnhub.io/api/v1/calendar/earnings?from=' + from + '&to=' + expiry +
+      '&symbol=' + encodeURIComponent(sym) + '&token=' + FINNHUB_KEY, { signal: AbortSignal.timeout(cfg.fundTimeout) });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const list = (j && j.earningsCalendar) || [];
+    return list.length ? { inside: true, date: list[0].date } : { inside: false, date: null };
+  } catch (e) { return null; }
+}
+
+// SPY regime for the awareness flag on bearish spreads (Card 20 precondition: 50MA < 150MA)
+async function fetchSpyRegime(cfg) {
+  const bars = await fetchBars(['SPY'], { ...cfg, batch: 1 }, '1Day', 300);
+  const closes = (bars.SPY || []).map(b => b.c);
+  if (closes.length < 150) return null;
+  const sma = n => closes.slice(-n).reduce((a, b) => a + b, 0) / n;
+  const s50 = sma(50), s150 = sma(150);
+  return { sma50: r2(s50), sma150: r2(s150), bear: s50 < s150 };
+}
+
+/* ---- 4d. IV history accumulator ----
+ * Appends each enriched ticker's ATM IV to iv_history.json (committed back to the
+ * repo by the workflow) so a TRUE IV-percentile becomes computable later with zero
+ * rework. Shape: { "SYM": [["YYYY-MM-DD", 0.4123], ...] }, capped at ivHistKeep
+ * entries per symbol. Once a symbol has >= 60 readings, iv_pctl is reported too. */
+function loadIvHistory(path) {
+  try { return JSON.parse(fs.readFileSync(path, 'utf8')); } catch (e) { return {}; }
+}
+function recordIv(hist, sym, date, iv, keep) {
+  const a = hist[sym] = hist[sym] || [];
+  if (a.length && a[a.length - 1][0] === date) a[a.length - 1][1] = +iv.toFixed(4);  // same-day rerun → overwrite
+  else a.push([date, +iv.toFixed(4)]);
+  if (a.length > keep) hist[sym] = a.slice(-keep);
+}
+function ivPercentile(hist, sym, iv) {
+  const a = (hist[sym] || []).map(e => e[1]);
+  if (a.length < 60) return null;                                // not enough history yet — panel shows "building"
+  return Math.round(100 * a.filter(v => v < iv).length / a.length);
+}
+
+async function enrichOptions(meta, cfg) {
+  if (!cfg.optEnable) { console.error('Options enrichment disabled (PAM_OPT=0).'); return null; }
+  // Market-cap gate: only enrich fired tickers at/above the floor (default $2bn, PAM_OPT_MIN_MC).
+  // Judgment call: tickers with UNKNOWN market cap (Finnhub miss / no key) are skipped too —
+  // they are overwhelmingly tiny or optionless names, and each would still burn an API call.
+  const all = Object.keys(meta);
+  const syms = all.filter(s => (meta[s].mc || 0) >= cfg.optMinMc).sort();
+  const skipped = all.length - syms.length;
+  if (skipped) console.error(`Options enrichment: skipping ${skipped} fired tickers below the $${(cfg.optMinMc / 1e9).toFixed(1)}bn market-cap floor (PAM_OPT_MIN_MC).`);
+  if (!syms.length) return null;
+  const hist = loadIvHistory(cfg.ivHistFile);
+  let spy = null;
+  try { spy = await fetchSpyRegime(cfg); } catch (e) { console.error('SPY regime lookup failed: ' + e.message); }
+  const gap = Math.ceil(60000 / cfg.reqPerMin);
+  const today = new Date().toISOString().slice(0, 10);
+  const out = { iv_high_threshold: cfg.ivHigh, iv_low_threshold: cfg.ivLow, leg_spread_max: cfg.optSpreadMax,
+                dte_window: [cfg.optDteMin, cfg.optDteMax], spy, symbols: {} };
+  const est = Math.ceil(syms.length * (gap + (FINNHUB_KEY ? cfg.fundGapMs : 0)) / 60000);
+  console.error(`Options enrichment: ${syms.length} fired tickers (~${est} min)…`);
+  let done = 0, withOpts = 0;
+  for (const sym of syms) {
+    const spot = meta[sym].px;
+    let contracts = [];
+    try { contracts = await fetchOptionChain(sym, spot, cfg, cfg.optDteMin, cfg.optDteMax); }
+    catch (e) { out.symbols[sym] = { has_options: false, error: e.message.slice(0, 80) }; done++; await sleep(gap); continue; }
+    await sleep(gap);
+    let dteOff = false;
+    if (!contracts.length) {   // thin chain — widen the window once (25-60 DTE) before giving up
+      try { contracts = await fetchOptionChain(sym, spot, cfg, 25, 60); dteOff = true; } catch (e) {}
+      await sleep(gap);
+    }
+    const picked = contracts.length ? pickExpiry(contracts) : null;
+    if (!picked) { out.symbols[sym] = { has_options: false }; done++; continue; }
+    const atmIV = atmIvOf(picked.calls, picked.puts, spot);
+    const earn = await earningsCheck(sym, picked.expiry, cfg);
+    if (FINNHUB_KEY) await sleep(cfg.fundGapMs);
+    if (atmIV != null) recordIv(hist, sym, today, atmIV, cfg.ivHistKeep);
+    out.symbols[sym] = {
+      has_options: true, px: spot, expiry: picked.expiry, dte: picked.dte, dte_off_window: dteOff || undefined,
+      atm_iv: atmIV != null ? +atmIV.toFixed(4) : null,
+      iv_pctl: atmIV != null ? ivPercentile(hist, sym, atmIV) : null,
+      iv_obs: (hist[sym] || []).length,
+      flags: {
+        iv_high: atmIV != null ? atmIV > cfg.ivHigh : null,       // met → credit spreads (BPS/BCS) favoured
+        iv_low:  atmIV != null ? atmIV < cfg.ivLow  : null,       // met → debit spreads (Bull Call/Bear Put) favoured
+        earnings_inside: earn ? earn.inside : null,               // credit cards: must be false; null = could not check
+        earnings_date:   earn ? earn.date   : null,
+        spy_bear: spy ? spy.bear : null,                          // Card 20 awareness flag — NEVER used to filter
+      },
+      spreads: buildSpreads(spot, atmIV, picked.dte, picked.calls, picked.puts, cfg),
+    };
+    withOpts++; done++;
+    if (done % 25 === 0) process.stderr.write(`  options ${done}/${syms.length}\r`);
+  }
+  process.stderr.write('\n');
+  try { fs.writeFileSync(cfg.ivHistFile, JSON.stringify(hist)); } catch (e) { console.error('Could not write ' + cfg.ivHistFile + ': ' + e.message); }
+  console.error(`Options enrichment done: ${withOpts}/${syms.length} tickers had usable chains. IV history → ${cfg.ivHistFile}`);
+  return out;
+}
+
 async function fetchBars(symbols, cfg, timeframe, startDays) {
   timeframe = timeframe || '1Day';
   startDays = startDays || cfg.dailyDays || 500;
@@ -264,6 +557,11 @@ async function main() {
 
   await addFundamentals(meta, CFG);   // market cap / industry for every fired ticker, across all timeframes (no-op without FINNHUB_KEY)
 
+  // options enrichment: vertical-spread candidates + IV flags for every fired ticker (PAM_OPT=0 to skip)
+  let opt = null;
+  try { opt = await enrichOptions(meta, CFG); }
+  catch (e) { console.error('Options enrichment failed (scan results are still complete): ' + e.message); }
+
   // per-timeframe counts, stable sort, and distinct-ticker count
   for (const tf of ['1', '2', 'W']) {
     const a = acc[tf];
@@ -288,6 +586,8 @@ async function main() {
       'W': { timeframe: '1week', agg_mult: 1, fresh_within: CFG.freshWithin, asof: acc['W'].asof,
              scanned: acc['W'].scanned, fired: acc['W'].firedCount, counts: acc['W'].counts, rows: acc['W'].rows },
     },
+    // ---- NEW: options block — vertical-spread candidates keyed by ticker; the panel ignores unknown keys, so this is back-compatible ----
+    opt,
   };
   fs.writeFileSync(CFG.out, JSON.stringify(result, null, 1));
   const r1 = acc['1'].rows.length, r2 = acc['2'].rows.length, rw = acc['W'].rows.length;
@@ -295,4 +595,6 @@ async function main() {
 }
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
-module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals };
+module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals,
+                   parseOcc, pickExpiry, byDelta, atmIvOf, buildSpreads, earningsCheck, fetchSpyRegime,
+                   loadIvHistory, recordIv, ivPercentile, enrichOptions, CFG };
