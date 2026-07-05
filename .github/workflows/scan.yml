@@ -52,5 +52,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add scan_results.json
           git add iv_history.json 2>/dev/null || true   # the IV history accumulator (may not exist on the very first run)
+          git add enrichment_cache.json 2>/dev/null || true   # the shares-outstanding + industry cache (may not exist on the very first run)
           git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || echo "nothing to commit"
           git push
