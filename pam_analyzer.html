@@ -421,6 +421,8 @@
           <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
             <input id="cid" type="text" placeholder="Google OAuth Client ID — …apps.googleusercontent.com" autocomplete="off" spellcheck="false"
               style="font-family:var(--mono);font-size:12px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:220px;outline:none">
+            <input id="gmailHint" type="email" placeholder="Your Google account email — skips the account chooser (optional)" autocomplete="username" spellcheck="false"
+              style="font-family:var(--mono);font-size:12px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1 1 100%;min-width:220px;outline:none">
             <button class="btn" id="connectDrive">Connect Drive</button>
             <button class="btn" id="syncNow">Sync now</button>
           </div>
@@ -1464,15 +1466,15 @@ function applyState(st){if(!st)return;
   if(Array.isArray(st.checklog))CHECKLOG=st.checklog.slice();renderWL();renderCheckLog();syncToggleUI();}
 function saveLocal(){const st=localState();LS.set('pam_state',JSON.stringify(st));LS.set('pam_upd',String(st.updatedAt));schedulePush();}
 /* ---- Google Drive (appData) sync ---- */
-const DRIVE={cid:'940138922266-bhvinnurb192hsrkscqtrtnllu06b45k.apps.googleusercontent.com',token:'',exp:0,tc:null,fileId:null,connected:false,_then:null};
+const DRIVE={cid:'940138922266-bhvinnurb192hsrkscqtrtnllu06b45k.apps.googleusercontent.com',hint:'',token:'',exp:0,tc:null,fileId:null,connected:false,_then:null};
 function gReady(){return typeof google!=='undefined'&&google.accounts&&google.accounts.oauth2;}
 function syncStatus(m,kind){const e=$('#syncStatus');if(e){e.textContent=m;e.style.color=kind==='err'?'var(--short)':kind==='ok'?'var(--long)':'var(--mut)';}}
 function driveInit(){if(!gReady()||!DRIVE.cid)return false;
-  DRIVE.tc=google.accounts.oauth2.initTokenClient({client_id:DRIVE.cid,scope:'https://www.googleapis.com/auth/drive.appdata',
+  DRIVE.tc=google.accounts.oauth2.initTokenClient({client_id:DRIVE.cid,scope:'https://www.googleapis.com/auth/drive.appdata',hint:DRIVE.hint||undefined,
     callback:r=>{if(r&&r.access_token){DRIVE.token=r.access_token;DRIVE.exp=Date.now()+((r.expires_in||3000)*1000)-60000;const f=DRIVE._then;DRIVE._then=null;if(f)f();}else{syncStatus('Google sign-in failed','err');}},
     error_callback:()=>{syncStatus('Google sign-in dismissed','err');}});
   return true;}
-function withToken(fn,interactive){if(DRIVE.token&&Date.now()<DRIVE.exp){fn();return;}if(!DRIVE.tc&&!driveInit()){syncStatus('Add your Client ID, then Connect','err');return;}DRIVE._then=fn;try{DRIVE.tc.requestAccessToken({prompt:interactive?'consent':''});}catch(e){syncStatus('Drive error: '+e.message,'err');}}
+function withToken(fn,interactive){if(DRIVE.token&&Date.now()<DRIVE.exp){fn();return;}if(!DRIVE.tc&&!driveInit()){syncStatus('Add your Client ID, then Connect','err');return;}DRIVE._then=fn;try{DRIVE.tc.requestAccessToken({prompt:interactive?'consent':'',hint:DRIVE.hint||undefined});}catch(e){syncStatus('Drive error: '+e.message,'err');}}
 async function dApi(url,opts){opts=opts||{};opts.headers=Object.assign({Authorization:'Bearer '+DRIVE.token},opts.headers||{});const r=await fetch(url,opts);if(r.status===401){DRIVE.token='';throw new Error('auth expired \u2014 Connect again');}if(!r.ok)throw new Error('Drive '+r.status);return r;}
 async function dFind(){const r=await dApi("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q="+encodeURIComponent("name='pam-sync.json'"));const j=await r.json();return (j.files&&j.files[0])?j.files[0].id:null;}
 async function dRead(){const id=await dFind();DRIVE.fileId=id;if(!id)return null;const r=await dApi("https://www.googleapis.com/drive/v3/files/"+id+"?alt=media");return await r.json();}
@@ -1498,7 +1500,7 @@ async function syncMerge(){try{const remote=await dRead();
     syncStatus('Synced \u2713 '+new Date().toLocaleTimeString(),'ok');
     if(remote&&remote.lastSym&&($('#keyInput').value||'').trim()){$('#tkInput').value=remote.lastSym;fetchSymbol(remote.lastSym);}}
   catch(e){syncStatus('Sync error: '+e.message,'err');}}
-function connectDrive(){DRIVE.cid=($('#cid').value||'').trim();if(!DRIVE.cid){syncStatus('Paste your Google Client ID first','err');return;}LS.set('pam_cid',DRIVE.cid);
+function connectDrive(){DRIVE.cid=($('#cid').value||'').trim();if(!DRIVE.cid){syncStatus('Paste your Google Client ID first','err');return;}LS.set('pam_cid',DRIVE.cid);DRIVE.hint=($('#gmailHint')?($('#gmailHint').value||''):'').trim();LS.set('pam_gmail',DRIVE.hint);
   if(!gReady()){syncStatus('Google library still loading \u2014 try again in a moment','err');return;}driveInit();syncStatus('Connecting to Google\u2026');
   withToken(()=>{DRIVE.connected=true;LS.set('pam_drive','1');syncMerge();},true);}
 function attachSavers(){
@@ -1694,8 +1696,8 @@ function scanRenderList(){
     if(_o&&_o.has_options){
       const det=optDetailCard(r.t,r.dir); det.style.display='none';
       const tg=document.createElement('button'); tg.type='button'; tg.className='optbadge';
-      // green "ready" badge when ANY strategy shown for this ticker (directional pair or the condor) meets ALL its criteria
-      const _pair=((r.dir==='long')?['bps','bull_call']:['bcs','bear_put']).concat(['condor']);
+      // green "ready" badge when either of this direction's two spreads meets ALL its criteria — quick eyeball for a clean setup
+      const _pair=(r.dir==='long')?['bps','bull_call']:['bcs','bear_put'];
       const _sps=_o.spreads||{};
       const _ready=_pair.filter(k=>optSpreadAllMet(k,_sps[k],_o));
       if(_ready.length) tg.classList.add('ready');
@@ -1714,31 +1716,7 @@ function scanRenderList(){
 /* ---- options enrichment display — reads the opt block written by pam_scan.js ---- */
 function scanOptBlock(){ return (SCAN.full&&SCAN.full.opt)||null; }
 function scanOptFor(t){ const b=scanOptBlock(); return (b&&b.symbols&&b.symbols[t])||null; }
-const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread',condor:'Iron Condor'};
-function optCondorCard(sp,o){
-  const card=document.createElement('div'); card.className='optspread';
-  const head=document.createElement('div'); head.className='osh';
-  const nm=document.createElement('span'); nm.className='osname'; nm.textContent='Iron Condor';
-  const tp=document.createElement('span'); tp.className='ostag cr'; tp.textContent='credit';
-  const nt=document.createElement('span'); nt.className='ostag db'; nt.textContent='neutral';
-  head.appendChild(nm); head.appendChild(tp); head.appendChild(nt);
-  card.appendChild(head);
-  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid condor strikes in the '+o.dte+'-DTE chain'; card.appendChild(e); return card; }
-  const legs=document.createElement('div'); legs.className='oslegs';
-  legs.textContent='Sell '+sp.put_short_k+'P / Buy '+sp.put_long_k+'P  +  Sell '+sp.call_short_k+'C / Buy '+sp.call_long_k+'C';
-  card.appendChild(legs);
-  const eco=document.createElement('div'); eco.className='oseco';
-  eco.textContent='credit '+optMoney(sp.credit)+' ('+optMoney(sp.put_credit)+' put + '+optMoney(sp.call_credit)+' call)  \u00b7  max loss '+optMoney(sp.max_loss)+'  \u00b7  profit zone '+optMoney(sp.be_low)+' \u2013 '+optMoney(sp.be_high);
-  card.appendChild(eco);
-  const fl=document.createElement('div'); fl.className='osflags';
-  fl.appendChild(optPill('IV>35%',o.flags.iv_high));
-  const ei=o.flags.earnings_inside;
-  fl.appendChild(optPill(ei===false?'no earnings':ei===true?('earnings '+(o.flags.earnings_date||'')):'earnings ?', ei===false?true:ei===true?false:null));
-  fl.appendChild(optPill('\u2265$0.90/side',sp.ok?sp.ok.credit_each:null));
-  fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
-  card.appendChild(fl);
-  return card;
-}
+const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread'};
 function optPill(label,state){
   const p=document.createElement('span');
   p.className='pill '+(state===true?'ok':state===false?'no':'info');
@@ -1747,17 +1725,12 @@ function optPill(label,state){
 }
 function optMoney(x){ return x==null?'\u2013':'$'+(+x).toFixed(2); }
 // true only if EVERY criterion shown on this spread's pill row is met (green). Unknown/missing => not met.
-// true only if every GATING criterion for this spread is met (green). Liquidity is shown as a
-// reference pill on the card but deliberately does NOT gate the green button (user's call —
-// wide markets are a fill-quality warning, not a disqualifier).
 function optSpreadAllMet(kind,sp,o){
   if(!sp||!sp.ok||!o||!o.flags) return false;
-  if(kind==='condor')                                            // Card 8 gates: high IV, earnings-free, >=$0.90 credit per side
-    return o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.credit_each===true;
   const credit=(kind==='bps'||kind==='bcs');
   return credit
-    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.credit_4x===true)
-    : (o.flags.iv_low===true  && sp.ok.rr_1to2===true);
+    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.liquidity===true && sp.ok.credit_4x===true)
+    : (o.flags.iv_low===true  && sp.ok.liquidity===true && sp.ok.rr_1to2===true);
 }
 function optSpreadCard(kind,sp,o,favoured,alignedLong){
   const card=document.createElement('div'); card.className='optspread'+(favoured?' fav':'');
@@ -1822,7 +1795,6 @@ function optDetailCard(t,dir){
   const favKind = o.flags.iv_high ? pair[0] : o.flags.iv_low ? pair[1] : null;
   const sps=o.spreads||{};
   pair.forEach(k=>wrap.appendChild(optSpreadCard(k,sps[k],o,k===favKind,long)));
-  if(sps.condor!==undefined) wrap.appendChild(optCondorCard(sps.condor,o));   // neutral — shown for both trigger directions
   const ft=document.createElement('div'); ft.className='ohfoot';
   ft.textContent='Strikes/prices are a starting point priced at the touch \u2014 verify in IBKR. Flags highlight ruleset conditions; the decision is yours. Not financial advice.';
   wrap.appendChild(ft);
@@ -2027,7 +1999,7 @@ function scanInit(){
   scanRenderChips();
 }
 (function initSync(){
-  DRIVE.cid=LS.get('pam_cid')||'';if(DRIVE.cid&&$('#cid'))$('#cid').value=DRIVE.cid;
+  DRIVE.cid=LS.get('pam_cid')||'';if(DRIVE.cid&&$('#cid'))$('#cid').value=DRIVE.cid;DRIVE.hint=LS.get('pam_gmail')||'';if(DRIVE.hint&&$('#gmailHint'))$('#gmailHint').value=DRIVE.hint;
   const saved=LS.get('pam_state');if(saved){try{applyState(JSON.parse(saved));}catch(e){}}
   attachSavers();renderWL();renderCheckLog();
   if(LS.get('pam_drive')==='1'){DRIVE.connected=true;syncStatus('Reconnecting to Drive\u2026');waitGoogle(()=>{if(driveInit())withToken(()=>syncMerge());});}
