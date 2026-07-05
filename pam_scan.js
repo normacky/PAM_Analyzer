@@ -56,6 +56,7 @@ const CFG = {
   dailyDays:   parseInt(process.env.PAM_DAILY_DAYS  || '500',  10), // calendar days of daily bars to pull — covers 2-Day's 160-bar lookback (~345 trading bars)
   weeklyDays:  parseInt(process.env.PAM_WEEKLY_DAYS || '1400', 10), // calendar days of native weekly bars to pull (~200 weeks)
   freshWithin: parseInt(process.env.PAM_FRESH    || '2', 10),   // "last 2 candles" — IN whatever timeframe is being scanned
+  adxPeriod:   parseInt(process.env.PAM_ADX_PERIOD || '14', 10),  // Wilder ADX lookback (standard 14). Low ADX = rangebound (Iron Condor gate); high = trending.
   batch:       parseInt(process.env.PAM_BATCH    || '100', 10), // symbols per request
   reqPerMin:   parseInt(process.env.PAM_RPM      || '180', 10), // stay under Alpaca's 200/min
   feed:        process.env.PAM_FEED     || 'sip',               // EOD free tier = delayed SIP
@@ -563,6 +564,48 @@ function ivPercentile(hist, sym, iv) {
 
 // daily SMA-20 vs SMA-50 trend for a stock (Bull Put Spread card: stock must be in an uptrend).
 // Uses the tool's own 20/50 SMAs so the pill matches what the chart draws. up = 20-SMA above 50-SMA.
+// Wilder's ADX over `period` bars from daily high/low/close arrays. Returns the latest ADX value
+// (0-100), or null if there aren't enough bars. This is a trend-STRENGTH gauge, direction-agnostic:
+// a low reading (~below 20) means price is NOT making net directional progress = rangebound, which is
+// exactly the condition the Iron Condor wants; a high reading (~above 25) means a real trend is in force.
+function adxLatest(high, low, close, period) {
+  period = period || 14;
+  const n = close ? close.length : 0;
+  if (!high || !low || n < period * 2 + 1) return null;   // need ~2 periods to warm the DI smoothing then the ADX
+  const tr = [], plusDM = [], minusDM = [];
+  for (let i = 1; i < n; i++) {
+    const up = high[i] - high[i - 1];       // today's high vs yesterday's
+    const dn = low[i - 1] - low[i];         // yesterday's low vs today's
+    plusDM.push((up > dn && up > 0) ? up : 0);
+    minusDM.push((dn > up && dn > 0) ? dn : 0);
+    tr.push(Math.max(high[i] - low[i], Math.abs(high[i] - close[i - 1]), Math.abs(low[i] - close[i - 1])));
+  }
+  // Wilder smoothing (seed = sum of the first `period`, then smooth). Using the running sums keeps the
+  // +DI / -DI ratio identical to averaging, with less arithmetic.
+  const smooth = arr => {
+    const out = []; let s = 0;
+    for (let i = 0; i < period; i++) s += arr[i];
+    out.push(s);
+    for (let i = period; i < arr.length; i++) { s = s - s / period + arr[i]; out.push(s); }
+    return out;
+  };
+  const trS = smooth(tr), pS = smooth(plusDM), mS = smooth(minusDM);
+  const dx = [];
+  for (let i = 0; i < trS.length; i++) {
+    const pdi = trS[i] === 0 ? 0 : 100 * pS[i] / trS[i];
+    const mdi = trS[i] === 0 ? 0 : 100 * mS[i] / trS[i];
+    const sum = pdi + mdi;
+    dx.push(sum === 0 ? 0 : 100 * Math.abs(pdi - mdi) / sum);
+  }
+  if (dx.length < period) return null;
+  // ADX = Wilder average of DX: seed with the mean of the first `period` DX values, then smooth.
+  let adx = 0;
+  for (let i = 0; i < period; i++) adx += dx[i];
+  adx /= period;
+  for (let i = period; i < dx.length; i++) adx = (adx * (period - 1) + dx[i]) / period;
+  return Math.round(adx * 10) / 10;
+}
+
 function dailySmaTrend(closes) {
   if (!closes || closes.length < 50) return null;
   const mean = n => { let s = 0; for (let i = closes.length - n; i < closes.length; i++) s += closes[i]; return s / n; };
@@ -622,6 +665,7 @@ async function enrichOptions(meta, cfg, stockTrend) {
         stock_sma20: (stockTrend[sym] || {}).sma20 != null ? stockTrend[sym].sma20 : null,   // stock's own daily SMAs (tool's 20/50)
         stock_sma50: (stockTrend[sym] || {}).sma50 != null ? stockTrend[sym].sma50 : null,
         stock_trend_up: (stockTrend[sym] || {}).up != null ? stockTrend[sym].up : null,       // met (up) = daily 20-SMA > 50-SMA — BPS card's "stock in an uptrend"
+        stock_adx: (stockTrend[sym] || {}).adx != null ? stockTrend[sym].adx : null,          // Wilder ADX(14): < ~20 = rangebound (Iron Condor gate); > ~25 = trending
       },
       spreads: buildSpreads(spot, atmIV, picked.dte, picked.calls, picked.puts, cfg),
     };
@@ -691,6 +735,7 @@ async function main() {
     if (arr && arr.length >= 60) {
       const series = seriesFromAlpaca(arr);
       stockTrend[sym] = dailySmaTrend(series.close);   // stock's daily 20/50 SMA trend for the options card's stock-uptrend check
+      stockTrend[sym].adx = adxLatest(series.high, series.low, series.close, CFG.adxPeriod);   // trend strength for the Iron Condor's rangebound gate
       const lastDate = series.time[series.time.length - 1];
       for (const tf of ['1', '2']) {
         const a = acc[tf];
@@ -764,5 +809,5 @@ async function main() {
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
 module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals, splitAdjustedShares, fetchSplitsFor, daysBetweenISO,
-                   parseOcc, pickExpiry, byDelta, atmIvOf, buildSpreads, earningsCheck, fetchSpyRegime,
+                   parseOcc, pickExpiry, byDelta, atmIvOf, buildSpreads, earningsCheck, fetchSpyRegime, adxLatest, dailySmaTrend,
                    loadIvHistory, recordIv, ivPercentile, enrichOptions, CFG };
