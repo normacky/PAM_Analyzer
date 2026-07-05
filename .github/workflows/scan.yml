@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Get the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history so the rebase-before-push below always has the common ancestor
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -50,8 +52,18 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scan_results.json
-          git add iv_history.json 2>/dev/null || true   # the IV history accumulator (may not exist on the very first run)
-          git add enrichment_cache.json 2>/dev/null || true   # the shares-outstanding + industry cache (may not exist on the very first run)
-          git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || echo "nothing to commit"
-          git push
+          git add scan_results.json 2>/dev/null || true
+          git add iv_history.json 2>/dev/null || true        # IV history accumulator (may not exist on the first run)
+          git add enrichment_cache.json 2>/dev/null || true  # shares/industry cache (may not exist on the first run)
+          git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || { echo "nothing to commit"; exit 0; }
+          # The scan runs ~3 hours, so main may have moved on (e.g. you edited files) while it ran. Rebase our
+          # results commit onto the latest main and push, retrying a few times. This is exactly what failed before:
+          # a plain 'git push' from a 3-hour-old checkout gets rejected once the branch has advanced.
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              echo "pushed on attempt $attempt"; exit 0
+            fi
+            echo "push attempt $attempt failed - refreshing latest main and retrying..."
+            sleep 5
+          done
+          echo "could not push results after 5 attempts"; exit 1
