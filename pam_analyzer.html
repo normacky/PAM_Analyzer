@@ -1694,8 +1694,8 @@ function scanRenderList(){
     if(_o&&_o.has_options){
       const det=optDetailCard(r.t,r.dir); det.style.display='none';
       const tg=document.createElement('button'); tg.type='button'; tg.className='optbadge';
-      // green "ready" badge when either of this direction's two spreads meets ALL its criteria — quick eyeball for a clean setup
-      const _pair=(r.dir==='long')?['bps','bull_call']:['bcs','bear_put'];
+      // green "ready" badge when ANY strategy shown for this ticker (directional pair or the condor) meets ALL its criteria
+      const _pair=((r.dir==='long')?['bps','bull_call']:['bcs','bear_put']).concat(['condor']);
       const _sps=_o.spreads||{};
       const _ready=_pair.filter(k=>optSpreadAllMet(k,_sps[k],_o));
       if(_ready.length) tg.classList.add('ready');
@@ -1714,7 +1714,31 @@ function scanRenderList(){
 /* ---- options enrichment display — reads the opt block written by pam_scan.js ---- */
 function scanOptBlock(){ return (SCAN.full&&SCAN.full.opt)||null; }
 function scanOptFor(t){ const b=scanOptBlock(); return (b&&b.symbols&&b.symbols[t])||null; }
-const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread'};
+const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread',condor:'Iron Condor'};
+function optCondorCard(sp,o){
+  const card=document.createElement('div'); card.className='optspread';
+  const head=document.createElement('div'); head.className='osh';
+  const nm=document.createElement('span'); nm.className='osname'; nm.textContent='Iron Condor';
+  const tp=document.createElement('span'); tp.className='ostag cr'; tp.textContent='credit';
+  const nt=document.createElement('span'); nt.className='ostag db'; nt.textContent='neutral';
+  head.appendChild(nm); head.appendChild(tp); head.appendChild(nt);
+  card.appendChild(head);
+  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid condor strikes in the '+o.dte+'-DTE chain'; card.appendChild(e); return card; }
+  const legs=document.createElement('div'); legs.className='oslegs';
+  legs.textContent='Sell '+sp.put_short_k+'P / Buy '+sp.put_long_k+'P  +  Sell '+sp.call_short_k+'C / Buy '+sp.call_long_k+'C';
+  card.appendChild(legs);
+  const eco=document.createElement('div'); eco.className='oseco';
+  eco.textContent='credit '+optMoney(sp.credit)+' ('+optMoney(sp.put_credit)+' put + '+optMoney(sp.call_credit)+' call)  \u00b7  max loss '+optMoney(sp.max_loss)+'  \u00b7  profit zone '+optMoney(sp.be_low)+' \u2013 '+optMoney(sp.be_high);
+  card.appendChild(eco);
+  const fl=document.createElement('div'); fl.className='osflags';
+  fl.appendChild(optPill('IV>35%',o.flags.iv_high));
+  const ei=o.flags.earnings_inside;
+  fl.appendChild(optPill(ei===false?'no earnings':ei===true?('earnings '+(o.flags.earnings_date||'')):'earnings ?', ei===false?true:ei===true?false:null));
+  fl.appendChild(optPill('\u2265$0.90/side',sp.ok?sp.ok.credit_each:null));
+  fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
+  card.appendChild(fl);
+  return card;
+}
 function optPill(label,state){
   const p=document.createElement('span');
   p.className='pill '+(state===true?'ok':state===false?'no':'info');
@@ -1728,6 +1752,8 @@ function optMoney(x){ return x==null?'\u2013':'$'+(+x).toFixed(2); }
 // wide markets are a fill-quality warning, not a disqualifier).
 function optSpreadAllMet(kind,sp,o){
   if(!sp||!sp.ok||!o||!o.flags) return false;
+  if(kind==='condor')                                            // Card 8 gates: high IV, earnings-free, >=$0.90 credit per side
+    return o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.credit_each===true;
   const credit=(kind==='bps'||kind==='bcs');
   return credit
     ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.credit_4x===true)
@@ -1796,6 +1822,7 @@ function optDetailCard(t,dir){
   const favKind = o.flags.iv_high ? pair[0] : o.flags.iv_low ? pair[1] : null;
   const sps=o.spreads||{};
   pair.forEach(k=>wrap.appendChild(optSpreadCard(k,sps[k],o,k===favKind,long)));
+  if(sps.condor!==undefined) wrap.appendChild(optCondorCard(sps.condor,o));   // neutral — shown for both trigger directions
   const ft=document.createElement('div'); ft.className='ohfoot';
   ft.textContent='Strikes/prices are a starting point priced at the touch \u2014 verify in IBKR. Flags highlight ruleset conditions; the decision is yours. Not financial advice.';
   wrap.appendChild(ft);

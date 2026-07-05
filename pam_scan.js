@@ -370,6 +370,35 @@ function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
       }
     }
   }
+  // ---- Short Iron Condor (Card 8): Bull Put Spread + Bear Call Spread sold together, same expiry.
+  // Card parameters differ from the single credit spreads: short strikes at 0.23-0.28 delta
+  // (target 0.255 here), wings $5 beyond each short strike (implemented as the strike nearest
+  // to $5 beyond — documented judgment for chains without exact $5 spacing), credit >= $0.90
+  // PER SIDE as the quality bar, max loss = wider wing - total credit, two breakevens.
+  // Neutral strategy — computed for every ticker regardless of trigger direction.
+  {
+    const sp = byDelta(puts, -0.255), sc = byDelta(calls, 0.255);
+    if (sp && sc && sc.k > sp.k) {
+      const pWing = puts.filter(p => p.k < sp.k);
+      const cWing = calls.filter(c => c.k > sc.k);
+      const lp = pWing.length ? pWing.reduce((a, p) => Math.abs(p.k - (sp.k - 5)) < Math.abs(a.k - (sp.k - 5)) ? p : a) : null;
+      const lc = cWing.length ? cWing.reduce((a, c) => Math.abs(c.k - (sc.k + 5)) < Math.abs(a.k - (sc.k + 5)) ? c : a) : null;
+      const mSp = legMid(sp), mLp = legMid(lp), mSc = legMid(sc), mLc = legMid(lc);
+      if (lp && lc && mSp != null && mLp != null && mSc != null && mLc != null) {
+        const putCredit = r2(mSp - mLp), callCredit = r2(mSc - mLc), credit = r2(putCredit + callCredit);
+        const widthPut = r2(sp.k - lp.k), widthCall = r2(lc.k - sc.k);
+        const maxLoss = r2(Math.max(widthPut, widthCall) - credit);
+        S.condor = { put_short_k: sp.k, put_long_k: lp.k, call_short_k: sc.k, call_long_k: lc.k,
+                     short_put_delta: r2(sp.delta), short_call_delta: r2(sc.delta),
+                     put_credit: putCredit, call_credit: callCredit, credit,
+                     width_put: widthPut, width_call: widthCall, max_loss: maxLoss,
+                     be_low: r2(sp.k - credit), be_high: r2(sc.k + credit),
+                     ok: { credit_each: putCredit >= 0.90 && callCredit >= 0.90,   // Card 8: >= $0.90-1.00 each side
+                           liquidity: legLiquid(sp, cfg.optSpreadMax) && legLiquid(lp, cfg.optSpreadMax) &&
+                                      legLiquid(sc, cfg.optSpreadMax) && legLiquid(lc, cfg.optSpreadMax) } };
+      }
+    }
+  }
   return S;
 }
 
