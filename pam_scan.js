@@ -77,6 +77,10 @@ const CFG = {
                                                                    // still appear in the trigger list; they just skip the options step.
   ivHistFile:  process.env.PAM_IV_HIST || 'iv_history.json',       // the IV history accumulator file (committed back to the repo)
   ivHistKeep:  parseInt(process.env.PAM_IV_HIST_KEEP || '300', 10),// keep up to ~300 daily IV readings per symbol (~14 months)
+  /* ---- market-cap enrichment cache + daily split adjustment ---- */
+  fundCacheFile:     process.env.PAM_FUND_CACHE       || 'enrichment_cache.json', // shares-outstanding + industry cache, committed back to the repo
+  fundCacheDays:     parseInt(process.env.PAM_FUND_CACHE_DAYS || '30', 10),       // re-pull a ticker from Finnhub only when its cached snapshot is older than this
+  splitLookbackDays: parseInt(process.env.PAM_SPLIT_LOOKBACK   || '40', 10),      // how far back to ask Alpaca for splits each run — MUST exceed fundCacheDays so no split is missed within a cache cycle
 };
 
 const FINNHUB_KEY = process.env.FINNHUB_KEY;   // free key from finnhub.io — adds market cap + industry
@@ -170,36 +174,147 @@ async function fetchUniverse(cfg) {
   return { syms: list.map(a => a.symbol), names };
 }
 
-/* ---- 4b. market cap + sector + industry for the fired tickers (FMP, optional) ---- */
+/* ---- 4b. market cap + industry for the fired tickers (cached; split-adjusted daily) ----
+ * Market cap = shares-outstanding x latest close. Only the price half moves daily, and the
+ * scanner already holds the split-adjusted latest close in meta[t].px, so we cache the slow
+ * half (shares-outstanding + industry) from Finnhub and recompute cap fresh every run.
+ *
+ *   - The cache (enrichment_cache.json, committed back to the repo) stores, per ticker:
+ *       { shares, industry, name, ts }  where ts = the day Finnhub was last asked.
+ *   - A ticker is re-pulled from Finnhub ONLY when it is missing from the cache or its ts is
+ *     older than cfg.fundCacheDays (default 30). A normal daily run therefore calls Finnhub only
+ *     for names that fired for the first time in the last month; the old ~55/min crawl is gone.
+ *   - Splits are the one thing that cannot wait a month: a 4-for-1 (e.g. CRWD, ex-date
+ *     2026-07-02) quarters the price the same day, so cached pre-split shares would read a
+ *     quarter of the true cap. Every run we ask Alpaca's corporate-actions endpoint for the
+ *     splits in the last cfg.splitLookbackDays and multiply cached shares by new_rate/old_rate
+ *     for any split whose ex-date is AFTER that ticker's snapshot (older splits are already
+ *     baked into what Finnhub told us). No per-symbol Finnhub call is needed to catch them.
+ *
+ * Judgment calls, documented:
+ *   - shares-outstanding comes from Finnhub profile2 (reported in MILLIONS). If that field is
+ *     absent we derive shares from Finnhub's own market cap / today's price so cap still updates daily.
+ *   - Split cut-off is strict "ex-date AFTER snapshot" (never double-counts). The only miss is a
+ *     split you happen to refresh Finnhub on the very same day it goes ex, if Finnhub has not yet
+ *     updated its share count that morning: that one name reads low for one day until the next run.
+ *   - splitLookbackDays (40) must stay > fundCacheDays (30) so every post-snapshot split is inside the window.
+ */
+
+// whole calendar days between two 'YYYY-MM-DD' strings (b - a)
+function daysBetweenISO(a, b) {
+  return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+}
+const isoDay = d => d.toISOString().slice(0, 10);
+
+// multiply cached shares by every split whose ex-date is AFTER the cache snapshot (older splits already baked in)
+function splitAdjustedShares(cachedShares, cacheTs, splitList) {
+  let m = 1;
+  for (const sp of (splitList || [])) if (!cacheTs || sp.ex > cacheTs) m *= sp.mult;
+  return cachedShares * m;
+}
+
+// Alpaca corporate-actions -> { SYM: [ { ex:'YYYY-MM-DD', mult:Number }, ... ] } for forward + reverse splits
+// in [today-splitLookbackDays, today]. Queried in symbol batches (the fired set is small), so it never
+// depends on a market-wide pull being allowed. Uses the same Alpaca keys as the rest of the scan.
+async function fetchSplitsFor(symbols, cfg) {
+  const out = {};
+  if (!symbols.length) return out;
+  const today = isoDay(new Date());
+  const start = isoDay(new Date(Date.now() - cfg.splitLookbackDays * 86400000));
+  const push = (sym, ex, mult) => {
+    if (!sym || !ex || !(mult > 0) || mult === 1) return;
+    (out[sym] = out[sym] || []).push({ ex: String(ex).slice(0, 10), mult });
+  };
+  for (let i = 0; i < symbols.length; i += 40) {              // ~40 tickers per request keeps the URL short
+    const batch = symbols.slice(i, i + 40).join(',');
+    let pageToken = '';
+    do {
+      const url = DATA_API + '/v1/corporate-actions?types=forward_split,reverse_split'
+        + '&symbols=' + encodeURIComponent(batch)
+        + '&start=' + start + '&end=' + today + '&limit=1000'
+        + (pageToken ? '&page_token=' + encodeURIComponent(pageToken) : '');
+      let j;
+      try { j = await alpacaGet(url); }
+      catch (e) { console.error('  corporate-actions lookup failed (' + e.message + ') - cap uses un-split-adjusted shares this run.'); return out; }
+      const ca = (j && j.corporate_actions) || {};
+      for (const s of (ca.forward_splits || [])) push(s.symbol, s.ex_date || s.process_date, (+s.new_rate) / (+s.old_rate));
+      for (const s of (ca.reverse_splits || [])) push(s.symbol, s.ex_date || s.process_date, (+s.new_rate) / (+s.old_rate));
+      pageToken = (j && j.next_page_token) || '';
+    } while (pageToken);
+  }
+  return out;
+}
+
 async function addFundamentals(meta, cfg) {
   const tickers = Object.keys(meta);
-  if (!FINNHUB_KEY) { console.error('No FINNHUB_KEY set — skipping market cap / industry (rows still carry name + price).'); return; }
   if (!tickers.length) return;
-  const mins = Math.ceil(tickers.length * cfg.fundGapMs / 60000);
-  console.error(`Looking up market cap + industry for ${tickers.length} counters via Finnhub (~${mins} min at ~${Math.round(60000 / cfg.fundGapMs)}/min)…`);
-  let ok = 0, err = 0;
-  for (let i = 0; i < tickers.length; i++) {
-    const t = tickers[i];
+  const today = isoDay(new Date());
+
+  // load the shares/industry cache (committed back to the repo; empty {} on the first ever run)
+  let cache = {};
+  try { cache = JSON.parse(fs.readFileSync(cfg.fundCacheFile, 'utf8')) || {}; } catch (e) { cache = {}; }
+
+  // catch splits for every fired ticker in one batched sweep (cheap, no Finnhub involved)
+  const splits = await fetchSplitsFor(tickers, cfg);
+
+  // which fired tickers need a fresh Finnhub pull? (missing, or snapshot older than fundCacheDays)
+  const stale = t => !cache[t] || cache[t].shares == null || !cache[t].ts || daysBetweenISO(cache[t].ts, today) >= cfg.fundCacheDays;
+  const toPull = FINNHUB_KEY ? tickers.filter(stale) : [];
+  if (!FINNHUB_KEY) console.error("No FINNHUB_KEY set - using cached shares/industry only (cap still recomputed from cached shares x today's price).");
+
+  if (toPull.length) {
+    const mins = Math.ceil(toPull.length * cfg.fundGapMs / 60000);
+    console.error(`Finnhub refresh for ${toPull.length} of ${tickers.length} fired counters (the rest are cached) - ~${mins} min at ~${Math.round(60000 / cfg.fundGapMs)}/min...`);
+  } else if (FINNHUB_KEY) {
+    console.error(`All ${tickers.length} fired counters served from cache - no Finnhub calls this run.`);
+  }
+
+  let pulled = 0, err = 0;
+  for (let i = 0; i < toPull.length; i++) {
+    const t = toPull[i];
     try {
       const r = await fetch('https://finnhub.io/api/v1/stock/profile2?symbol=' + encodeURIComponent(t) + '&token=' + FINNHUB_KEY,
         { signal: AbortSignal.timeout(cfg.fundTimeout) });
-      if (r.status === 429) { await sleep(2000); err++; continue; }   // throttled this one — pause and move on
-      if (!r.ok) { if (err < 8) console.error('  Finnhub ' + r.status + ' on ' + t); err++; }
+      if (r.status === 429) { await sleep(2000); err++; }         // throttled - leave cache as-is, retry next run
+      else if (!r.ok) { if (err < 8) console.error('  Finnhub ' + r.status + ' on ' + t); err++; }
       else {
         const p = await r.json();
-        if (p && (p.marketCapitalization != null || p.finnhubIndustry)) {
-          if (p.marketCapitalization != null) meta[t].mc = p.marketCapitalization * 1e6;   // Finnhub reports millions → USD
-          if (p.finnhubIndustry) meta[t].industry = p.finnhubIndustry;
-          if (!meta[t].name && p.name) meta[t].name = p.name;
-          ok++;
+        if (p) {
+          // shareOutstanding is in MILLIONS of shares -> actual count. Fall back to deriving it from
+          // Finnhub's own market cap / today's price when the share-count field is absent.
+          const shares = (p.shareOutstanding != null) ? p.shareOutstanding * 1e6
+                       : (p.marketCapitalization != null && meta[t].px > 0) ? (p.marketCapitalization * 1e6) / meta[t].px
+                       : null;
+          const entry = cache[t] || {};
+          if (shares != null) entry.shares = shares;
+          if (p.finnhubIndustry) entry.industry = p.finnhubIndustry;
+          if (p.name) entry.name = p.name;
+          entry.ts = today;                                        // snapshot date - anchors the 30-day refresh AND the split cut-off
+          cache[t] = entry;
+          pulled++;
         }
       }
     } catch (e) { if (err < 8) console.error('  Finnhub error on ' + t + ': ' + e.message); err++; }
     await sleep(cfg.fundGapMs);
-    if (i % 100 === 0) process.stderr.write(`  fundamentals ${i}/${tickers.length}\r`);
+    if (i % 100 === 0) process.stderr.write(`  fundamentals ${i}/${toPull.length}\r`);
   }
-  process.stderr.write('\n');
-  console.error(`Fundamentals done: ${ok} enriched, ${err} misses, of ${tickers.length} counters.`);
+  if (toPull.length) process.stderr.write('\n');
+
+  // fold cache + daily split adjustment into meta: cap = (split-adjusted cached shares) x latest close
+  let priced = 0, splitAdj = 0, unknown = 0;
+  for (const t of tickers) {
+    const c = cache[t];
+    if (c && c.industry) meta[t].industry = c.industry;
+    if (c && !meta[t].name && c.name) meta[t].name = c.name;
+    if (!c || c.shares == null) { unknown++; continue; }          // no share count yet -> leave mc undefined (unchanged behaviour)
+    const shares = splitAdjustedShares(c.shares, c.ts, splits[t]);
+    if (shares !== c.shares) splitAdj++;
+    if (meta[t].px > 0) { meta[t].mc = shares * meta[t].px; priced++; } else unknown++;
+  }
+
+  try { fs.writeFileSync(cfg.fundCacheFile, JSON.stringify(cache, null, 0)); }
+  catch (e) { console.error('  could not write ' + cfg.fundCacheFile + ': ' + e.message); }
+  console.error(`Fundamentals: ${priced} priced (${splitAdj} split-adjusted), ${pulled} freshly pulled, ${err} misses, ${unknown} without a share count, of ${tickers.length} counters.`);
 }
 
 /* ---- 4c. options enrichment — vertical-spread candidates for FIRED tickers only ----
@@ -648,6 +763,6 @@ async function main() {
 }
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
-module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals,
+module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals, splitAdjustedShares, fetchSplitsFor, daysBetweenISO,
                    parseOcc, pickExpiry, byDelta, atmIvOf, buildSpreads, earningsCheck, fetchSpyRegime,
                    loadIvHistory, recordIv, ivPercentile, enrichOptions, CFG };
