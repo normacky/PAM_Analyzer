@@ -1717,6 +1717,7 @@ function scanRenderList(){
 function scanOptBlock(){ return (SCAN.full&&SCAN.full.opt)||null; }
 function scanOptFor(t){ const b=scanOptBlock(); return (b&&b.symbols&&b.symbols[t])||null; }
 const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread'};
+const ADX_RANGE_MAX=20;   // Iron Condor shows only when Wilder ADX is below this (rangebound). Raise/lower to taste — no rescan needed.
 function optPill(label,state){
   const p=document.createElement('span');
   p.className='pill '+(state===true?'ok':state===false?'no':'info');
@@ -1768,6 +1769,35 @@ function optSpreadCard(kind,sp,o,favoured,alignedLong){
   card.appendChild(fl);
   return card;
 }
+
+// Iron Condor (Card 8): neutral, four legs = a Bull Put Spread + a Bear Call Spread sold together.
+// Same DOM/classes as optSpreadCard so it inherits the existing card styling. Always rendered (shows an
+// empty-state note when the chain has no valid 4-leg strikes) so it can never go silently missing.
+function optCondorCard(sp,o,favoured){
+  const card=document.createElement('div'); card.className='optspread'+(favoured?' fav':'');
+  const head=document.createElement('div'); head.className='osh';
+  const nm=document.createElement('span'); nm.className='osname'; nm.textContent='Iron Condor';
+  const tp=document.createElement('span'); tp.className='ostag cr'; tp.textContent='credit';
+  const nt=document.createElement('span'); nt.className='ostag db'; nt.textContent='neutral';
+  head.appendChild(nm); head.appendChild(tp); head.appendChild(nt);
+  if(favoured){ const f=document.createElement('span'); f.className='ostag fav'; f.textContent='IV-favoured'; head.appendChild(f); }
+  card.appendChild(head);
+  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid 4-leg strikes in the '+o.dte+'-DTE chain (thin or wide market)'; card.appendChild(e); return card; }
+  const legs=document.createElement('div'); legs.className='oslegs';
+  legs.textContent='Sell '+sp.put_short_k+'P / Buy '+sp.put_long_k+'P   +   Sell '+sp.call_short_k+'C / Buy '+sp.call_long_k+'C';
+  card.appendChild(legs);
+  const eco=document.createElement('div'); eco.className='oseco';
+  eco.textContent='credit '+optMoney(sp.credit)+'  \u00b7  put/call width '+optMoney(sp.width_put)+' / '+optMoney(sp.width_call)+'  \u00b7  max loss '+optMoney(sp.max_loss)+'  \u00b7  BE '+optMoney(sp.be_low)+'\u2013'+optMoney(sp.be_high);
+  card.appendChild(eco);
+  const fl=document.createElement('div'); fl.className='osflags';
+  fl.appendChild(optPill('IV>35%',o.flags.iv_high));
+  const ei=o.flags.earnings_inside;
+  fl.appendChild(optPill(ei===false?'no earnings':ei===true?('earnings '+(o.flags.earnings_date||'')):'earnings ?', ei===false?true:ei===true?false:null));
+  fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
+  fl.appendChild(optPill('credit \u2265$0.90/side',sp.ok?sp.ok.credit_each:null));
+  card.appendChild(fl);
+  return card;
+}
 function optDetailCard(t,dir){
   const o=scanOptFor(t);
   const wrap=document.createElement('div'); wrap.className='optcard';
@@ -1795,6 +1825,19 @@ function optDetailCard(t,dir){
   const favKind = o.flags.iv_high ? pair[0] : o.flags.iv_low ? pair[1] : null;
   const sps=o.spreads||{};
   pair.forEach(k=>wrap.appendChild(optSpreadCard(k,sps[k],o,k===favKind,long)));
+  // neutral Iron Condor — shown ONLY for rangebound names (Wilder ADX below the threshold). A note explains the other cases.
+  const _adx=(o.flags&&o.flags.stock_adx!=null)?o.flags.stock_adx:null;
+  if(_adx==null){
+    const nt=document.createElement('div'); nt.className='ohsub';
+    nt.textContent='Iron Condor: ADX gating applies from the next scan (this data has no ADX reading yet)';
+    wrap.appendChild(nt);
+  } else if(_adx < ADX_RANGE_MAX){
+    wrap.appendChild(optCondorCard(sps.condor,o,o.flags.iv_high===true));
+  } else {
+    const nt=document.createElement('div'); nt.className='ohsub';
+    nt.textContent='Iron Condor hidden — ADX '+Math.round(_adx)+' shows a trend, not a range (needs < '+ADX_RANGE_MAX+')';
+    wrap.appendChild(nt);
+  }
   const ft=document.createElement('div'); ft.className='ohfoot';
   ft.textContent='Strikes/prices are a starting point priced at the touch \u2014 verify in IBKR. Flags highlight ruleset conditions; the decision is yours. Not financial advice.';
   wrap.appendChild(ft);
