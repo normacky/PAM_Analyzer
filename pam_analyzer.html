@@ -216,6 +216,16 @@
   [data-theme="light"] .chip.long{border-color:#bcdccf}
   [data-theme="light"] .chip.short{border-color:#e6c3b8}
   [data-theme="light"] .chip.force{border-color:#e0cfa0}
+  /* ---- light-theme tints for options cards (dark hexes in the options block below are dark-theme only) ---- */
+  [data-theme="light"] .optbadge.on{background:#f6efdd;border-color:#e0cfa0}
+  [data-theme="light"] .optbadge.ready{background:#eaf3ee;border-color:#bcdccf}
+  [data-theme="light"] .optbadge.ready.on{background:#dcefe4;border-color:#2f8268}
+  [data-theme="light"] .optcard .ohiv.high{background:#f6efdd;border-color:#e0cfa0}
+  [data-theme="light"] .optcard .ohiv.low{background:#eaf3ee;border-color:#bcdccf}
+  [data-theme="light"] .optcard .ohwarn{background:#f8ece8;border-color:#e6c3b8}
+  [data-theme="light"] .optspread .ostag.cr{background:#eaf3ee;border-color:#bcdccf}
+  [data-theme="light"] .optspread .ostag.fav{background:#f6efdd;border-color:#e0cfa0}
+  [data-theme="light"] .optspread.fav{box-shadow:0 0 0 1px #e0cfa055}
   [data-theme="light"] .effword.eff-robust{color:#2f8268}
   [data-theme="light"] .effword.eff-green{color:#3a9576}
   [data-theme="light"] .effword.eff-bad{color:#bf6953}
@@ -331,6 +341,41 @@
   .optspread .osnone{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:5px;font-style:italic}
   .optspread .osflags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
   .optcard .ohfoot{font-size:10.5px;color:var(--faint);margin-top:10px;line-height:1.5}
+  /* ===== quick-favourite star on the chart header ===== */
+  .wl-star{background:none;border:1px solid var(--line);border-radius:7px;color:var(--mut);width:26px;height:24px;cursor:pointer;font-size:13px;line-height:1;flex:none;padding:0;transition:.15s;align-self:center}
+  .wl-star:hover{color:var(--force);border-color:var(--force)}
+  .wl-star.on{color:var(--force);border-color:#534522;background:#231c10}
+  [data-theme="light"] .wl-star.on{background:#f6efdd;border-color:#e0cfa0}
+  /* ===== collapsible scan sections ===== */
+  .scan-sec{border:1px solid var(--line);border-radius:9px;margin-top:10px;overflow:hidden;flex:none}
+  .scan-sec-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:var(--panel-in);border:0;cursor:pointer;padding:9px 12px;color:var(--txt);text-align:left}
+  .scan-sec-hd:hover{background:var(--btnbg)}
+  .scan-sec-t{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+  .scan-sec-t .cr{display:inline-block;transition:transform .15s;font-size:9px;color:var(--faint)}
+  .scan-sec-hd.open .scan-sec-t{color:var(--txt)}
+  .scan-sec-hd.open .scan-sec-t .cr{transform:rotate(90deg)}
+  .scan-sec-sum{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--mut);min-width:0;overflow:hidden;white-space:nowrap}
+  .scan-sec-body{padding:12px}
+  /* ===== options detail drawer — side panel on desktop, bottom sheet on mobile ===== */
+  #optDrawer{position:absolute;inset:0;z-index:60;visibility:hidden;opacity:0;transition:opacity .18s ease}
+  #optDrawer.open{visibility:visible;opacity:1}
+  .optdw-scrim{position:absolute;inset:0;background:rgba(5,8,12,.42)}
+  [data-theme="light"] .optdw-scrim{background:rgba(60,52,40,.24)}
+  .optdw-panel{position:absolute;top:0;right:0;bottom:0;width:340px;max-width:94%;background:var(--panel-in);border-left:1px solid var(--line);box-shadow:-18px 0 44px rgba(0,0,0,.42);display:flex;flex-direction:column;transform:translateX(102%);transition:transform .24s cubic-bezier(.4,0,.2,1)}
+  #optDrawer.open .optdw-panel{transform:none}
+  .optdw-grip{display:none}
+  .optdw-head{display:flex;align-items:center;gap:9px;padding:13px 14px 11px;border-bottom:1px solid var(--line)}
+  .optdw-tk{font-family:var(--mono);font-size:15px;font-weight:600}
+  .optdw-nm{font-family:var(--body);font-size:11px;color:var(--mut);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .optdw-x{margin-left:auto;background:none;border:1px solid var(--line);border-radius:7px;color:var(--mut);width:28px;height:26px;cursor:pointer;flex:none;font-size:12px}
+  .optdw-x:hover{color:var(--txt);border-color:var(--mut)}
+  .optdw-body{overflow-y:auto;overflow-x:hidden;padding:12px 13px 20px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .optdw-body .optcard{margin:0}
+  @media(max-width:980px){
+    #optDrawer{position:fixed;z-index:300}
+    .optdw-panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:84vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -18px 44px rgba(0,0,0,.5);transform:translateY(102%)}
+    .optdw-grip{display:block;width:38px;height:4px;border-radius:99px;background:var(--line);margin:8px auto 2px}
+  }
 </style>
 
 <div class="wrap">
@@ -480,9 +525,12 @@
     <div class="verdict pinned-verdict">
       <div class="tk" id="vTk">—</div>
       <div class="nm" id="vNm"></div>
+      <button class="wl-star" id="chartWlBtn" type="button" title="Add to watchlist">☆</button>
       <div class="px" id="vPx">—</div>
       <div class="chips" id="vChips"></div>
+      <button class="optbadge" id="chartOptBtn" type="button" style="display:none">options ▾</button>
     </div>
+    <div id="chartOptCard" style="display:none"></div>
     <button class="chart-collapse-btn" id="chartCollapse" type="button">▾ Hide chart</button>
   <div class="chartcard">
     <canvas id="chart"></canvas>
@@ -529,18 +577,25 @@
         <h2 style="margin:0">Scan by trigger <span id="scanAsof" style="color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0"></span></h2>
         <div class="lead" id="scanLead" style="margin-top:2px">pick a trigger &mdash; every US counter that fired it on the last 2 daily bars &middot; tap one to chart it</div>
       </div>
-      <button class="btn drawer-btn" id="scanControlsToggle" style="padding:5px 11px;font-size:11px;flex:none">Hide ▴</button>
     </div>
-    <div id="scanSummary" style="display:none;margin-top:11px;align-items:center;gap:9px;flex-wrap:wrap;cursor:pointer"></div>
-    <div id="scanControls">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px">
-        <input id="scanUrl" type="text" placeholder="scan_results.json URL" autocomplete="off" spellcheck="false" style="font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:220px;max-width:100%">
-        <button class="btn" id="scanLoad" style="padding:5px 11px;font-size:11px">Load</button>
-        <button class="btn" id="scanFileBtn" style="padding:5px 11px;font-size:11px">Load file&hellip;</button>
-        <input id="scanFile" type="file" accept="application/json,.json" style="display:none">
+
+    <div class="scan-sec">
+      <button class="scan-sec-hd open" id="trigHd" type="button">
+        <span class="scan-sec-t"><span class="cr">▸</span> Trigger</span>
+        <span class="scan-sec-sum" id="trigSum"></span>
+      </button>
+      <div class="scan-sec-body" id="trigBody">
+        <div id="scanChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
       </div>
-      <div id="scanChips" style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap"></div>
-    <div id="scanFilters" style="display:none;margin-top:12px;flex-wrap:wrap;gap:12px 18px;align-items:center;padding:12px 14px;background:var(--panel-in);border:1px solid var(--hair);border-radius:10px">
+    </div>
+
+    <div class="scan-sec">
+      <button class="scan-sec-hd" id="filtHd" type="button">
+        <span class="scan-sec-t"><span class="cr">▸</span> Filters</span>
+        <span class="scan-sec-sum" id="filtSum"></span>
+      </button>
+      <div class="scan-sec-body" id="filtBody" style="display:none">
+    <div id="scanFilters" style="display:none;flex-wrap:wrap;gap:12px 18px;align-items:center">
       <span id="fCapWrap" style="display:inline-flex;align-items:center;gap:5px">
         <span class="ctl-label">Cap&nbsp;$B</span>
         <input id="fCapMin" class="scannum" type="number" min="0" step="0.1" placeholder="min">
@@ -563,14 +618,22 @@
       </span>
       <button class="btn" id="fClear" style="padding:4px 10px;font-size:11px">Clear</button>
     </div>
-    <div id="scanUnits" style="display:none;margin-top:8px;align-items:center;gap:6px;flex-wrap:wrap">
+    <div id="scanUnits" style="display:none;margin-top:10px;align-items:center;gap:6px;flex-wrap:wrap">
       <span class="ctl-label">Unit</span>
       <button class="unitbtn" data-unit="1">1st</button>
       <button class="unitbtn" data-unit="2">2nd</button>
       <button class="unitbtn" data-unit="3">3rd</button>
       <button class="unitbtn" data-unit="4">4th</button>
     </div>
-    </div><!-- /scanControls -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--hair)">
+          <span class="ctl-label">Data</span>
+          <input id="scanUrl" type="text" placeholder="scan_results.json URL" autocomplete="off" spellcheck="false" style="font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 9px;flex:1;min-width:150px">
+          <button class="btn" id="scanLoad" style="padding:5px 11px;font-size:11px">Load</button>
+          <button class="btn" id="scanFileBtn" style="padding:5px 11px;font-size:11px">Load file&hellip;</button>
+          <input id="scanFile" type="file" accept="application/json,.json" style="display:none">
+        </div>
+      </div>
+    </div>
     <div id="scanBody" style="margin-top:12px"></div>
     <div class="caveat" id="scanNote"></div>
   </div>
@@ -654,6 +717,18 @@
     <div class="log" id="groupFeed" style="margin-top:10px;max-height:300px;overflow:auto"></div>
   </div>
   </div><!-- /group panel -->
+  <div id="optDrawer" aria-hidden="true">
+    <div class="optdw-scrim" id="optDrawerScrim"></div>
+    <div class="optdw-panel" role="dialog" aria-label="Options detail">
+      <div class="optdw-grip"></div>
+      <div class="optdw-head">
+        <span class="optdw-tk" id="optDrawerTk"></span>
+        <span class="optdw-nm" id="optDrawerNm"></span>
+        <button class="optdw-x" id="optDrawerClose" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="optdw-body" id="optDrawerBody"></div>
+    </div>
+  </div>
   </div><!-- /stage-panels -->
   </div><!-- /stage -->
 </div>
@@ -910,6 +985,8 @@ function renderVerdict(){
   if(ACTIVE)c.push(`<span class="chip ${ACTIVE.dir==='long'?'long':'short'}">▶ ${ACTIVE.label} active</span>`);
   else c.push(`<span class="chip">no active trigger</span>`);
   $('#vChips').innerHTML=c.join('');
+  if(typeof chartOptSync==='function')chartOptSync();
+  if(typeof chartWlSync==='function')chartWlSync();
 }
 
 function renderSteps(){
@@ -1620,7 +1697,7 @@ function scanRenderChips(){
     const b=document.createElement('button');
     b.className='chip scanchip '+(TRIG_DIR[t]||'')+(SCAN.sel===t?' sel':'');
     b.innerHTML=t+' <span class="n">'+counts[t]+'</span>';
-    b.onclick=()=>{ const picked=(SCAN.sel!==t); SCAN.sel=picked?t:null; scanRenderChips(); scanRenderList(); if(picked && window.innerWidth>=981) scanSetControls(false); };
+    b.onclick=()=>{ const picked=(SCAN.sel!==t); SCAN.sel=picked?t:null; scanRenderChips(); scanRenderList(); if(picked) scanSecSet('trigger', false); };
     c.appendChild(b);
   });
 }
@@ -1646,7 +1723,7 @@ function scanRenderList(){
     ? all.length+' counter'+(all.length===1?'':'s')+' fired '+SCAN.sel+' \u2014 tap any to chart'
     : rows.length+' of '+all.length+' '+SCAN.sel+' counters match \u2014 tap any to chart';
   body.appendChild(head);
-  if(typeof scanUpdateSummary==='function')scanUpdateSummary();
+  if(typeof scanSecSummaries==='function')scanSecSummaries();
   if(!rows.length){ const e=document.createElement('div'); e.style.cssText='font-family:var(--mono);font-size:11px;color:var(--faint);padding:6px 8px'; e.textContent=all.length?'none match the current filters':'no counters'; body.appendChild(e); return; }
 
   const metas=rows.map(r=>SCAN.meta[r.t]||{});
@@ -1694,29 +1771,42 @@ function scanRenderList(){
     // options enrichment: if this ticker has a spread block, add a toggle + collapsible detail. Row-tap still charts.
     const _o=scanOptFor(r.t);
     if(_o&&_o.has_options){
-      const det=optDetailCard(r.t,r.dir); det.style.display='none';
       const tg=document.createElement('button'); tg.type='button'; tg.className='optbadge';
       // green "ready" badge when either of this direction's two spreads meets ALL its criteria — quick eyeball for a clean setup
       const _pair=(r.dir==='long')?['bps','bull_call']:['bcs','bear_put'];
       const _sps=_o.spreads||{};
       const _ready=_pair.filter(k=>optSpreadAllMet(k,_sps[k],_o));
       if(_ready.length) tg.classList.add('ready');
-      tg.textContent='options \u25be';
-      tg.title=_ready.length?(_ready.map(k=>OPT_NAME[k]).join(' & ')+' meets all criteria \u2014 tap to view'):'Show vertical-spread candidates';
-      tg.onclick=(e)=>{ e.stopPropagation(); const open=(det.style.display==='none');
-        det.style.display=open?'block':'none'; tg.textContent='options '+(open?'\u25b4':'\u25be'); tg.classList.toggle('on',open); };
+      tg.textContent='options \u203a';
+      tg.title=_ready.length?(_ready.map(k=>OPT_NAME[k]).join(' & ')+' meets all criteria \u2014 tap for detail'):'Show vertical-spread candidates for '+r.t;
+      tg.onclick=(e)=>{ e.stopPropagation(); optDrawerOpen(r.t, r.dir); };
       tk.appendChild(tg);
-      body.appendChild(row);
-      body.appendChild(det);
-    } else {
-      body.appendChild(row);
     }
+    body.appendChild(row);
   });
 }
 /* ---- options enrichment display — reads the opt block written by pam_scan.js ---- */
 function scanOptBlock(){ return (SCAN.full&&SCAN.full.opt)||null; }
 function scanOptFor(t){ const b=scanOptBlock(); return (b&&b.symbols&&b.symbols[t])||null; }
 const OPT_NAME={bps:'Bull Put Spread',bcs:'Bear Call Spread',bull_call:'Bull Call Spread',bear_put:'Bear Put Spread'};
+/* ===== options detail drawer (scan rows → side drawer / bottom sheet) ===== */
+function optDrawerOpen(t, dir){
+  const dw=$('#optDrawer'); if(!dw)return;
+  const o=scanOptFor(t); if(!o||!o.has_options)return;
+  const m=(SCAN.meta&&SCAN.meta[t])||{};
+  const tkEl=$('#optDrawerTk'); if(tkEl){ tkEl.textContent=t; tkEl.style.color='var(--'+(dir==='long'?'long':'short')+')'; }
+  const nmEl=$('#optDrawerNm'); if(nmEl)nmEl.textContent=[m.name,m.industry].filter(Boolean).join(' · ');
+  const b=$('#optDrawerBody'); if(b){ b.innerHTML=''; b.appendChild(optDetailCard(t,dir)); b.scrollTop=0; }
+  dw.classList.add('open'); dw.setAttribute('aria-hidden','false');
+}
+function optDrawerClose(){ const dw=$('#optDrawer'); if(dw){ dw.classList.remove('open'); dw.setAttribute('aria-hidden','true'); } }
+(function(){
+  const dw=$('#optDrawer'); if(!dw)return;
+  const sc=$('#optDrawerScrim'), x=$('#optDrawerClose');
+  if(sc)sc.onclick=optDrawerClose;
+  if(x)x.onclick=optDrawerClose;
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape')optDrawerClose(); });
+})();
 const ADX_RANGE_MAX=20;   // Iron Condor shows only when Wilder ADX is below this (rangebound). Raise/lower to taste — no rescan needed.
 function optPill(label,state){
   const p=document.createElement('span');
@@ -1955,6 +2045,7 @@ function scanApply(d){
   scanResetFilters(); scanBuildFilters();            // filter UI is meta-based, so it's built once and persists across timeframe switches
   const initTf=(typeof S!=='undefined'&&S.tf)?S.tf:'1';
   scanSetTf(initTf, true);
+  if(typeof chartOptSync==='function')chartOptSync(); // chart-panel options button picks up the freshly loaded opt block
 }
 function scanTfBlock(tf){
   const d=SCAN.full; if(!d)return null;
@@ -1978,7 +2069,7 @@ function scanSetTf(tf, fresh){
   if(a)a.textContent=' \u00b7 '+((SCAN.data.rows||[]).length)+' '+scanTfLabel(tf).toLowerCase()+' triggers across '+(SCAN.data.scanned||'?')+' counters \u00b7 asof '+(SCAN.data.asof||'?');
   const note=$('#scanNote');
   if(note)note.textContent=scanTfLabel(tf)+' bars, last '+(SCAN.data.fresh_within||2)+' candles \u00b7 '+(d.provider||'')+' '+(d.feed||'')+(d.fundamentals==='finnhub'?' \u00b7 cap+industry: Finnhub':'')+' \u00b7 generated '+(d.generated_at?new Date(d.generated_at).toLocaleString():'?')+'. Whole US market, ETFs and leveraged products included \u2014 analytical only, not financial advice.';
-  scanRenderChips(); scanRenderList(); if(typeof scanUpdateSummary==='function')scanUpdateSummary();
+  scanRenderChips(); scanRenderList(); if(typeof scanSecSummaries==='function')scanSecSummaries();
 }
 async function scanLoadUrl(silent){
   const el=$('#scanUrl'); const url=((el&&el.value)||'').trim();
@@ -2002,25 +2093,31 @@ function scanActiveFilterCount(){
   if(f.units&&f.units.length)n++;
   return n;
 }
-function scanUpdateSummary(){
-  const sum=$('#scanSummary'); if(!sum)return;
-  const sel=SCAN.sel, counts=(SCAN.data&&SCAN.data.counts)||{}, dir=sel?(TRIG_DIR[sel]||''):'';
-  const n=scanActiveFilterCount();
-  sum.innerHTML =
-    (sel ? '<span class="chip scanchip '+dir+' sel" style="pointer-events:none">'+sel+' <span class="n">'+(counts[sel]||0)+'</span></span>'
-         : '<span style="color:var(--mut);font-family:var(--mono);font-size:12px">no trigger selected</span>')
-    + (n ? '<span style="color:var(--faint);font-family:var(--mono);font-size:11px">'+n+' filter'+(n>1?'s':'')+' on</span>' : '')
-    + '<span style="margin-left:auto;color:var(--long);font-family:var(--mono);font-size:11px">Change ▾</span>';
+const SEC={trigger:true, filters:false};
+function scanSecSummaries(){
+  const ts=$('#trigSum');
+  if(ts){
+    const sel=SCAN.sel, counts=(SCAN.data&&SCAN.data.counts)||{}, dir=sel?(TRIG_DIR[sel]||''):'';
+    ts.innerHTML = SEC.trigger ? '' : (sel
+      ? '<span class="chip scanchip '+dir+' sel" style="pointer-events:none">'+sel+' <span class="n">'+(counts[sel]||0)+'</span></span>'
+      : '<span style="color:var(--mut)">tap to pick</span>');
+  }
+  const fs=$('#filtSum');
+  if(fs){
+    const n=scanActiveFilterCount();
+    fs.innerHTML = SEC.filters ? '' : (n
+      ? '<span style="color:var(--txt)">'+n+' filter'+(n>1?'s':'')+' on</span>'
+      : '<span style="color:var(--faint)">none</span>');
+  }
 }
-function scanSetControls(open){
-  SCAN.controlsOpen=open;
-  const c=$('#scanControls'), sum=$('#scanSummary'), lead=$('#scanLead'), btn=$('#scanControlsToggle');
-  if(c)c.style.display=open?'block':'none';
-  if(sum)sum.style.display=open?'none':'flex';
-  if(lead)lead.style.display=open?'block':'none';
-  if(btn)btn.textContent=open?'Hide ▴':'Filters ▾';
-  if(!open)scanUpdateSummary();
-  try{localStorage.setItem('pam_scanControls',open?'1':'0');}catch(e){}
+function scanSecSet(name, open){
+  SEC[name]=!!open;
+  const body=$(name==='trigger'?'#trigBody':'#filtBody');
+  const hd=$(name==='trigger'?'#trigHd':'#filtHd');
+  if(body)body.style.display=open?'block':'none';
+  if(hd)hd.classList.toggle('open',!!open);
+  scanSecSummaries();
+  try{localStorage.setItem('pam_sec_'+name, open?'1':'0');}catch(e){}
 }
 function scanInit(){
   const lb=$('#scanLoad'); if(lb)lb.onclick=()=>scanLoadUrl(false);
@@ -2031,10 +2128,12 @@ function scanInit(){
   const fc=$('#fClear'); if(fc)fc.onclick=()=>{ scanResetFilters(); scanRenderList(); };
   document.querySelectorAll('#scanSort .sortbtn').forEach(b=>{ b.onclick=()=>scanSetSort(b.getAttribute('data-by')); });
   document.querySelectorAll('#scanUnits .unitbtn').forEach(b=>{ b.onclick=()=>scanSetUnit(parseInt(b.getAttribute('data-unit'),10)); });
-  const ct=$('#scanControlsToggle'); if(ct)ct.onclick=()=>scanSetControls(!SCAN.controlsOpen);
-  const ss=$('#scanSummary'); if(ss)ss.onclick=()=>scanSetControls(true);
-  let openInit=true; try{ const v=localStorage.getItem('pam_scanControls'); if(v==='0')openInit=false; }catch(e){}
-  scanSetControls(openInit);
+  const th=$('#trigHd'); if(th)th.onclick=()=>scanSecSet('trigger', !SEC.trigger);
+  const fh=$('#filtHd'); if(fh)fh.onclick=()=>scanSecSet('filters', !SEC.filters);
+  let tOpen=true, fOpen=false;
+  try{ if(localStorage.getItem('pam_sec_trigger')==='0')tOpen=false; }catch(e){}
+  try{ if(localStorage.getItem('pam_sec_filters')==='1')fOpen=true; }catch(e){}
+  scanSecSet('trigger', tOpen); scanSecSet('filters', fOpen);
   const plo=$('#pxLo'), phi=$('#pxHi');
   if(plo)plo.addEventListener('pointerdown',e=>pxDrag('lo',e));
   if(phi)phi.addEventListener('pointerdown',e=>pxDrag('hi',e));
@@ -2101,6 +2200,51 @@ if(S.lastSym && ($('#keyInput').value||'').trim() && !DRIVE.connected){ $('#tkIn
   align();
   try{ if(window.ResizeObserver){ const ro=new ResizeObserver(align); ro.observe(v); if(chart)ro.observe(chart); } }catch(e){}
   window.addEventListener('resize',align);
+})();
+/* ===== options button on the chart panel (mirrors the scan-row options toggle) ===== */
+function chartOptDir(){
+  const rows=(SCAN&&SCAN.data&&SCAN.data.rows)||[]; const r=rows.find(x=>x.t===S.ticker);
+  if(r&&r.dir)return r.dir;
+  if(typeof ACTIVE!=='undefined'&&ACTIVE&&ACTIVE.dir)return ACTIVE.dir;
+  return (typeof A!=='undefined'&&A&&A.flow==='down')?'short':'long';
+}
+function chartOptSync(){
+  const btn=$('#chartOptBtn'), box=$('#chartOptCard'); if(!btn||!box)return;
+  const o=(typeof scanOptFor==='function')?scanOptFor(S.ticker):null;
+  if(!o||!o.has_options){ btn.style.display='none'; box.style.display='none'; box.innerHTML=''; box.removeAttribute('data-sym'); btn.classList.remove('on','ready'); return; }
+  btn.style.display='inline-block';
+  const dir=chartOptDir(), sps=o.spreads||{};
+  const pair=(dir==='long')?['bps','bull_call']:['bcs','bear_put'];
+  const ready=pair.filter(k=>optSpreadAllMet(k,sps[k],o));
+  btn.classList.toggle('ready',ready.length>0);
+  btn.title=ready.length?(ready.map(k=>OPT_NAME[k]).join(' & ')+' meets all criteria — tap to view'):'Show vertical-spread candidates for '+S.ticker;
+  const openForOther=(box.style.display!=='none' && box.getAttribute('data-sym')!==S.ticker);
+  if(openForOther||(box.style.display!=='none')){ box.innerHTML=''; box.appendChild(optDetailCard(S.ticker,dir)); box.setAttribute('data-sym',S.ticker); }
+  btn.textContent='options '+((box.style.display!=='none')?'\u25b4':'\u25be');
+  btn.classList.toggle('on',box.style.display!=='none');
+}
+(function(){
+  const btn=$('#chartOptBtn'), box=$('#chartOptCard');
+  if(!btn||!box)return;
+  btn.onclick=()=>{
+    const open=(box.style.display==='none');
+    if(open){ box.innerHTML=''; box.appendChild(optDetailCard(S.ticker,chartOptDir())); box.setAttribute('data-sym',S.ticker); }
+    box.style.display=open?'block':'none';
+    btn.textContent='options '+(open?'\u25b4':'\u25be');
+    btn.classList.toggle('on',open);
+  };
+})();
+/* ===== quick add-to-watchlist star on the chart header ===== */
+function chartWlSync(){
+  const b=$('#chartWlBtn'); if(!b)return;
+  const on=(typeof WL!=='undefined')&&WL.includes(S.ticker);
+  b.textContent=on?'\u2605':'\u2606';
+  b.classList.toggle('on',on);
+  b.title=on?(S.ticker+' is in your watchlist \u2014 tap to remove'):('Add '+S.ticker+' to watchlist');
+}
+(function(){
+  const b=$('#chartWlBtn'); if(!b)return;
+  b.onclick=()=>{ if(WL.includes(S.ticker)){ WL=WL.filter(s=>s!==S.ticker); renderWL(); saveLocal(); } else { addWL(S.ticker); } chartWlSync(); };
 })();
 /* ===== mobile: collapsible chart ===== */
 (function(){
