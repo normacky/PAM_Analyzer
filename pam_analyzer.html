@@ -681,7 +681,7 @@
           <div><b>DC1 / DC2</b> — Down Continuation (short). Down flow, a force-top bull-trap, bearish EXE. "2" = deeper bounce.</div>
           <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, a majority <i>flush-up</i> into a force-top at an LP, bearish EXE. The scan labels the family UR1; the stricter "2" (50%-line geometry) is yours to confirm by eye.</div>
           <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, a majority <i>flush-down</i> into a force-bottom, bullish EXE recovering it. No flush ⇒ not DR — that's Force-Strike territory. The scan labels the family DR1; confirm "2" by eye.</div>
-          <div><b>Bull-FS / Bear-FS</b> — Force Strike. A mother/baby inside-bar trap: price false-breaks the mother bar's extreme (the pierce may be an earlier bar in the cluster) then an EXE closes back inside. Standalone, any flow.</div>
+          <div><b>Bull-FS / Bear-FS</b> — Force Strike, two routes. (1) Mother/baby inside-bar trap: price false-breaks the mother bar's extreme (the pierce may be an earlier bar in the cluster) then an EXE closes back inside — any flow. (2) LP route: a false-break of an un-breached Left Precedence level reclaimed by a matching EXE, with <i>no</i> majority flush in the approach (a flush would make it DR1/UR1 instead).</div>
           <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
           <div><b>1 vs 2</b> — a depth/flush heuristic here, not exact slide geometry; eyeball the structure to confirm.</div>
@@ -797,8 +797,11 @@ function classifyBar(b,avg){
   if(o<=bot3&&c<=bot3)return{type:'PIN',dir:'bear',flush,bf};
   if(bf>=2/3){if(c>o)return{type:flush?'FLUSH-UP':'MARK-UP',dir:'bull',flush,bf};
               return{type:flush?'FLUSH-DOWN':'MARK-DOWN',dir:'bear',flush,bf};}
-  if(bf>=0.4&&bf<=0.6){if(c>=top3)return{type:'ICE-CREAM',dir:'bull',flush:false,bf};
-                       if(c<=bot3)return{type:'ICE-CREAM',dir:'bear',flush:false,bf};}
+  // Ice Cream: body ≈ 1/2 of range, close in the correct third. The window runs up to the
+  // Mark boundary (2/3) — the old 0.4–0.6 cap left a dead zone (body 60–66.7% of range
+  // classified as "neutral"), which silently disqualified real reclaim bars as EXEs.
+  if(bf>=0.4&&bf<2/3){if(c>=top3)return{type:'ICE-CREAM',dir:'bull',flush:false,bf};
+                      if(c<=bot3)return{type:'ICE-CREAM',dir:'bear',flush:false,bf};}
   return{type:'neutral',dir:null,flush:false,bf};
 }
 function pivots(b,k){const hi=b.map(_=>false),lo=b.map(_=>false);
@@ -929,20 +932,27 @@ function scan(bars){
     else if(force==='bottom'&&eB){
       if(flow==='up'){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
         why=`up flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE reclaimed it`;}
-      // DR family REQUIRES a majority flush-down before the recovery (owner's rule, Jul 2026).
-      // A force-bottom reclaim with no flush is Force-Strike territory (handled above, takes
-      // precedence) — without either it is no trigger. Flush proxy: a FLUSH-DOWN bar within the
-      // 5-bar force window; the true "majority" 50%-line geometry is left to the human eyeball,
-      // so the scan labels the family DR1 and never auto-claims the stricter DR2.
+      // Down-flow force-bottom splits on the majority flush (owner's taxonomy, Jul 2026):
+      //  - WITH a majority flush-down before the recovery -> DR1 (flush proxy: a FLUSH-DOWN
+      //    bar in the 5-bar force window; the "majority" 50%-line geometry is the human's call,
+      //    so the scan never auto-claims the stricter DR2).
+      //  - WITHOUT a flush -> Bull-FS via the LP route: the false-break IS the strike at the
+      //    Left Precedence. Verified need on real charts (NFLX & ICE weekly, Jul 2026): a steady
+      //    lower-low decline into an old LP contains NO mother/baby inside pair at all, so the
+      //    inside-bar route (above, which keeps precedence) can never represent this pattern.
       else if(recentFlush(bars,i,'FLUSH-DOWN',5)){label='DR1';dir='long';
         why=`down flow · majority flush-down into ${fmt(lv)} · force-bottom · bullish EXE recovered it`;}
+      else{label='Bull-FS';dir='long';
+        why=`force strike at the LP — false-break below ${fmt(lv)}, bullish EXE closed back above it (no flush ⇒ not DR1)`;}
     }
     else if(force==='top'&&eS){
       if(flow==='down'){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
         why=`down flow · force-top (bull trap) at ${fmt(lv)} · bearish EXE rejected it`;}
-      // UR mirrored: requires a majority flush-up before the roll-over (mirror of the DR rule).
+      // Mirror: majority flush-up -> UR1; no flush -> Bear-FS via the LP route.
       else if(recentFlush(bars,i,'FLUSH-UP',5)){label='UR1';dir='short';
         why=`up flow · majority flush-up into ${fmt(lv)} · force-top · bearish EXE rejected it`;}
+      else{label='Bear-FS';dir='short';
+        why=`force strike at the LP — false-break above ${fmt(lv)}, bearish EXE closed back below it (no flush ⇒ not UR1)`;}
     }
     if(label){
       const last=out[out.length-1];
