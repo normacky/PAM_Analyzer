@@ -679,10 +679,10 @@
         <div class="glo">
           <div><b>UC1 / UC2</b> — Up Continuation (long). Up flow, a force-bottom bear-trap at an LP, bullish EXE. "2" = a deeper two-leg pullback.</div>
           <div><b>DC1 / DC2</b> — Down Continuation (short). Down flow, a force-top bull-trap, bearish EXE. "2" = deeper bounce.</div>
-          <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, force-top at an LP, bearish EXE. "2" = confirmed by a majority flush-up.</div>
-          <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, force-bottom, bullish EXE. "2" = after a majority flush-down.</div>
-          <div><b>Bull-FS / Bear-FS</b> — Force Strike. A mother/baby inside-bar trap: price false-breaks the inside-bar then reverses with an EXE. Standalone, any flow.</div>
-          <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back inside it: a failed break = a trap.</div>
+          <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, a majority <i>flush-up</i> into a force-top at an LP, bearish EXE. The scan labels the family UR1; the stricter "2" (50%-line geometry) is yours to confirm by eye.</div>
+          <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, a majority <i>flush-down</i> into a force-bottom, bullish EXE recovering it. No flush ⇒ not DR — that's Force-Strike territory. The scan labels the family DR1; confirm "2" by eye.</div>
+          <div><b>Bull-FS / Bear-FS</b> — Force Strike. A mother/baby inside-bar trap: price false-breaks the mother bar's extreme (the pierce may be an earlier bar in the cluster) then an EXE closes back inside. Standalone, any flow.</div>
+          <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
           <div><b>1 vs 2</b> — a depth/flush heuristic here, not exact slide geometry; eyeball the structure to confirm.</div>
         </div>
@@ -811,6 +811,17 @@ function enrich(bars){
   const rg=bars.map(b=>b.high-b.low);
   bars.forEach((b,i)=>{const w=rg.slice(Math.max(0,i-10),i),avg=w.length?w.reduce((x,y)=>x+y,0)/w.length:0;
     b.cls=classifyBar(b,avg);b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;});
+  // LP (Left Precedence) level lists over the FULL loaded history — a swing level is only an LP
+  // while it stays un-breached, so record the FIRST bar whose CLOSE crossed it ("breach").
+  // findForce() then treats a level as alive at bar i unless it was close-breached before the
+  // current force window (a panic close through the level DURING the force itself is allowed).
+  bars.lpLows=[];bars.lpHighs=[];
+  bars.forEach((b,j)=>{
+    if(b.swingL){let br=null;for(let t=j+1;t<bars.length;t++)if(bars[t].close<b.low){br=t;break;}
+      bars.lpLows.push({j,lv:b.low,breach:br});}
+    if(b.swingH){let br=null;for(let t=j+1;t<bars.length;t++)if(bars[t].close>b.high){br=t;break;}
+      bars.lpHighs.push({j,lv:b.high,breach:br});}
+  });
   // sub-panel indicators (Stoch Slow 10·SMA10, RSI 14 Wilder, MACD 12·26·9 EMA, ATR 14 Wilder)
   const _st=stochSlow(bars,10,10), _rsi=rsiWilder(c,14), _mac=macdCalc(c,12,26,9), _atrw=atrWilder(bars,14);
   bars.forEach((b,i)=>{b.stochK=_st.k[i];b.stochD=_st.d[i];b.rsi=_rsi[i];
@@ -857,12 +868,20 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-function findForce(bars,i,win=15){
-  const b=bars[i],sh=[],sl=[];
-  for(let j=Math.max(0,i-win);j<i-2;j++){if(bars[j].swingH)sh.push(bars[j].high);if(bars[j].swingL)sl.push(bars[j].low);}
-  const top=sh.filter(lv=>lv<b.high&&lv>=b.close);
+function findForce(bars,i,FW=5){
+  // Force detection, v0.15 rules:
+  //  - LP levels come from the FULL loaded history (weekly 3Y window scans 3Y back, 2-Day 1Y
+  //    window scans 1Y back), not a 15-bar peephole — but only levels still un-breached count:
+  //    a level is dead once any bar CLOSED through it BEFORE the current force window.
+  //  - MULTI-BAR force: the pierce may happen on any of the last FW(=5) bars (the panic bar is
+  //    often a long-tailed neutral candle); bar i just has to be the one closing back on the
+  //    correct side of the LP. Matches the course's "EXE closes at/above the LP within ~5 bars".
+  const b=bars[i],w0=Math.max(0,i-FW+1);
+  let pHi=-1e9,pLo=1e9;for(let t=w0;t<=i;t++){pHi=Math.max(pHi,bars[t].high);pLo=Math.min(pLo,bars[t].low);}
+  const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=w0);   // formed ≥3 bars back, not close-breached earlier
+  const top=(bars.lpHighs||[]).filter(e=>alive(e)&&e.lv<pHi&&e.lv>=b.close).map(e=>e.lv);
   if(top.length)return{f:'top',lv:Math.max(...top)};
-  const bot=sl.filter(lv=>lv>b.low&&lv<=b.close);
+  const bot=(bars.lpLows||[]).filter(e=>alive(e)&&e.lv>pLo&&e.lv<=b.close).map(e=>e.lv);
   if(bot.length)return{f:'bottom',lv:Math.min(...bot)};
   return{f:null,lv:null};
 }
@@ -875,11 +894,23 @@ function legsInPullback(bars,i,dir,win=14){
 function recentFlush(bars,i,kind,look=4){for(let j=Math.max(0,i-look);j<=i;j++)if(bars[j].cls.type===kind)return true;return false;}
 function isInside(m,b){return b.high<=m.high&&b.low>=m.low;}
 function forceStrike(bars,i){
+  // Force Strike, v0.15 rules — the mother/baby inside-bar pair stays MANDATORY, but the
+  // strike is now MULTI-BAR: the false-break of the mother's extreme may happen on any bar
+  // AFTER the baby (bars m+2..i, incl. bar i itself), and bar i just has to be the
+  // same-direction EXE closing back inside — the panic pierce bar is often a neutral candle,
+  // and per the course the EXE forms within a ~3-bar cluster after the strike.
+  const b=bars[i],cls=b.cls;
+  if(cls.flush||cls.type==='neutral'||!cls.dir)return{d:null,lv:null};
   for(let m=Math.max(0,i-6);m<i-1;m++){
     if(!isInside(bars[m],bars[m+1]))continue;
-    const mom=bars[m],b=bars[i],cls=b.cls;
-    if(b.low<mom.low&&b.close>=mom.low&&cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral')return{d:'bull',lv:mom.low};
-    if(b.high>mom.high&&b.close<=mom.high&&cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral')return{d:'bear',lv:mom.high};
+    const mom=bars[m];
+    if(cls.dir==='bull'){
+      let pLo=1e9;for(let t=m+2;t<=i;t++)pLo=Math.min(pLo,bars[t].low);
+      if(pLo<mom.low&&b.close>=mom.low)return{d:'bull',lv:mom.low};
+    }else{
+      let pHi=-1e9;for(let t=m+2;t<=i;t++)pHi=Math.max(pHi,bars[t].high);
+      if(pHi>mom.high&&b.close<=mom.high)return{d:'bear',lv:mom.high};
+    }
   }
   return{d:null,lv:null};
 }
@@ -898,14 +929,20 @@ function scan(bars){
     else if(force==='bottom'&&eB){
       if(flow==='up'){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
         why=`up flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE reclaimed it`;}
-      else{const mf=recentFlush(bars,i,'FLUSH-DOWN');label=mf?'DR2':'DR1';dir='long';
-        why=`down flow · force-bottom at ${fmt(lv)}${mf?' after a majority flush-down':''} · bullish EXE`;}
+      // DR family REQUIRES a majority flush-down before the recovery (owner's rule, Jul 2026).
+      // A force-bottom reclaim with no flush is Force-Strike territory (handled above, takes
+      // precedence) — without either it is no trigger. Flush proxy: a FLUSH-DOWN bar within the
+      // 5-bar force window; the true "majority" 50%-line geometry is left to the human eyeball,
+      // so the scan labels the family DR1 and never auto-claims the stricter DR2.
+      else if(recentFlush(bars,i,'FLUSH-DOWN',5)){label='DR1';dir='long';
+        why=`down flow · majority flush-down into ${fmt(lv)} · force-bottom · bullish EXE recovered it`;}
     }
     else if(force==='top'&&eS){
       if(flow==='down'){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
         why=`down flow · force-top (bull trap) at ${fmt(lv)} · bearish EXE rejected it`;}
-      else{const mf=recentFlush(bars,i,'FLUSH-UP');label=mf?'UR2':'UR1';dir='short';
-        why=`up flow · force-top at ${fmt(lv)}${mf?' after a majority flush-up':''} · bearish EXE`;}
+      // UR mirrored: requires a majority flush-up before the roll-over (mirror of the DR rule).
+      else if(recentFlush(bars,i,'FLUSH-UP',5)){label='UR1';dir='short';
+        why=`up flow · majority flush-up into ${fmt(lv)} · force-top · bearish EXE rejected it`;}
     }
     if(label){
       const last=out[out.length-1];
@@ -934,7 +971,9 @@ function analyse(bars){
   const flow=last.sma50==null?'unknown':(px>last.sma50?'up':'down');
   const r=bars.slice(-6);
   const flushUp=r.filter(b=>b.cls.type==='FLUSH-UP').length, flushDn=r.filter(b=>b.cls.type==='FLUSH-DOWN').length;
-  const look=bars.slice(-40),sh=look.filter(b=>b.swingH).map(b=>b.high),sl=look.filter(b=>b.swingL).map(b=>b.low);
+  // nearest LP above/below — same full-history, un-breached level lists the scan uses
+  const li=bars.length-1, aliveLP=e=>e.j<li-2&&e.breach===null;
+  const sh=(bars.lpHighs||[]).filter(aliveLP).map(e=>e.lv), sl=(bars.lpLows||[]).filter(aliveLP).map(e=>e.lv);
   const lpAbove=sh.filter(v=>v>px).sort((a,b)=>a-b)[0]||null, lpBelow=sl.filter(v=>v<px).sort((a,b)=>b-a)[0]||null;
   const {f:force,lv:forceLevel}=findForce(bars,bars.length-1);
   return{last,px,flow,flushUp,flushDn,lpAbove,lpBelow,force,forceLevel,near20:last.sma20,near50:last.sma50,atr:last.atr};
