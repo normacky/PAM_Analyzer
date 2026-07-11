@@ -376,15 +376,37 @@
     .optdw-panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:84vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -18px 44px rgba(0,0,0,.5);transform:translateY(102%)}
     .optdw-grip{display:block;width:38px;height:4px;border-radius:99px;background:var(--line);margin:8px auto 2px}
   }
-  /* ===== chat tab (Supabase) ===== */
+  /* ===== chat tab (Supabase) — WhatsApp-style ===== */
   .chatBadge{display:none;margin-left:6px;background:var(--long);color:#0b0f1a;border-radius:9px;font-size:10px;font-weight:700;padding:1px 6px;font-family:var(--mono);vertical-align:1px}
   .tabpanel[data-tab="chat"].on > .card{display:flex;flex-direction:column;overflow:hidden}
-  #chatFeed{flex:1 1 auto;min-height:180px;max-height:58vh;overflow-y:auto;margin-top:10px;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-  .chatMsg{padding:7px 0;border-bottom:1px solid var(--hair)}
-  .chatMsg .who{font-family:var(--mono);font-size:11.5px;font-weight:600}
-  .chatMsg .when{font-family:var(--mono);font-size:10px;color:var(--faint);margin-left:8px}
-  .chatMsg .body{font-family:var(--body);font-size:13px;color:var(--txt);white-space:pre-wrap;word-break:break-word;margin-top:2px;line-height:1.45}
-  .chatMsg img{max-width:min(360px,92%);max-height:280px;border:1px solid var(--line);border-radius:8px;margin-top:6px;cursor:zoom-in;display:block}
+  #chatFeed{flex:1 1 auto;min-height:180px;max-height:58vh;overflow-y:auto;margin-top:10px;padding:0 2px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .dayChip{text-align:center;margin:12px 0 6px}
+  .dayChip span{background:var(--panel-in);border:1px solid var(--hair);border-radius:12px;padding:3px 11px;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+  .msgRow{display:flex;margin:2px 0;padding:1px 0}
+  .msgRow.me{justify-content:flex-end}
+  .bub{max-width:min(78%,520px);background:var(--panel-in);border:1px solid var(--hair);border-radius:12px;padding:6px 9px 5px;cursor:pointer}
+  .msgRow.me .bub{background:rgba(95,184,158,.13);border-color:rgba(95,184,158,.32);border-top-right-radius:4px}
+  .msgRow:not(.me) .bub{border-top-left-radius:4px}
+  .bub .who{display:block;font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:1px}
+  .bub .body{font-family:var(--body);font-size:13px;color:var(--txt);white-space:pre-wrap;word-break:break-word;line-height:1.42}
+  .bub .when{float:right;font-family:var(--mono);font-size:9.5px;color:var(--faint);margin:8px 0 0 10px}
+  .bub img{max-width:min(320px,100%);max-height:260px;border:1px solid var(--line);border-radius:8px;margin-top:4px;cursor:zoom-in;display:block}
+  .quote{border-left:3px solid var(--long);background:rgba(127,127,127,.09);border-radius:6px;padding:4px 8px;margin:0 0 5px;font-size:11.5px;color:var(--mut);cursor:pointer;overflow:hidden}
+  .quote .qwho{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--long)}
+  .quote .qtxt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+  .reacts{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+  .reactPill{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:0 7px;font-size:11.5px;line-height:19px;cursor:pointer;font-family:var(--mono);color:var(--txt)}
+  .reactPill.mine{border-color:var(--long)}
+  .actrow{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed var(--hair)}
+  .actrow button{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:2px 7px;font-size:14px;cursor:pointer;color:var(--txt)}
+  .actrow .rep{font-family:var(--mono);font-size:11px}
+  .flashMsg .bub{outline:2px solid var(--long)}
+  #chatReplyBox{display:none;align-items:center;gap:8px;margin-top:8px;border-left:3px solid var(--long);background:var(--panel-in);border-radius:8px;padding:6px 9px}
+  #chatReplyTxt{font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #chatReplyWho{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--long)}
+  #emoPal{display:none;flex-wrap:wrap;gap:2px;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:7px;background:var(--panel-in);max-height:120px;overflow-y:auto}
+  #emoPal button{background:none;border:none;font-size:19px;cursor:pointer;padding:2px 4px;border-radius:6px}
+  #emoPal button:hover{background:var(--panel)}
   #chatBar{flex:none;display:flex;gap:8px;align-items:flex-end;margin-top:10px}
   #chatText{flex:1;min-height:38px;max-height:120px;resize:vertical;font-family:var(--body);font-size:13px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 10px;outline:none}
   #chatPreview{flex:none;display:none;align-items:center;gap:6px;margin-top:8px}
@@ -743,10 +765,16 @@
     </div>
     <div id="chatMain" style="display:none;flex:1 1 auto;min-height:0;flex-direction:column">
       <div id="chatFeed"></div>
+      <div id="chatReplyBox">
+        <div style="flex:1;min-width:0"><div id="chatReplyWho"></div><div id="chatReplyTxt"></div></div>
+        <button class="btn" id="chatReplyX" style="padding:3px 8px;font-size:11px">✕</button>
+      </div>
       <div id="chatPreview"><img id="chatPreviewImg" alt=""><button class="btn" id="chatPreviewX" style="padding:3px 8px;font-size:11px">✕</button></div>
+      <div id="emoPal"></div>
       <div id="chatBar">
         <textarea id="chatText" placeholder="Type a message — paste a screenshot straight in (Ctrl+V)"></textarea>
         <input id="chatFile" type="file" accept="image/*" style="display:none">
+        <button class="btn" id="chatEmoji" title="Emoji" style="padding:8px 11px">😊</button>
         <button class="btn" id="chatAttach" title="Attach an image" style="padding:8px 11px">📷</button>
         <button class="btn" id="chatSend" style="padding:8px 14px">Send</button>
       </div>
@@ -2354,8 +2382,9 @@ function chartWlSync(){
    Self-contained section: nothing in the ENGINE block above depends on it.
    - Auth: email magic link (session persists in this browser)
    - Sync: replaces the retired Google Drive sync; same merge rules
-   - Chat: members-only (allowed_users table), full history kept,
-           live updates + 25s polling fallback, image paste/attach
+   - Chat: members-only, WhatsApp-style — bubbles, day chips, time
+           in-bubble, tap a message for emoji reactions + reply,
+           image paste/attach, live updates + 25s polling fallback
    ============================================================ */
 (function(){
 if(typeof supabase==='undefined'){ console.warn('supabase-js not loaded — account features off'); return; }
@@ -2366,7 +2395,9 @@ const q=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 let ME=null, MYNAME='', ALLOWED=false;
-let lastId=0, oldestId=null, unread=0, chan=null, pollT=null, sbT=null, pending=null, loadingOlder=false;
+let MSGS=[], BYID={}, QREF={}, REACTS={};
+let lastId=0, oldestId=null, reachedTop=false;
+let unread=0, chan=null, pollT=null, sbT=null, pending=null, loadingOlder=false, replyTo=null, selId=null;
 
 function acct(m,k){const e=q('syncStatus');if(e){e.textContent=m;e.style.color=k==='err'?'var(--short)':k==='ok'?'var(--long)':'var(--mut)';}}
 function cStatus(m,k){const e=q('chatStatus');if(e){e.textContent=m||'';e.style.color=k==='err'?'var(--short)':k==='ok'?'var(--long)':'var(--mut)';}}
@@ -2398,7 +2429,6 @@ async function handleSession(session){
   try{sb.realtime.setAuth(session.access_token);}catch(e){}
   q('sbSignOut').style.display='inline-block';
   acct('Signed in \u00b7 '+ME.email,'ok');
-  /* membership check (chat is gated; personal sync works either way) */
   try{const {data}=await sb.rpc('is_allowed');ALLOWED=!!data;}catch(e){ALLOWED=false;}
   await sbMerge();
   if(!ALLOWED){
@@ -2464,74 +2494,212 @@ async function sbMerge(){
   }catch(e){acct('Sync error: '+e.message,'err');}
 }
 
-/* ---------------- chat: render ---------------- */
+/* ---------------- chat: helpers ---------------- */
 function nameColor(u){let h=0;for(let i=0;i<u.length;i++)h=(h*31+u.charCodeAt(i))>>>0;return 'hsl('+(h%360)+',48%,62%)';}
 function imgUrl(p){return SB_URL+'/storage/v1/object/public/chat-images/'+p;}
-function nearBottom(){const f=q('chatFeed');return f.scrollHeight-f.scrollTop-f.clientHeight<80;}
-function scrollBottom(){const f=q('chatFeed');f.scrollTop=f.scrollHeight;}
-function msgNode(m){
-  const d=document.createElement('div');d.className='chatMsg';d.dataset.id=m.id;
-  let html='<span class="who" style="color:'+nameColor(m.user_id||'')+'">'+esc(m.display_name||'?')+'</span>'+
-           '<span class="when">'+esc(fmtTs(m.created_at))+'</span>';
-  if(m.content)html+='<div class="body">'+esc(m.content)+'</div>';
-  d.innerHTML=html;
-  if(m.image_path){
-    const im=document.createElement('img');im.loading='lazy';im.src=imgUrl(m.image_path);im.alt='shared image';
-    im.onclick=()=>window.open(im.src,'_blank');
-    im.onload=()=>{if(nearBottom())scrollBottom();};
-    d.appendChild(im);
-  }
-  return d;
+function nearBottom(){const f=q('chatFeed');return f.scrollHeight-f.scrollTop-f.clientHeight<90;}
+function hm(ts){return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function dayKey(ts){const d=new Date(ts);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function dayLabel(ts){
+  const now=new Date();
+  if(dayKey(ts)===dayKey(now))return 'Today';
+  if(dayKey(ts)===dayKey(new Date(now.getTime()-86400000)))return 'Yesterday';
+  return new Date(ts).toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 }
 function updateBadge(){document.querySelectorAll('.chatBadge').forEach(b=>{b.style.display=unread?'inline-block':'none';b.textContent=unread>99?'99+':String(unread);});}
-function addIncoming(m){
-  if(!m||m.id<=lastId)return;
-  lastId=m.id; if(oldestId===null)oldestId=m.id;
-  const pin=nearBottom();
-  q('chatFeed').appendChild(msgNode(m));
-  if((window.__pamTab==='chat')&&!document.hidden){if(pin)scrollBottom();}
-  else{unread++;updateBadge();}
+function ingest(m){
+  if(BYID[m.id])return false;
+  BYID[m.id]=m; MSGS.push(m); MSGS.sort((a,b)=>a.id-b.id);
+  lastId=Math.max(lastId,m.id);
+  oldestId=(oldestId===null)?m.id:Math.min(oldestId,m.id);
+  return true;
+}
+async function fetchReactions(ids){
+  if(!ids.length)return;
+  try{
+    const {data}=await sb.from('message_reactions').select('*').in('message_id',ids);
+    ids.forEach(i=>{REACTS[i]={};});
+    (data||[]).forEach(r=>{const m=REACTS[r.message_id]=REACTS[r.message_id]||{};(m[r.emoji]=m[r.emoji]||new Set()).add(r.user_id);});
+  }catch(e){}
+}
+async function fetchQuoted(id){
+  if(BYID[id]||QREF[id])return;
+  QREF[id]={display_name:'\u2026',content:''};
+  try{
+    const {data}=await sb.from('messages').select('*').eq('id',id).maybeSingle();
+    if(data){QREF[id]=data;render(false);}
+  }catch(e){}
+}
+
+/* ---------------- chat: render ---------------- */
+const QUICK=['\ud83d\udc4d','\u2764\ufe0f','\ud83d\ude02','\ud83d\ude2e','\ud83d\ude22','\ud83d\ude4f'];
+function quoteBlock(m){
+  const t=BYID[m.reply_to]||QREF[m.reply_to];
+  const dv=document.createElement('div');dv.className='quote';
+  const who=t?t.display_name:'', txt=t?(t.content?t.content.slice(0,90):(t.image_path?'\ud83d\udcf7 photo':'')): 'earlier message';
+  dv.innerHTML='<div class="qwho">'+esc(who)+'</div><div class="qtxt">'+esc(txt)+'</div>';
+  dv.onclick=e=>{e.stopPropagation();jumpTo(m.reply_to);};
+  if(!t)fetchQuoted(m.reply_to);
+  return dv;
+}
+function reactPillsFor(m){
+  const rx=REACTS[m.id]; if(!rx)return null;
+  const wrap=document.createElement('div');wrap.className='reacts';
+  Object.keys(rx).forEach(emo=>{
+    const set=rx[emo]; if(!set||!set.size)return;
+    const p=document.createElement('button');p.className='reactPill'+(ME&&set.has(ME.id)?' mine':'');
+    p.textContent=emo+(set.size>1?' '+set.size:'');
+    p.onclick=e=>{e.stopPropagation();toggleReact(m.id,emo);};
+    wrap.appendChild(p);
+  });
+  return wrap.children.length?wrap:null;
+}
+function actRow(m){
+  const r=document.createElement('div');r.className='actrow';
+  QUICK.forEach(emo=>{
+    const b=document.createElement('button');b.textContent=emo;
+    b.onclick=e=>{e.stopPropagation();selId=null;toggleReact(m.id,emo);};
+    r.appendChild(b);
+  });
+  const rep=document.createElement('button');rep.className='rep';rep.textContent='\u21a9 Reply';
+  rep.onclick=e=>{e.stopPropagation();selId=null;setReply(m);render(false);};
+  r.appendChild(rep);
+  return r;
+}
+function bubble(m,prev){
+  const row=document.createElement('div');
+  const mine=ME&&m.user_id===ME.id;
+  row.className='msgRow'+(mine?' me':'');row.dataset.id=m.id;
+  const b=document.createElement('div');b.className='bub';row.appendChild(b);
+  const samePrev=prev&&prev.user_id===m.user_id;
+  if(!mine&&!samePrev){
+    const w=document.createElement('span');w.className='who';w.style.color=nameColor(m.user_id||'');
+    w.textContent=m.display_name||'?';b.appendChild(w);
+  }
+  if(m.reply_to)b.appendChild(quoteBlock(m));
+  if(m.image_path){
+    const im=document.createElement('img');im.loading='lazy';im.src=imgUrl(m.image_path);im.alt='shared image';
+    im.onclick=e=>{e.stopPropagation();window.open(im.src,'_blank');};
+    im.onload=()=>{if(nearBottom()){const f=q('chatFeed');f.scrollTop=f.scrollHeight;}};
+    b.appendChild(im);
+  }
+  const body=document.createElement('div');body.className='body';
+  body.textContent=m.content||'';
+  const wh=document.createElement('span');wh.className='when';wh.textContent=hm(m.created_at);
+  body.appendChild(wh);
+  b.appendChild(body);
+  const rp=reactPillsFor(m); if(rp)b.appendChild(rp);
+  if(selId===m.id)b.appendChild(actRow(m));
+  b.onclick=e=>{
+    if(!ALLOWED)return;
+    selId=(selId===m.id)?null:m.id;
+    render(false);
+  };
+  return row;
+}
+function render(pinBottom){
+  const f=q('chatFeed'); if(!f)return;
+  const pin=pinBottom||nearBottom();
+  const fromBottom=f.scrollHeight-f.scrollTop;
+  f.innerHTML='';
+  if(!MSGS.length){
+    f.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint);text-align:center;padding:14px 0">no messages yet \u2014 say hello</div>';
+    return;
+  }
+  let prev=null,prevDay='';
+  MSGS.forEach(m=>{
+    const dk=dayKey(m.created_at);
+    if(dk!==prevDay){
+      const c=document.createElement('div');c.className='dayChip';
+      c.innerHTML='<span>'+esc(dayLabel(m.created_at))+'</span>';
+      f.appendChild(c);prevDay=dk;prev=null;
+    }
+    f.appendChild(bubble(m,prev));prev=m;
+  });
+  if(pin)f.scrollTop=f.scrollHeight; else f.scrollTop=Math.max(0,f.scrollHeight-fromBottom);
+}
+function jumpTo(id){
+  const f=q('chatFeed');const el=f.querySelector('.msgRow[data-id="'+id+'"]');
+  if(el){
+    el.scrollIntoView({block:'center'});
+    el.classList.add('flashMsg');setTimeout(()=>el.classList.remove('flashMsg'),1200);
+  }else if(!reachedTop){
+    loadOlder().then(()=>{const e2=f.querySelector('.msgRow[data-id="'+id+'"]');if(e2){e2.scrollIntoView({block:'center'});e2.classList.add('flashMsg');setTimeout(()=>e2.classList.remove('flashMsg'),1200);}});
+  }
 }
 
 /* ---------------- chat: load + live ---------------- */
 async function loadRecent(){
   const f=q('chatFeed');f.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">loading history\u2026</div>';
-  const {data,error}=await sb.from('messages').select('*').order('id',{ascending:false}).limit(50);
+  const {data,error}=await sb.from('messages').select('*').order('id',{ascending:false}).limit(60);
   if(error){f.innerHTML='';cStatus('Could not load chat: '+error.message,'err');return;}
-  f.innerHTML='';
-  const msgs=(data||[]).reverse();
-  if(!msgs.length){f.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">no messages yet \u2014 say hello</div>';return;}
-  msgs.forEach(m=>f.appendChild(msgNode(m)));
-  lastId=msgs[msgs.length-1].id; oldestId=msgs[0].id;
-  scrollBottom();
+  (data||[]).forEach(ingest);
+  if((data||[]).length<60)reachedTop=true;
+  await fetchReactions(MSGS.map(m=>m.id));
+  render(true);
 }
 async function loadOlder(){
-  if(loadingOlder||oldestId===null)return;
+  if(loadingOlder||reachedTop||oldestId===null)return;
   loadingOlder=true;
   try{
-    const f=q('chatFeed');
-    const {data,error}=await sb.from('messages').select('*').lt('id',oldestId).order('id',{ascending:false}).limit(50);
-    if(!error&&data&&data.length){
-      const keep=f.scrollHeight-f.scrollTop;
-      data.forEach(m=>f.insertBefore(msgNode(m),f.firstChild));
-      oldestId=data[data.length-1].id;
-      f.scrollTop=f.scrollHeight-keep;
-    } else if(!error){ oldestId=-1; }  /* reached the very beginning */
+    const {data,error}=await sb.from('messages').select('*').lt('id',oldestId).order('id',{ascending:false}).limit(60);
+    if(!error){
+      if(!data||data.length<60)reachedTop=true;
+      const fresh=(data||[]).filter(m=>ingest(m)).map(m=>m.id);
+      if(fresh.length){await fetchReactions(fresh);render(false);}
+    }
   }finally{loadingOlder=false;}
+}
+function onNewMsg(m){
+  if(!ingest(m))return;
+  if(m.reply_to&&!BYID[m.reply_to]&&!QREF[m.reply_to])fetchQuoted(m.reply_to);
+  if(window.__pamTab==='chat'&&!document.hidden){render(false);}
+  else{unread++;updateBadge();render(false);}
 }
 function subscribe(){
   if(chan){try{sb.removeChannel(chan);}catch(e){}}
   chan=sb.channel('pam-chat')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>addIncoming(p.new))
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>onNewMsg(p.new))
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'message_reactions'},p=>{
+      const r=p.new,m=REACTS[r.message_id]=REACTS[r.message_id]||{};
+      (m[r.emoji]=m[r.emoji]||new Set()).add(r.user_id);render(false);
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'message_reactions'},p=>{
+      const r=p.old||{};const m=REACTS[r.message_id];
+      if(m&&m[r.emoji]){m[r.emoji].delete(r.user_id);render(false);}
+    })
     .subscribe();
 }
-async function pollNew(){  /* safety net if the live socket hiccups */
+async function pollNew(){
   if(!ME||!ALLOWED)return;
   try{
     const {data}=await sb.from('messages').select('*').gt('id',lastId).order('id',{ascending:true}).limit(100);
-    (data||[]).forEach(addIncoming);
+    (data||[]).forEach(onNewMsg);
+    const vis=MSGS.slice(-60).map(m=>m.id);
+    await fetchReactions(vis);render(false);
   }catch(e){}
 }
+
+/* ---------------- chat: reactions + reply ---------------- */
+async function toggleReact(id,emo){
+  if(!ME||!ALLOWED)return;
+  const m=REACTS[id]=REACTS[id]||{};const set=m[emo]=m[emo]||new Set();
+  const mine=set.has(ME.id);
+  if(mine)set.delete(ME.id);else set.add(ME.id);   /* optimistic; realtime/poll reconciles */
+  render(false);
+  try{
+    if(mine)await sb.from('message_reactions').delete().match({message_id:id,user_id:ME.id,emoji:emo});
+    else await sb.from('message_reactions').insert({message_id:id,user_id:ME.id,emoji:emo});
+  }catch(e){}
+}
+function setReply(m){
+  replyTo=m;
+  q('chatReplyWho').textContent=m.display_name||'?';
+  q('chatReplyTxt').textContent=m.content?m.content.slice(0,90):(m.image_path?'\ud83d\udcf7 photo':'');
+  q('chatReplyBox').style.display='flex';
+  q('chatText').focus();
+}
+function clearReply(){replyTo=null;q('chatReplyBox').style.display='none';}
 
 /* ---------------- chat: send + images ---------------- */
 function setPending(blob){
@@ -2539,7 +2707,7 @@ function setPending(blob){
   const pv=q('chatPreview');q('chatPreviewImg').src=URL.createObjectURL(blob);pv.style.display='flex';
 }
 function clearPending(){pending=null;const pv=q('chatPreview');pv.style.display='none';q('chatPreviewImg').src='';q('chatFile').value='';}
-function shrink(file){  /* resize to max 1600px JPEG so the free storage tier lasts */
+function shrink(file){
   return new Promise((res,rej)=>{
     const img=new Image();
     img.onload=()=>{
@@ -2571,12 +2739,29 @@ async function sendMsg(){
       const {error:ue}=await sb.storage.from('chat-images').upload(image_path,pending,{contentType:'image/jpeg'});
       if(ue)throw new Error('image upload failed: '+ue.message);
     }
-    const {error}=await sb.from('messages').insert({user_id:ME.id,display_name:MYNAME||ME.email.split('@')[0],content:txt||null,image_path});
+    const {error}=await sb.from('messages').insert({user_id:ME.id,display_name:MYNAME||ME.email.split('@')[0],content:txt||null,image_path,reply_to:replyTo?replyTo.id:null});
     if(error)throw new Error(error.code==='42501'?'not authorized \u2014 ask the owner to add your email':error.message);
-    ta.value='';clearPending();cStatus('');
-    pollNew();  /* echo our own message immediately even if realtime lags */
+    ta.value='';clearPending();clearReply();cStatus('');
+    pollNew();
   }catch(e){cStatus('Send failed: '+e.message,'err');}
   btn.disabled=false;btn.textContent='Send';
+}
+
+/* ---------------- composer emoji palette ---------------- */
+const EMOJIS=['\ud83d\ude00','\ud83d\ude02','\ud83e\udd23','\ud83d\ude05','\ud83d\ude0a','\ud83d\ude09','\ud83d\ude0d','\ud83d\ude0e','\ud83e\udd14','\ud83d\ude34','\ud83d\ude2d','\ud83d\ude21','\ud83e\udd73','\ud83e\udd1d','\ud83d\udc4d','\ud83d\udc4e','\ud83d\udc4f','\ud83d\ude4f','\ud83d\udcaa','\ud83d\udd25','\ud83d\ude80','\ud83d\udcc8','\ud83d\udcc9','\ud83d\udcb0','\ud83d\udc8e','\ud83d\udc02','\ud83d\udc3b','\u26a0\ufe0f','\u2705','\u274c','\ud83c\udfaf','\u23f3','\u2764\ufe0f','\ud83d\udcaf','\ud83e\udd1e','\ud83d\ude4c','\ud83d\ude2c','\ud83e\udd2f','\ud83d\ude31','\ud83c\udf40'];
+function buildPal(){
+  const pal=q('emoPal'); if(pal.dataset.built)return; pal.dataset.built='1';
+  EMOJIS.forEach(e=>{
+    const b=document.createElement('button');b.type='button';b.textContent=e;
+    b.onclick=()=>{
+      const ta=q('chatText');
+      const s=ta.selectionStart!=null?ta.selectionStart:ta.value.length;
+      const en=ta.selectionEnd!=null?ta.selectionEnd:s;
+      ta.value=ta.value.slice(0,s)+e+ta.value.slice(en);
+      ta.focus();ta.selectionStart=ta.selectionEnd=s+e.length;
+    };
+    pal.appendChild(b);
+  });
 }
 
 /* ---------------- wiring ---------------- */
@@ -2587,6 +2772,8 @@ q('chatSend').onclick=sendMsg;
 q('chatAttach').onclick=()=>q('chatFile').click();
 q('chatFile').addEventListener('change',e=>takeImage(e.target.files&&e.target.files[0]));
 q('chatPreviewX').onclick=clearPending;
+q('chatReplyX').onclick=clearReply;
+q('chatEmoji').onclick=()=>{buildPal();const p=q('emoPal');p.style.display=p.style.display==='flex'?'none':'flex';};
 q('chatText').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey&&window.innerWidth>980){e.preventDefault();sendMsg();}
 });
@@ -2594,10 +2781,13 @@ q('chatText').addEventListener('paste',e=>{
   const items=(e.clipboardData||{}).items||[];
   for(const it of items){if(it.type&&it.type.indexOf('image')===0){e.preventDefault();takeImage(it.getAsFile());return;}}
 });
-q('chatFeed').addEventListener('scroll',()=>{if(q('chatFeed').scrollTop<40&&oldestId!==null&&oldestId>0)loadOlder();});
+q('chatFeed').addEventListener('scroll',()=>{if(q('chatFeed').scrollTop<40)loadOlder();});
 /* opening the Chat tab clears the unread badge and pins to the newest message */
 setInterval(()=>{
-  if(window.__pamTab==='chat'&&!document.hidden&&unread){unread=0;updateBadge();scrollBottom();}
+  if(window.__pamTab==='chat'&&!document.hidden&&unread){
+    unread=0;updateBadge();
+    const f=q('chatFeed');f.scrollTop=f.scrollHeight;
+  }
 },400);
 })();
 </script>
