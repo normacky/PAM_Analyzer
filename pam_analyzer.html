@@ -708,7 +708,7 @@
           <div><b>DC1 / DC2</b> — Down Continuation (short). Down flow, a force-top bull-trap, bearish EXE. "2" = deeper bounce.</div>
           <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, a majority <i>flush-up</i> into a force-top at an LP, bearish EXE. The scan labels the family UR1; the stricter "2" (50%-line geometry) is yours to confirm by eye.</div>
           <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, a majority <i>flush-down</i> into a force-bottom, bullish EXE recovering it. No flush ⇒ not DR — that's Force-Strike territory. The scan labels the family DR1; confirm "2" by eye.</div>
-          <div><b>Bull-FS / Bear-FS</b> — Force Strike, two routes. (1) Mother/baby inside-bar trap: price false-breaks the mother bar's extreme (the pierce may be an earlier bar in the cluster) then an EXE closes back inside — any flow. (2) LP route: a false-break of an un-breached Left Precedence level reclaimed by a matching EXE, with <i>no</i> majority flush in the approach (a flush would make it DR1/UR1 instead).</div>
+          <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Price then false-breaks the mother's extreme and a same-direction EXE (PIN / Ice Cream / Mark Up-Down) closes back inside — the EXE must arrive within 5 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
           <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
           <div><b>1 vs 2</b> — a depth/flush heuristic here, not exact slide geometry; eyeball the structure to confirm.</div>
@@ -960,26 +960,55 @@ function legsInPullback(bars,i,dir,win=14){
 }
 function recentFlush(bars,i,kind,look=4){for(let j=Math.max(0,i-look);j<=i;j++)if(bars[j].cls.type===kind)return true;return false;}
 function isInside(m,b){return b.high<=m.high&&b.low>=m.low;}
+function fsAtLP(bars,i,dir,pierceExtreme){
+  // v0.17 — deck's "force bottom/top SCENARIO" check for a confirmed inside-bar Force Strike:
+  // did the strike ALSO false-break a live Left Precedence level, with the EXE (bar i)
+  // closing back at/on the correct side of it? If yes, that LP is returned and the trigger
+  // is the standalone-tradeable case per the course; if not, the FS is formation-only.
+  // Breach tolerance mirrors findForce: a close-through during the strike cluster itself
+  // is part of the trap, but a close-breach BEFORE it kills the level.
+  const b=bars[i];
+  const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=Math.max(0,i-4));
+  if(dir==='bull'){
+    const c=(bars.lpLows||[]).filter(e=>alive(e)&&pierceExtreme<e.lv&&b.close>=e.lv).map(e=>e.lv);
+    return c.length?Math.min(...c):null;
+  }
+  const c=(bars.lpHighs||[]).filter(e=>alive(e)&&pierceExtreme>e.lv&&b.close<=e.lv).map(e=>e.lv);
+  return c.length?Math.max(...c):null;
+}
 function forceStrike(bars,i){
-  // Force Strike, v0.15 rules — the mother/baby inside-bar pair stays MANDATORY, but the
-  // strike is now MULTI-BAR: the false-break of the mother's extreme may happen on any bar
-  // AFTER the baby (bars m+2..i, incl. bar i itself), and bar i just has to be the
-  // same-direction EXE closing back inside — the panic pierce bar is often a neutral candle,
-  // and per the course the EXE forms within a ~3-bar cluster after the strike.
+  // Force Strike, v0.17 — realigned to the course deck (Lesson 8, Alson Chew), with the
+  // owner's clarification (11 Jul 2026) on how the deck's cluster limits attach:
+  //  - the mother/baby inside-bar pair is MANDATORY and CONSECUTIVE: the baby is the
+  //    single bar immediately after the mother, inside the mother's range. v0.16's
+  //    "LP route" (FS without an inside pair) is RETIRED: per the deck the LP is an
+  //    ADDITIONAL condition ("force bottom/top scenario"), never a substitute.
+  //  - the deck's "Max cluster of 5 Bars" bounds the strike-and-return sequence AFTER
+  //    the baby: the false-break of the mother's extreme may happen on any bar after
+  //    the baby, and bar i — the same-direction EXE closing back inside — must arrive
+  //    within 5 bars of the baby (i - (m+1) <= 5).
+  //  - judgment call retained from v0.15: "returns within Mother Bar range" is enforced
+  //    on the trapped side only (bull: close ≥ mother low). An EXE strong enough to
+  //    close ABOVE the mother high is more bullish, not disqualifying.
+  //  - lp field: non-null when the strike is a force-bottom/top scenario at a live LP
+  //    (pierce through it + EXE close back at/on the correct side) — the deck's
+  //    standalone-tradeable case. Null = valid formation, but no LP involved.
   const b=bars[i],cls=b.cls;
-  if(cls.flush||cls.type==='neutral'||!cls.dir)return{d:null,lv:null};
-  for(let m=Math.max(0,i-6);m<i-1;m++){
-    if(!isInside(bars[m],bars[m+1]))continue;
+  if(cls.flush||cls.type==='neutral'||!cls.dir)return{d:null,lv:null,lp:null};
+  for(let m=Math.max(0,i-6);m<i-1;m++){        // i-(m+1)<=5  ⇒  m>=i-6
+    if(!isInside(bars[m],bars[m+1]))continue;  // baby = the bar right after the mother
     const mom=bars[m];
     if(cls.dir==='bull'){
       let pLo=1e9;for(let t=m+2;t<=i;t++)pLo=Math.min(pLo,bars[t].low);
-      if(pLo<mom.low&&b.close>=mom.low)return{d:'bull',lv:mom.low};
+      if(pLo<mom.low&&b.close>=mom.low)
+        return{d:'bull',lv:mom.low,lp:fsAtLP(bars,i,'bull',pLo)};
     }else{
       let pHi=-1e9;for(let t=m+2;t<=i;t++)pHi=Math.max(pHi,bars[t].high);
-      if(pHi>mom.high&&b.close<=mom.high)return{d:'bear',lv:mom.high};
+      if(pHi>mom.high&&b.close<=mom.high)
+        return{d:'bear',lv:mom.high,lp:fsAtLP(bars,i,'bear',pHi)};
     }
   }
-  return{d:null,lv:null};
+  return{d:null,lv:null,lp:null};
 }
 function scan(bars){
   const out=[];
@@ -991,32 +1020,35 @@ function scan(bars){
     const eS=cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral';
     let label=null,dir=null,why=null,level=lv;
     const fs=forceStrike(bars,i);
-    if(fs.d==='bull'){label='Bull-FS';dir='long';why='inside-bar trap — false-break down, closed back inside, bullish EXE';level=fs.lv;}
-    else if(fs.d==='bear'){label='Bear-FS';dir='short';why='inside-bar trap — false-break up, closed back inside, bearish EXE';level=fs.lv;}
+    if(fs.d==='bull'){label='Bull-FS';dir='long';level=fs.lp!=null?fs.lp:fs.lv;
+      why=fs.lp!=null
+        ?`force-bottom scenario — inside-bar trap pierced below LP ${fmt(fs.lp)}, bullish EXE closed back at/above it (standalone-tradeable per course)`
+        :'inside-bar trap — false-break below mother low, bullish EXE closed back inside (formation only, no LP involved)';}
+    else if(fs.d==='bear'){label='Bear-FS';dir='short';level=fs.lp!=null?fs.lp:fs.lv;
+      why=fs.lp!=null
+        ?`force-top scenario — inside-bar trap pierced above LP ${fmt(fs.lp)}, bearish EXE closed back at/below it (standalone-tradeable per course)`
+        :'inside-bar trap — false-break above mother high, bearish EXE closed back inside (formation only, no LP involved)';}
     else if(force==='bottom'&&eB){
       if(flow==='up'){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
         why=`up flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE reclaimed it`;}
-      // Down-flow force-bottom splits on the majority flush (owner's taxonomy, Jul 2026):
-      //  - WITH a majority flush-down before the recovery -> DR1 (flush proxy: a FLUSH-DOWN
-      //    bar in the 5-bar force window; the "majority" 50%-line geometry is the human's call,
-      //    so the scan never auto-claims the stricter DR2).
-      //  - WITHOUT a flush -> Bull-FS via the LP route: the false-break IS the strike at the
-      //    Left Precedence. Verified need on real charts (NFLX & ICE weekly, Jul 2026): a steady
-      //    lower-low decline into an old LP contains NO mother/baby inside pair at all, so the
-      //    inside-bar route (above, which keeps precedence) can never represent this pattern.
+      // v0.17 — the LP-only "Bull-FS route" from v0.16 is RETIRED. The course deck
+      // (Lesson 8) makes the mother/baby inside pair mandatory for ANY FS label, so a
+      // down-flow force-bottom now labels DR1 only when the majority-flush proxy is
+      // present (a FLUSH-DOWN bar in the 5-bar force window; the stricter 50%-line
+      // "majority" geometry stays the human's call, so DR2 is never auto-claimed).
+      // Without a flush AND without an inside pair the pattern has no name in the
+      // course taxonomy — the scan stays silent. Acknowledged consequence: the NFLX &
+      // ICE weekly patterns that motivated v0.16's LP route will no longer fire.
       else if(recentFlush(bars,i,'FLUSH-DOWN',5)){label='DR1';dir='long';
         why=`down flow · majority flush-down into ${fmt(lv)} · force-bottom · bullish EXE recovered it`;}
-      else{label='Bull-FS';dir='long';
-        why=`force strike at the LP — false-break below ${fmt(lv)}, bullish EXE closed back above it (no flush ⇒ not DR1)`;}
     }
     else if(force==='top'&&eS){
       if(flow==='down'){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
         why=`down flow · force-top (bull trap) at ${fmt(lv)} · bearish EXE rejected it`;}
-      // Mirror: majority flush-up -> UR1; no flush -> Bear-FS via the LP route.
+      // Mirror of the above: majority flush-up -> UR1; no flush -> silent (LP-only
+      // Bear-FS route retired in v0.17 per the course deck).
       else if(recentFlush(bars,i,'FLUSH-UP',5)){label='UR1';dir='short';
         why=`up flow · majority flush-up into ${fmt(lv)} · force-top · bearish EXE rejected it`;}
-      else{label='Bear-FS';dir='short';
-        why=`force strike at the LP — false-break above ${fmt(lv)}, bearish EXE closed back below it (no flush ⇒ not UR1)`;}
     }
     if(label){
       const last=out[out.length-1];
