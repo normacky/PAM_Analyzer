@@ -708,7 +708,7 @@
           <div><b>DC1 / DC2</b> — Down Continuation (short). Down flow, a force-top bull-trap, bearish EXE. "2" = deeper bounce.</div>
           <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, a majority <i>flush-up</i> into a force-top at an LP, bearish EXE. The scan labels the family UR1; the stricter "2" (50%-line geometry) is yours to confirm by eye.</div>
           <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, a majority <i>flush-down</i> into a force-bottom, bullish EXE recovering it. No flush ⇒ not DR — that's Force-Strike territory. The scan labels the family DR1; confirm "2" by eye.</div>
-          <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Price then false-breaks the mother's extreme and a same-direction EXE (PIN / Ice Cream / Mark Up-Down) closes back inside — the EXE must arrive within 5 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
+          <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Then a single <i>Force Strike bar</i> — a same-direction EXE (PIN / Ice Cream / Mark Up-Down) — pierces the mother's extreme intrabar and closes back inside on that same bar, occurring within 3 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
           <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
           <div><b>1 vs 2</b> — a depth/flush heuristic here, not exact slide geometry; eyeball the structure to confirm.</div>
@@ -977,35 +977,36 @@ function fsAtLP(bars,i,dir,pierceExtreme){
   return c.length?Math.max(...c):null;
 }
 function forceStrike(bars,i){
-  // Force Strike, v0.17 — realigned to the course deck (Lesson 8, Alson Chew), with the
-  // owner's clarification (11 Jul 2026) on how the deck's cluster limits attach:
+  // Force Strike, v0.17 — realigned to the course deck (Lesson 8, Alson Chew), per the
+  // owner's clarifications (11 Jul 2026) on how the deck's rules attach:
   //  - the mother/baby inside-bar pair is MANDATORY and CONSECUTIVE: the baby is the
-  //    single bar immediately after the mother, inside the mother's range. v0.16's
-  //    "LP route" (FS without an inside pair) is RETIRED: per the deck the LP is an
-  //    ADDITIONAL condition ("force bottom/top scenario"), never a substitute.
-  //  - the deck's "Max cluster of 5 Bars" bounds the strike-and-return sequence AFTER
-  //    the baby: the false-break of the mother's extreme may happen on any bar after
-  //    the baby, and bar i — the same-direction EXE closing back inside — must arrive
-  //    within 5 bars of the baby (i - (m+1) <= 5).
+  //    single bar immediately after the mother, inside (or equal to) the mother's range.
+  //    v0.16's "LP route" (FS without an inside pair) is RETIRED: per the deck the LP is
+  //    an ADDITIONAL condition ("force bottom/top scenario"), never a substitute.
+  //  - the false break and the EXE close are ONE AND THE SAME BAR: the Force Strike bar
+  //    itself pierces the mother's extreme intrabar and closes back inside, and is a
+  //    same-direction EXE (PIN / Ice Cream / Mark Up-Down; never flush or neutral).
+  //    Only bar i's own extreme and close are tested — earlier bars' behaviour is
+  //    irrelevant to the check.
+  //  - that strike bar must occur within 3 bars of the baby ("Max cluster of 3 Bars"):
+  //    i - (m+1) <= 3.
   //  - judgment call retained from v0.15: "returns within Mother Bar range" is enforced
   //    on the trapped side only (bull: close ≥ mother low). An EXE strong enough to
   //    close ABOVE the mother high is more bullish, not disqualifying.
-  //  - lp field: non-null when the strike is a force-bottom/top scenario at a live LP
-  //    (pierce through it + EXE close back at/on the correct side) — the deck's
+  //  - lp field: non-null when the strike bar also pierced a live LP and closed back
+  //    at/on the correct side of it — the deck's force-bottom/top scenario, the
   //    standalone-tradeable case. Null = valid formation, but no LP involved.
   const b=bars[i],cls=b.cls;
   if(cls.flush||cls.type==='neutral'||!cls.dir)return{d:null,lv:null,lp:null};
-  for(let m=Math.max(0,i-6);m<i-1;m++){        // i-(m+1)<=5  ⇒  m>=i-6
+  for(let m=Math.max(0,i-4);m<i-1;m++){        // strike bar within 3 bars of baby: i-(m+1)<=3
     if(!isInside(bars[m],bars[m+1]))continue;  // baby = the bar right after the mother
     const mom=bars[m];
     if(cls.dir==='bull'){
-      let pLo=1e9;for(let t=m+2;t<=i;t++)pLo=Math.min(pLo,bars[t].low);
-      if(pLo<mom.low&&b.close>=mom.low)
-        return{d:'bull',lv:mom.low,lp:fsAtLP(bars,i,'bull',pLo)};
+      if(b.low<mom.low&&b.close>=mom.low)
+        return{d:'bull',lv:mom.low,lp:fsAtLP(bars,i,'bull',b.low)};
     }else{
-      let pHi=-1e9;for(let t=m+2;t<=i;t++)pHi=Math.max(pHi,bars[t].high);
-      if(pHi>mom.high&&b.close<=mom.high)
-        return{d:'bear',lv:mom.high,lp:fsAtLP(bars,i,'bear',pHi)};
+      if(b.high>mom.high&&b.close<=mom.high)
+        return{d:'bear',lv:mom.high,lp:fsAtLP(bars,i,'bear',b.high)};
     }
   }
   return{d:null,lv:null,lp:null};
@@ -1022,12 +1023,12 @@ function scan(bars){
     const fs=forceStrike(bars,i);
     if(fs.d==='bull'){label='Bull-FS';dir='long';level=fs.lp!=null?fs.lp:fs.lv;
       why=fs.lp!=null
-        ?`force-bottom scenario — inside-bar trap pierced below LP ${fmt(fs.lp)}, bullish EXE closed back at/above it (standalone-tradeable per course)`
-        :'inside-bar trap — false-break below mother low, bullish EXE closed back inside (formation only, no LP involved)';}
+        ?`force-bottom scenario — strike bar pierced below LP ${fmt(fs.lp)} and closed back at/above it (standalone-tradeable per course)`
+        :'inside-bar trap — strike bar pierced below mother low and closed back inside (formation only, no LP involved)';}
     else if(fs.d==='bear'){label='Bear-FS';dir='short';level=fs.lp!=null?fs.lp:fs.lv;
       why=fs.lp!=null
-        ?`force-top scenario — inside-bar trap pierced above LP ${fmt(fs.lp)}, bearish EXE closed back at/below it (standalone-tradeable per course)`
-        :'inside-bar trap — false-break above mother high, bearish EXE closed back inside (formation only, no LP involved)';}
+        ?`force-top scenario — strike bar pierced above LP ${fmt(fs.lp)} and closed back at/below it (standalone-tradeable per course)`
+        :'inside-bar trap — strike bar pierced above mother high and closed back inside (formation only, no LP involved)';}
     else if(force==='bottom'&&eB){
       if(flow==='up'){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
         why=`up flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE reclaimed it`;}
