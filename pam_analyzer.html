@@ -2397,7 +2397,8 @@ const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 let ME=null, MYNAME='', ALLOWED=false;
 let MSGS=[], BYID={}, QREF={}, REACTS={};
 let lastId=0, oldestId=null, reachedTop=false;
-let unread=0, chan=null, pollT=null, sbT=null, pending=null, loadingOlder=false, replyTo=null, selId=null;
+let unread=0, chan=null, pollT=null, sbT=null, pending=null, loadingOlder=false, replyTo=null, selId=null, editTarget=null;
+const EDIT_WIN_MIN=15;   /* WhatsApp-style edit window, minutes — keep in step with the SQL policy */
 
 function acct(m,k){const e=q('syncStatus');if(e){e.textContent=m;e.style.color=k==='err'?'var(--short)':k==='ok'?'var(--long)':'var(--mut)';}}
 function cStatus(m,k){const e=q('chatStatus');if(e){e.textContent=m||'';e.style.color=k==='err'?'var(--short)':k==='ok'?'var(--long)':'var(--mut)';}}
@@ -2564,6 +2565,11 @@ function actRow(m){
   const rep=document.createElement('button');rep.className='rep';rep.textContent='\u21a9 Reply';
   rep.onclick=e=>{e.stopPropagation();selId=null;setReply(m);render(false);};
   r.appendChild(rep);
+  if(ME&&m.user_id===ME.id&&(Date.now()-new Date(m.created_at).getTime())<EDIT_WIN_MIN*60000){
+    const ed=document.createElement('button');ed.className='rep';ed.textContent='\u270e Edit';
+    ed.onclick=e=>{e.stopPropagation();selId=null;setEdit(m);render(false);};
+    r.appendChild(ed);
+  }
   return r;
 }
 function bubble(m,prev){
@@ -2585,7 +2591,7 @@ function bubble(m,prev){
   }
   const body=document.createElement('div');body.className='body';
   body.textContent=m.content||'';
-  const wh=document.createElement('span');wh.className='when';wh.textContent=hm(m.created_at);
+  const wh=document.createElement('span');wh.className='when';wh.textContent=(m.edited_at?'Edited \u00b7 ':'')+hm(m.created_at);
   body.appendChild(wh);
   b.appendChild(body);
   const rp=reactPillsFor(m); if(rp)b.appendChild(rp);
@@ -2660,6 +2666,9 @@ function subscribe(){
   if(chan){try{sb.removeChannel(chan);}catch(e){}}
   chan=sb.channel('pam-chat')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>onNewMsg(p.new))
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},p=>{
+      const n=p.new,m=BYID[n.id];if(m){Object.assign(m,n);render(false);}
+    })
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'message_reactions'},p=>{
       const r=p.new,m=REACTS[r.message_id]=REACTS[r.message_id]||{};
       (m[r.emoji]=m[r.emoji]||new Set()).add(r.user_id);render(false);
@@ -2676,7 +2685,12 @@ async function pollNew(){
     const {data}=await sb.from('messages').select('*').gt('id',lastId).order('id',{ascending:true}).limit(100);
     (data||[]).forEach(onNewMsg);
     const vis=MSGS.slice(-60).map(m=>m.id);
-    await fetchReactions(vis);render(false);
+    await fetchReactions(vis);
+    if(vis.length){
+      const {data:fresh}=await sb.from('messages').select('id,content,edited_at').in('id',vis);
+      (fresh||[]).forEach(r=>{const m=BYID[r.id];if(m){m.content=r.content;m.edited_at=r.edited_at;}});
+    }
+    render(false);
   }catch(e){}
 }
 
@@ -2693,13 +2707,22 @@ async function toggleReact(id,emo){
   }catch(e){}
 }
 function setReply(m){
+  editTarget=null;
   replyTo=m;
   q('chatReplyWho').textContent=m.display_name||'?';
   q('chatReplyTxt').textContent=m.content?m.content.slice(0,90):(m.image_path?'\ud83d\udcf7 photo':'');
   q('chatReplyBox').style.display='flex';
   q('chatText').focus();
 }
-function clearReply(){replyTo=null;q('chatReplyBox').style.display='none';}
+function clearReply(){replyTo=null;editTarget=null;q('chatReplyBox').style.display='none';}
+function setEdit(m){
+  replyTo=null;clearPending();
+  editTarget=m;
+  q('chatReplyWho').textContent='\u270e Editing your message';
+  q('chatReplyTxt').textContent=m.content?m.content.slice(0,90):'';
+  q('chatReplyBox').style.display='flex';
+  const ta=q('chatText');ta.value=m.content||'';ta.focus();
+}
 
 /* ---------------- chat: send + images ---------------- */
 function setPending(blob){
@@ -2733,6 +2756,17 @@ async function sendMsg(){
   if(!txt&&!pending)return;
   btn.disabled=true;btn.textContent='\u2026';
   try{
+    if(editTarget){
+      if(!txt)throw new Error('edited message cannot be empty');
+      const tgt=editTarget;
+      const {data,error}=await sb.from('messages').update({content:txt,edited_at:new Date().toISOString()}).eq('id',tgt.id).select();
+      if(error)throw new Error(error.message);
+      if(!data||!data.length)throw new Error('edit window ('+EDIT_WIN_MIN+' min) has passed');
+      tgt.content=txt;tgt.edited_at=data[0].edited_at;
+      ta.value='';clearReply();cStatus('');render(false);
+      btn.disabled=false;btn.textContent='Send';
+      return;
+    }
     let image_path=null;
     if(pending){
       image_path=ME.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
@@ -2769,7 +2803,7 @@ q('chatSendLink').onclick=sendLink;
 q('chatEmail').addEventListener('keydown',e=>{if(e.key==='Enter')sendLink();});
 q('sbSignOut').onclick=signOut;
 q('chatSend').onclick=sendMsg;
-q('chatAttach').onclick=()=>q('chatFile').click();
+q('chatAttach').onclick=()=>{if(editTarget){cStatus('finish editing first \u2014 images cannot be changed by an edit','err');return;}q('chatFile').click();};
 q('chatFile').addEventListener('change',e=>takeImage(e.target.files&&e.target.files[0]));
 q('chatPreviewX').onclick=clearPending;
 q('chatReplyX').onclick=clearReply;
