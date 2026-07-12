@@ -704,10 +704,10 @@
       <details>
         <summary>What the labels mean</summary>
         <div class="glo">
-          <div><b>UC1 / UC2</b> — Up Continuation (long, Lesson 16/17). Up flow above the 50sma; a <i>minority</i> pullback (no majority flush) forces an LP; bullish EXE closes back at/above it within 5 bars. Deck gates enforced: no flush-<i>up</i> bar in the 3 bars into the pullback's origin, structure near/testing the 20/50 SMA, EXE still below the pullback's interior high. "2" = the deeper two-leg (A-B-C-D) variant.</div>
-          <div><b>DC1 / DC2</b> — Down Continuation (short). Exact mirror: down flow, minority bounce into an LP, no flush-down into the origin, near/testing 20/50 SMA, bearish EXE rejects it within 5 bars while still above the interior low.</div>
-          <div><b>UR1 / UR2</b> — Reversal shorts (Lesson 9/19). The approach into the LP swing-high is a <i>majority flush-up MOVE</i>: steep (≥1.5×ATR per bar) and starting at/beyond the 50% line of X (the LP) to Y (the lowest point right of X). Bearish EXE closes back at/below the LP within 5 bars. <b>UR2</b> = in up flow (double top in an uptrend), with the current retracement bigger than the prior one; <b>UR1</b> = sideways/non-up-flow (verify the range by eye).</div>
-          <div><b>DR1 / DR2</b> — Reversal longs. Exact mirror: majority flush-<i>down</i> move into an LP swing-low (leg from at/above the 50% X–Y line), bullish EXE recovers it within 5 bars. <b>DR2</b> = down flow (double bottom in a downtrend) + bigger retracement than the prior; <b>DR1</b> = sideways/non-down-flow. A slow grind into the LP is a wave, not a flush ⇒ no reversal label.</div>
+          <div><b>UC1 / UC2</b> — Up Continuation (long). Up flow, a force-bottom bear-trap at an LP, bullish EXE. "2" = a deeper two-leg pullback.</div>
+          <div><b>DC1 / DC2</b> — Down Continuation (short). Down flow, a force-top bull-trap, bearish EXE. "2" = deeper bounce.</div>
+          <div><b>UR1 / UR2</b> — Up→Down Reversal (short). Up flow, a majority <i>flush-up</i> into a force-top at an LP, bearish EXE. The scan labels the family UR1; the stricter "2" (50%-line geometry) is yours to confirm by eye.</div>
+          <div><b>DR1 / DR2</b> — Down→Up Reversal (long). Down flow, a majority <i>flush-down</i> into a force-bottom, bullish EXE recovering it. No flush ⇒ not DR — that's Force-Strike territory. The scan labels the family DR1; confirm "2" by eye.</div>
           <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Then a single <i>Force Strike bar</i> — a same-direction EXE (PIN / Ice Cream / Mark Up-Down) — pierces the mother's extreme intrabar and closes back inside on that same bar, occurring within 3 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
           <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
@@ -935,10 +935,8 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.18';
 function findForce(bars,i,FW=5){
-  // Force detection, v0.15 rules (v0.18: also returns j — the LP entry's own bar index,
-  // which is point X for the majority-flush geometry):
+  // Force detection, v0.15 rules:
   //  - LP levels come from the FULL loaded history (weekly 3Y window scans 3Y back, 2-Day 1Y
   //    window scans 1Y back), not a 15-bar peephole — but only levels still un-breached count:
   //    a level is dead once any bar CLOSED through it BEFORE the current force window.
@@ -948,104 +946,11 @@ function findForce(bars,i,FW=5){
   const b=bars[i],w0=Math.max(0,i-FW+1);
   let pHi=-1e9,pLo=1e9;for(let t=w0;t<=i;t++){pHi=Math.max(pHi,bars[t].high);pLo=Math.min(pLo,bars[t].low);}
   const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=w0);   // formed ≥3 bars back, not close-breached earlier
-  const top=(bars.lpHighs||[]).filter(e=>alive(e)&&e.lv<pHi&&e.lv>=b.close);
-  if(top.length){const e=top.reduce((a,c)=>c.lv>a.lv?c:a);return{f:'top',lv:e.lv,j:e.j};}
-  const bot=(bars.lpLows||[]).filter(e=>alive(e)&&e.lv>pLo&&e.lv<=b.close);
-  if(bot.length){const e=bot.reduce((a,c)=>c.lv<a.lv?c:a);return{f:'bottom',lv:e.lv,j:e.j};}
-  return{f:null,lv:null,j:null};
-}
-function majorityFlush(bars,i,f){
-  // v0.18 — the decks' "majority flush" MOVE test (Lessons 9/19), two parts:
-  //  GEOMETRY (deck-exact): X = the LP's own level (entry bar j); Y = the opposite
-  //  extreme to the RIGHT of X's bar; 50% line = midpoint of X–Y; the FINAL leg into
-  //  the LP must START at/beyond that 50% line — i.e. the leg traversed the majority
-  //  of the X–Y distance.
-  //  STEEPNESS (framework, skill §2.2): a flush move is the steep >70° run vs the ~45°
-  //  wave; per the owner-confirmed framework a flush MOVE needn't contain any single
-  //  flush BAR, so impulsiveness is measured as speed: the leg's per-bar traverse must
-  //  be ≥ 1.5× ATR(14). Without this test every ordinary pullback would pass geometry
-  //  trivially (its leg starts at Y itself). 1.5× is a documented judgment call.
-  //  Leg origin is operationalised as the opposite extreme over the 12 bars before the
-  //  force window's pierce bar (judgment call, documented).
-  // Implementation note: the leg origin is chosen to MAXIMISE steepness among the
-  // candidate bars beyond the 50% line within the 12 bars before the pierce — i.e. the
-  // test asks "does there exist a start point at/beyond the midpoint from which the
-  // move into the pierce averaged ≥ 1.5×ATR per bar?" Anchoring the origin to the
-  // absolute extreme instead would dilute a fast strike across any plateau before it.
-  const LEG=12,atr=bars[i].atr||1e-9,TH=1.5*atr;
-  if(f.f==='bottom'){
-    let yHi=-1e9;for(let t=f.j+1;t<=i;t++)yHi=Math.max(yHi,bars[t].high);
-    const fifty=f.lv+(yHi-f.lv)/2;
-    let pj=i,pLo=1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].low<pLo){pLo=bars[t].low;pj=t;}
-    let best=-1,ls=null;
-    for(let t=Math.max(0,pj-LEG);t<pj;t++){if(bars[t].high<fifty)continue;
-      const sp=(bars[t].high-pLo)/(pj-t);if(sp>best){best=sp;ls=bars[t].high;}}
-    return{ok:ls!=null&&best>=TH,fifty,legStart:ls,yExt:yHi,speed:best,steep:best>=TH};
-  }
-  let yLo=1e9;for(let t=f.j+1;t<=i;t++)yLo=Math.min(yLo,bars[t].low);
-  const fifty=f.lv-(f.lv-yLo)/2;
-  let pj=i,pHi=-1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].high>pHi){pHi=bars[t].high;pj=t;}
-  let best=-1,ls=null;
-  for(let t=Math.max(0,pj-LEG);t<pj;t++){if(bars[t].low>fifty)continue;
-    const sp=(pHi-bars[t].low)/(pj-t);if(sp>best){best=sp;ls=bars[t].low;}}
-  return{ok:ls!=null&&best>=TH,fifty,legStart:ls,yExt:yLo,speed:best,steep:best>=TH};
-}
-function biggerRetracement(bars,i,f,yExt){
-  // v0.18 — UR2/DR2 entry rule 1: the current retracement must be BIGGER than the prior
-  // one in the same trend. Current = |Y − X|. Prior = the last completed counter-trend
-  // pivot swing strictly before X's bar (swingH→swingL pair via the k=3 pivot flags).
-  // If no prior pair exists in loaded history the rule is unverifiable — reported as
-  // unmeasurable and the label proceeds with a caveat (highlight-not-filter).
-  const cur=Math.abs(yExt-f.lv);
-  let a=-1,b2=-1;
-  if(f.f==='bottom'){ // downtrend: prior retracement = last swingH before X, and the swingL before it
-    for(let t=f.j-1;t>=0;t--)if(bars[t].swingH){a=t;break;}
-    if(a>=0)for(let t=a-1;t>=0;t--)if(bars[t].swingL){b2=t;break;}
-    if(a<0||b2<0)return{ok:false,unmeasurable:true,cur,prev:null};
-    const prev=bars[a].high-bars[b2].low;
-    return{ok:cur>prev,unmeasurable:false,cur,prev};
-  }
-  for(let t=f.j-1;t>=0;t--)if(bars[t].swingL){a=t;break;}
-  if(a>=0)for(let t=a-1;t>=0;t--)if(bars[t].swingH){b2=t;break;}
-  if(a<0||b2<0)return{ok:false,unmeasurable:true,cur,prev:null};
-  const prev=bars[b2].high-bars[a].low;
-  return{ok:cur>prev,unmeasurable:false,cur,prev};
-}
-function nearSMA(bars,i){
-  // v0.18 — UC/DC entry rule 2: "structure forms near or test 20/50 SMA".
-  // Tested = any of the last 5 bars straddles the 20 or 50 SMA; near = current close
-  // within 1 ATR of either (owner-ratified tolerance).
-  const b=bars[i],atr=b.atr||0;
-  for(let t=Math.max(0,i-4);t<=i;t++){const x=bars[t];
-    for(const s of [x.sma20,x.sma50])if(s!=null&&x.low<=s&&x.high>=s)return true;}
-  for(const s of [b.sma20,b.sma50])if(s!=null&&Math.abs(b.close-s)<=atr)return true;
-  return false;
-}
-function contGates(bars,i,dir){
-  // v0.18 — the UC/DC deck gates (Lessons 16/17):
-  //  (1) origin A/B = the trend-side extreme over the 12 bars before the pierce; NO
-  //      flush bar in the TREND direction among the 3 bars ending at the origin
-  //      ("no flush up bar within 3 preceding bars leading to point A/B") — flush bar
-  //      per the framework: a Mark Up/Down bar ≥ 2× the trailing-10-bar average range.
-  //  (2) near/test 20 or 50 SMA (nearSMA above).
-  //  (3) EXE below point C / above point D: the EXE close must sit on the early side of
-  //      the deepest interior bounce between origin and now; falls back to the origin
-  //      extreme when the pullback is monotone. Judgment call, documented.
-  const LEG=12,b=bars[i];
-  if(dir==='up'){
-    let pj=i,pLo=1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].low<pLo){pLo=bars[t].low;pj=t;}
-    let A=Math.max(0,pj-LEG),hi=-1e9;
-    for(let t=Math.max(0,pj-LEG);t<pj;t++)if(bars[t].high>hi){hi=bars[t].high;A=t;}
-    let noFlush=true;for(let t=Math.max(0,A-2);t<=A;t++)if(bars[t].cls.type==='FLUSH-UP')noFlush=false;
-    let C=-1e9;for(let t=A+1;t<i;t++)C=Math.max(C,bars[t].high);if(C<-1e8)C=hi;
-    return{ok:noFlush&&nearSMA(bars,i)&&b.close<C,noFlush,near:nearSMA(bars,i),early:b.close<C};
-  }
-  let pj=i,pHi=-1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].high>pHi){pHi=bars[t].high;pj=t;}
-  let A=Math.max(0,pj-LEG),lo=1e9;
-  for(let t=Math.max(0,pj-LEG);t<pj;t++)if(bars[t].low<lo){lo=bars[t].low;A=t;}
-  let noFlush=true;for(let t=Math.max(0,A-2);t<=A;t++)if(bars[t].cls.type==='FLUSH-DOWN')noFlush=false;
-  let D=1e9;for(let t=A+1;t<i;t++)D=Math.min(D,bars[t].low);if(D>1e8)D=lo;
-  return{ok:noFlush&&nearSMA(bars,i)&&b.close>D,noFlush,near:nearSMA(bars,i),early:b.close>D};
+  const top=(bars.lpHighs||[]).filter(e=>alive(e)&&e.lv<pHi&&e.lv>=b.close).map(e=>e.lv);
+  if(top.length)return{f:'top',lv:Math.max(...top)};
+  const bot=(bars.lpLows||[]).filter(e=>alive(e)&&e.lv>pLo&&e.lv<=b.close).map(e=>e.lv);
+  if(bot.length)return{f:'bottom',lv:Math.min(...bot)};
+  return{f:null,lv:null};
 }
 function legsInPullback(bars,i,dir,win=14){
   if(dir==='up'){let th=Math.max(0,i-win);for(let j=Math.max(0,i-win);j<i;j++)if(bars[j].swingH)th=j;
@@ -1053,6 +958,7 @@ function legsInPullback(bars,i,dir,win=14){
   let tl=Math.max(0,i-win);for(let j=Math.max(0,i-win);j<i;j++)if(bars[j].swingL)tl=j;
   let n=0;for(let j=tl;j<i;j++)if(bars[j].swingH)n++;return n;
 }
+function recentFlush(bars,i,kind,look=4){for(let j=Math.max(0,i-look);j<=i;j++)if(bars[j].cls.type===kind)return true;return false;}
 function isInside(m,b){return b.high<=m.high&&b.low>=m.low;}
 function fsAtLP(bars,i,dir,pierceExtreme){
   // v0.17 — deck's "force bottom/top SCENARIO" check for a confirmed inside-bar Force Strike:
@@ -1110,7 +1016,7 @@ function scan(bars){
   for(let i=50;i<bars.length;i++){
     const b=bars[i],cls=b.cls;
     const flow=b.close>b.sma50?'up':'down';
-    const fRes=findForce(bars,i);const {f:force,lv}=fRes;
+    const {f:force,lv}=findForce(bars,i);
     const eB=cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral';
     const eS=cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral';
     let label=null,dir=null,why=null,level=lv;
@@ -1124,48 +1030,26 @@ function scan(bars){
         ?`force-top scenario — strike bar pierced above LP ${fmt(fs.lp)} and closed back at/below it (standalone-tradeable per course)`
         :'inside-bar trap — strike bar pierced above mother high and closed back inside (formation only, no LP involved)';}
     else if(force==='bottom'&&eB){
-      // v0.18 — deck-aligned split (Lessons 9/16/17/19, owner-ratified 12 Jul 2026):
-      // the approach leg decides the FAMILY. Majority flush MOVE (50% X–Y geometry +
-      // ≥1.5×ATR/bar steepness) -> reversal (DR2 in down flow with bigger-retracement
-      // rule, DR1 otherwise — sideways defined as "not in the trend's flow"). No
-      // majority flush -> continuation in up flow, gated by the deck's characteristics
-      // (no flush-up bar into the origin, near/test 20/50 SMA, EXE early vs interior
-      // high). EXE window is 5 bars for BOTH families (owner override of the reversal
-      // decks' 4). Gates failing -> silent: the pattern has no name in the taxonomy.
-      const mf=majorityFlush(bars,i,fRes);
-      if(mf.ok){
-        if(flow==='down'){
-          const br=biggerRetracement(bars,i,fRes,mf.yExt);
-          if(br.ok){label='DR2';dir='long';
-            why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bullish EXE recovered the LP`;}
-          else if(br.unmeasurable){label='DR2';dir='long';
-            why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bullish EXE recovered the LP`;}
-          // measurably smaller retracement than the prior one -> not DR2 per deck -> silent
-        }else{label='DR1';dir='long';
-          why=`sideways/non-down-flow context · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · bullish EXE recovered the LP — verify the range visually`;}
-      }else if(flow==='up'){
-        const g=contGates(bars,i,'up');
-        if(g.ok){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
-          why=`up flow · minority pullback forced ${fmt(lv)} · no flush-up into the origin · near/testing 20/50 SMA · bullish EXE reclaimed it early`;}
-      }
+      if(flow==='up'){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
+        why=`up flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE reclaimed it`;}
+      // v0.17 — the LP-only "Bull-FS route" from v0.16 is RETIRED. The course deck
+      // (Lesson 8) makes the mother/baby inside pair mandatory for ANY FS label, so a
+      // down-flow force-bottom now labels DR1 only when the majority-flush proxy is
+      // present (a FLUSH-DOWN bar in the 5-bar force window; the stricter 50%-line
+      // "majority" geometry stays the human's call, so DR2 is never auto-claimed).
+      // Without a flush AND without an inside pair the pattern has no name in the
+      // course taxonomy — the scan stays silent. Acknowledged consequence: the NFLX &
+      // ICE weekly patterns that motivated v0.16's LP route will no longer fire.
+      else if(recentFlush(bars,i,'FLUSH-DOWN',5)){label='DR1';dir='long';
+        why=`down flow · majority flush-down into ${fmt(lv)} · force-bottom · bullish EXE recovered it`;}
     }
     else if(force==='top'&&eS){
-      // v0.18 — exact mirror of the force-bottom tree above.
-      const mf=majorityFlush(bars,i,fRes);
-      if(mf.ok){
-        if(flow==='up'){
-          const br=biggerRetracement(bars,i,fRes,mf.yExt);
-          if(br.ok){label='UR2';dir='short';
-            why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bearish EXE rejected the LP`;}
-          else if(br.unmeasurable){label='UR2';dir='short';
-            why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bearish EXE rejected the LP`;}
-        }else{label='UR1';dir='short';
-          why=`sideways/non-up-flow context · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · bearish EXE rejected the LP — verify the range visually`;}
-      }else if(flow==='down'){
-        const g=contGates(bars,i,'down');
-        if(g.ok){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
-          why=`down flow · minority bounce forced ${fmt(lv)} · no flush-down into the origin · near/testing 20/50 SMA · bearish EXE rejected it early`;}
-      }
+      if(flow==='down'){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
+        why=`down flow · force-top (bull trap) at ${fmt(lv)} · bearish EXE rejected it`;}
+      // Mirror of the above: majority flush-up -> UR1; no flush -> silent (LP-only
+      // Bear-FS route retired in v0.17 per the course deck).
+      else if(recentFlush(bars,i,'FLUSH-UP',5)){label='UR1';dir='short';
+        why=`up flow · majority flush-up into ${fmt(lv)} · force-top · bearish EXE rejected it`;}
     }
     if(label){
       const last=out[out.length-1];
@@ -2077,12 +1961,17 @@ function optPill(label,state){
   return p;
 }
 function optMoney(x){ return x==null?'\u2013':'$'+(+x).toFixed(2); }
-// true only if EVERY criterion shown on this spread's pill row is met (green). Unknown/missing => not met.
+// scan window as text: multi-expiry scans (v0.18 scanner) show "30\u201345 DTE window"; old single-expiry files fall back to "37-DTE chain"
+function optWinTxt(o){ return (o&&o.expiries&&o.expiries.length>1)?(o.expiries[0][1]+'\u2013'+o.expiries[o.expiries.length-1][1]+' DTE window'):((o?o.dte:'?')+'-DTE chain'); }
+// earnings-inside for THIS spread's own expiry (v0.18 scanner writes it per spread); old files fall back to the symbol-level flag
+function optEarnIn(sp,o){ return (sp&&sp.earnings_inside!==undefined)?sp.earnings_inside:((o&&o.flags)?o.flags.earnings_inside:null); }
+// true only if EVERY hard criterion on this spread is met (green). Unknown/missing => not met.
+// Deploy-context pills (market regime / stock trend / $20bn cap) are informational and NOT part of this badge.
 function optSpreadAllMet(kind,sp,o){
   if(!sp||!sp.ok||!o||!o.flags) return false;
   const credit=(kind==='bps'||kind==='bcs');
   return credit
-    ? (o.flags.iv_high===true && o.flags.earnings_inside===false && sp.ok.liquidity===true && sp.ok.credit_4x===true)
+    ? (o.flags.iv_high===true && optEarnIn(sp,o)===false && sp.ok.liquidity===true && sp.ok.credit_4x===true)
     : (o.flags.iv_low===true  && sp.ok.liquidity===true && sp.ok.rr_1to2===true);
 }
 function optSpreadCard(kind,sp,o,favoured,alignedLong){
@@ -2094,12 +1983,13 @@ function optSpreadCard(kind,sp,o,favoured,alignedLong){
   head.appendChild(nm); head.appendChild(tp);
   if(favoured){ const f=document.createElement('span'); f.className='ostag fav'; f.textContent='IV-favoured'; head.appendChild(f); }
   card.appendChild(head);
-  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid strikes in the '+o.dte+'-DTE chain (thin or wide market)'; card.appendChild(e); return card; }
+  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid strikes in any expiry of the '+optWinTxt(o)+' (thin or wide market)'; card.appendChild(e); return card; }
   const legs=document.createElement('div'); legs.className='oslegs';
   legs.textContent = kind==='bps' ? 'Sell '+sp.short_k+'P  /  Buy '+sp.long_k+'P'
                    : kind==='bcs' ? 'Sell '+sp.short_k+'C  /  Buy '+sp.long_k+'C'
                    : kind==='bull_call' ? 'Buy '+sp.long_k+'C  /  Sell '+sp.short_k+'C'
                    : 'Buy '+sp.long_k+'P  /  Sell '+sp.short_k+'P';
+  if(sp.expiry) legs.textContent+='   \u00b7   exp '+sp.expiry+' ('+sp.dte+'d)';   // each spread carries the expiry it was best on
   card.appendChild(legs);
   const eco=document.createElement('div'); eco.className='oseco';
   eco.textContent = credit
@@ -2109,10 +1999,15 @@ function optSpreadCard(kind,sp,o,favoured,alignedLong){
   const fl=document.createElement('div'); fl.className='osflags';
   if(credit){
     fl.appendChild(optPill('IV>35%',o.flags.iv_high));
-    const ei=o.flags.earnings_inside;
+    const ei=optEarnIn(sp,o);   // earnings vs THIS spread's expiry — a shorter expiry can legitimately dodge a late-window report
     fl.appendChild(optPill(ei===false?'no earnings':ei===true?('earnings '+(o.flags.earnings_date||'')):'earnings ?', ei===false?true:ei===true?false:null));
     fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
     fl.appendChild(optPill('max-loss \u22644\u00d7',sp.ok?sp.ok.credit_4x:null));
+    // "When to Deploy" context from Cards 19/20 — informational, not part of the green all-met badge
+    if(o.flags.mc_20b!=null) fl.appendChild(optPill('cap \u2265$20bn',o.flags.mc_20b));
+    const wantBear=(kind==='bcs');
+    if(o.flags.spy_bear!=null) fl.appendChild(optPill(wantBear?'SPY bear':'SPY bull', o.flags.spy_bear===wantBear));
+    if(o.flags.stock_trend_up!=null) fl.appendChild(optPill(wantBear?'stock downtrend':'stock uptrend', o.flags.stock_trend_up===!wantBear));
   } else {
     fl.appendChild(optPill('IV<30%',o.flags.iv_low));
     fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
@@ -2134,16 +2029,17 @@ function optCondorCard(sp,o,favoured){
   head.appendChild(nm); head.appendChild(tp); head.appendChild(nt);
   if(favoured){ const f=document.createElement('span'); f.className='ostag fav'; f.textContent='IV-favoured'; head.appendChild(f); }
   card.appendChild(head);
-  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid 4-leg strikes in the '+o.dte+'-DTE chain (thin or wide market)'; card.appendChild(e); return card; }
+  if(!sp){ const e=document.createElement('div'); e.className='osnone'; e.textContent='no valid 4-leg strikes in any expiry of the '+optWinTxt(o)+' (thin or wide market)'; card.appendChild(e); return card; }
   const legs=document.createElement('div'); legs.className='oslegs';
   legs.textContent='Sell '+sp.put_short_k+'P / Buy '+sp.put_long_k+'P   +   Sell '+sp.call_short_k+'C / Buy '+sp.call_long_k+'C';
+  if(sp.expiry) legs.textContent+='   \u00b7   exp '+sp.expiry+' ('+sp.dte+'d)';
   card.appendChild(legs);
   const eco=document.createElement('div'); eco.className='oseco';
   eco.textContent='credit '+optMoney(sp.credit)+'  \u00b7  put/call width '+optMoney(sp.width_put)+' / '+optMoney(sp.width_call)+'  \u00b7  max loss '+optMoney(sp.max_loss)+'  \u00b7  BE '+optMoney(sp.be_low)+'\u2013'+optMoney(sp.be_high);
   card.appendChild(eco);
   const fl=document.createElement('div'); fl.className='osflags';
   fl.appendChild(optPill('IV>35%',o.flags.iv_high));
-  const ei=o.flags.earnings_inside;
+  const ei=optEarnIn(sp,o);   // earnings vs the condor's own expiry
   fl.appendChild(optPill(ei===false?'no earnings':ei===true?('earnings '+(o.flags.earnings_date||'')):'earnings ?', ei===false?true:ei===true?false:null));
   fl.appendChild(optPill('liquid',sp.ok?sp.ok.liquidity:null));
   fl.appendChild(optPill('credit \u2265$0.90/side',sp.ok?sp.ok.credit_each:null));
@@ -2157,7 +2053,8 @@ function optDetailCard(t,dir){
   const oh=document.createElement('div'); oh.className='oh';
   const ivPct=o.atm_iv!=null?Math.round(o.atm_iv*100):null;
   const ivTag=o.flags.iv_high?'HIGH':o.flags.iv_low?'LOW':'MID';
-  oh.innerHTML='<span class="ohk">OPTIONS</span> exp '+o.expiry+' \u00b7 '+o.dte+' DTE \u00b7 ATM IV '+(ivPct!=null?ivPct+'%':'n/a')
+  const multi=(o.expiries&&o.expiries.length>1);
+  oh.innerHTML='<span class="ohk">OPTIONS</span> '+(multi?(o.expiries.length+' expiries scanned \u00b7 '+optWinTxt(o)):('exp '+o.expiry+' \u00b7 '+o.dte+' DTE'))+' \u00b7 ATM IV '+(ivPct!=null?ivPct+'%':'n/a')
     +(ivPct!=null?' <span class="ohiv '+ivTag.toLowerCase()+'">'+ivTag+'</span>':'')
     +(o.dte_off_window?' <span class="ohwarn">DTE off-window</span>':'');
   wrap.appendChild(oh);
@@ -2191,7 +2088,7 @@ function optDetailCard(t,dir){
     wrap.appendChild(nt);
   }
   const ft=document.createElement('div'); ft.className='ohfoot';
-  ft.textContent='Strikes/prices are a starting point priced at the touch \u2014 verify in IBKR. Flags highlight ruleset conditions; the decision is yours. Not financial advice.';
+  ft.textContent='Strikes/prices are a starting point priced at the MID \u2014 verify live in IBKR. Each spread shows the expiry it scored best on within the scanned window. Flags highlight ruleset conditions; the decision is yours. Not financial advice.';
   wrap.appendChild(ft);
   return wrap;
 }

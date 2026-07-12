@@ -331,13 +331,35 @@ async function addFundamentals(meta, cfg) {
  * R:R>=1:2, SPY regime) and the go/no-go decision stays with the trader.
  *
  * Judgment calls, documented:
- *   - Expiry = the one closest to 37 DTE inside the 30-45 window (middle of the ruleset range).
- *     If the window is empty (thin chains), it widens once to 25-60 and flags dte_off_window.
+ *   - EVERY expiry inside the 30-45 DTE window is evaluated (the chain pull already covers
+ *     the whole window in one request, so this costs no extra API calls). Each strategy
+ *     independently keeps its best candidate — the Bull Put Spread can sit on the 31-DTE
+ *     expiry while the Bull Call Spread sits on the 38-DTE one.
+ *   - Ranking, per strategy (best first):
+ *       credit verticals  most ruleset checks passed (max-loss<=4x credit, per-leg liquidity,
+ *                         no earnings inside THAT expiry) → highest credit/max-loss (ROI)
+ *                         → nearest 37 DTE. Cards 19/20 allow the whole 30-45 range.
+ *       debit verticals   most checks passed (R:R>=1:2, liquidity) → nearest 30 DTE
+ *                         (Cards 17/18: "~30 days ideal") → highest max-profit/debit.
+ *       iron condor       most checks passed (credit>=$0.90/side, liquidity, no earnings
+ *                         inside) → highest credit/max-loss → nearest 37 DTE (Card 8: 30-45).
+ *     Highlight-not-filter still holds: if no expiry passes everything, the least-bad
+ *     candidate is reported with its flags and the decision stays with the trader.
+ *     Degenerate quotes are the one exception (credit >= width, or debit <= 0) — those are
+ *     arithmetic impossibilities from junk mid prices and are dropped.
+ *   - Earnings stays ONE Finnhub call per symbol (today → last expiry in the window);
+ *     "inside" is decided per expiry locally, so a shorter expiry that dodges a late-window
+ *     earnings date now outranks one that sits on top of it (credit cards: "Earnings not
+ *     within Expiration date").
+ *   - If the 30-45 window has no contracts at all, it widens once to 25-60 and flags dte_off_window.
  *   - Strike query is bounded to spot ±35% to keep the chain pull to one page for most names.
  *   - "Long leg 1-2 strikes further OTM" (credit cards) → implemented as the ADJACENT strike (1 strike).
- *   - Credit is priced conservatively at the touch: short leg BID minus long leg ASK. Debit = long ASK minus short BID.
- *   - ATM IV = average of the call and put IV at the strike nearest spot.
- *   - 1SD move for the debit-spread target = spot × ATM-IV × sqrt(DTE/365).
+ *   - Legs are priced at the MID (bid+ask)/2 — the standard broker mark; the per-leg
+ *     liquidity flag remains the warning that a wide market makes the mid hard to fill.
+ *   - ATM IV is computed PER EXPIRY (call+put IV averaged at the strike nearest spot); the
+ *     1SD debit-spread target = spot × that expiry's ATM-IV × sqrt(its DTE/365). The
+ *     symbol-level ATM IV (flags + iv_history.json) stays anchored to the expiry nearest
+ *     37 DTE, so the accumulated IV time series is unaffected by this change.
  */
 
 // OCC option symbol → { expiry:'YYYY-MM-DD', type:'C'|'P', strike:Number } (e.g. AAPL240315C00172500)
@@ -380,19 +402,26 @@ async function fetchOptionChain(sym, spot, cfg, dteMin, dteMax) {
   return contracts;
 }
 
-// choose the expiry closest to 37 DTE among the pulled contracts
-function pickExpiry(contracts) {
+// group the pulled contracts by expiry → [{ expiry, dte, calls, puts, atmIV }], sorted nearest-first.
+// Every group is a full mini-chain, so every expiry in the window can be evaluated independently.
+function groupExpiries(contracts, spot) {
   const today = new Date().toISOString().slice(0, 10);
   const dteOf = exp => Math.round((new Date(exp) - new Date(today)) / 86400000);
-  const expiries = [...new Set(contracts.map(c => c.expiry))];
-  if (!expiries.length) return null;
-  expiries.sort((a, b) => Math.abs(dteOf(a) - 37) - Math.abs(dteOf(b) - 37));
-  const expiry = expiries[0], dte = dteOf(expiry);
-  const inExp = contracts.filter(c => c.expiry === expiry);
-  const calls = inExp.filter(c => c.type === 'C').sort((a, b) => a.k - b.k);
-  const puts  = inExp.filter(c => c.type === 'P').sort((a, b) => a.k - b.k);
-  return { expiry, dte, calls, puts };
+  const by = {};
+  for (const c of contracts) (by[c.expiry] = by[c.expiry] || []).push(c);
+  return Object.keys(by).sort().map(expiry => {
+    const inExp = by[expiry];
+    const calls = inExp.filter(c => c.type === 'C').sort((a, b) => a.k - b.k);
+    const puts  = inExp.filter(c => c.type === 'P').sort((a, b) => a.k - b.k);
+    return { expiry, dte: dteOf(expiry), calls, puts, atmIV: atmIvOf(calls, puts, spot) };
+  });
 }
+// the "anchor" expiry = nearest 37 DTE (mid-window). Used for the symbol-level ATM IV,
+// the IV-history record, and the symbol-level flags — same choice the old single-expiry
+// picker made, so the accumulated IV series stays continuous.
+const anchorGroup = groups => groups.length
+  ? groups.reduce((a, g) => Math.abs(g.dte - 37) < Math.abs(a.dte - 37) ? g : a)
+  : null;
 
 const r2 = x => x == null ? null : Math.round(x * 100) / 100;
 const legLiquid = (leg, maxSpread) => leg && leg.bid != null && leg.ask != null && leg.bid > 0 && (leg.ask - leg.bid) <= maxSpread;
@@ -420,7 +449,9 @@ function atmIvOf(calls, puts, spot) {
   return ivs.length ? ivs.reduce((a, b) => a + b, 0) / ivs.length : null;
 }
 
-function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
+// builds the five strategies on ONE expiry's mini-chain (unchanged math from the old
+// single-expiry version) — bestSpreads() below runs this per expiry and keeps the winners.
+function buildSpreadsForExpiry(spot, atmIV, dte, calls, puts, cfg) {
   const S = {};
   const oneSD = atmIV != null ? spot * atmIV * Math.sqrt(Math.max(dte, 1) / 365) : null;
 
@@ -518,17 +549,74 @@ function buildSpreads(spot, atmIV, dte, calls, puts, cfg) {
   return S;
 }
 
-// earnings date inside the chosen expiry? (Finnhub earnings calendar; null = could not check)
-async function earningsCheck(sym, expiry, cfg) {
+/* Evaluate every expiry in the window and keep, per strategy, the best candidate.
+ * groups = groupExpiries() output; earn = earningsNext() result (null = could not check,
+ * { date } = next earnings date between today and the window end, date null = none found).
+ * Each winning spread carries its own expiry/dte, and credit spreads + condor carry
+ * earnings_inside for THEIR expiry (a 31-DTE expiry can dodge a day-40 earnings report). */
+function bestSpreads(spot, groups, earn, cfg) {
+  const passes = arr => arr.reduce((n, f) => n + (f === true ? 1 : 0), 0);
+  const cand = { bps: [], bcs: [], bull_call: [], bear_put: [], condor: [] };
+  for (const g of groups) {
+    const S = buildSpreadsForExpiry(spot, g.atmIV, g.dte, g.calls, g.puts, cfg);
+    const ei = earn ? (earn.date != null && earn.date <= g.expiry) : null;   // earnings inside THIS expiry
+    for (const k in S) {
+      const sp = S[k];
+      sp.expiry = g.expiry; sp.dte = g.dte;
+      if (k === 'bps' || k === 'bcs' || k === 'condor') sp.earnings_inside = ei;
+      cand[k].push(sp);
+    }
+  }
+  // sort helper: highest score first, then two tie-breakers (each returns <0 when a should rank first)
+  const best = (list, score, tie1, tie2) => {
+    if (!list.length) return undefined;
+    list.sort((a, b) => (score(b) - score(a)) || tie1(a, b) || tie2(a, b));
+    return list[0];
+  };
+  const out = {};
+  // credit verticals — checks passed → ROI (credit/max-loss, the card's own yardstick) → nearest 37 DTE
+  for (const k of ['bps', 'bcs']) {
+    const usable = cand[k].filter(sp => sp.max_loss > 0);            // credit >= width = junk quote data, drop
+    const b = best(usable,
+      sp => passes([sp.ok.credit_4x, sp.ok.liquidity, sp.earnings_inside === false]),
+      (a, b2) => (b2.credit / b2.max_loss) - (a.credit / a.max_loss),
+      (a, b2) => Math.abs(a.dte - 37) - Math.abs(b2.dte - 37));
+    if (b) out[k] = b;
+  }
+  // debit verticals — checks passed → nearest 30 DTE (Cards 17/18: "~30 days ideal") → max-profit/debit
+  for (const k of ['bull_call', 'bear_put']) {
+    const usable = cand[k].filter(sp => sp.debit > 0);               // debit <= 0 = junk quote data, drop
+    const b = best(usable,
+      sp => passes([sp.ok.rr_1to2, sp.ok.liquidity]),
+      (a, b2) => Math.abs(a.dte - 30) - Math.abs(b2.dte - 30),
+      (a, b2) => (b2.max_profit / b2.debit) - (a.max_profit / a.debit));
+    if (b) out[k] = b;
+  }
+  // iron condor — checks passed → credit/max-loss → nearest 37 DTE (Card 8: 30-45)
+  {
+    const usable = cand.condor.filter(sp => sp.max_loss > 0);
+    const b = best(usable,
+      sp => passes([sp.ok.credit_each, sp.ok.liquidity, sp.earnings_inside === false]),
+      (a, b2) => (b2.credit / b2.max_loss) - (a.credit / a.max_loss),
+      (a, b2) => Math.abs(a.dte - 37) - Math.abs(b2.dte - 37));
+    if (b) out.condor = b;
+  }
+  return out;
+}
+
+// next earnings date between today and `toISO` — ONE Finnhub call per symbol, covering the
+// whole expiry window; per-expiry "inside" checks are then done locally for free.
+// Returns { date: 'YYYY-MM-DD' | null }, or null if the check could not run.
+async function earningsNext(sym, toISO, cfg) {
   if (!FINNHUB_KEY) return null;
   try {
     const from = new Date().toISOString().slice(0, 10);
-    const r = await fetch('https://finnhub.io/api/v1/calendar/earnings?from=' + from + '&to=' + expiry +
+    const r = await fetch('https://finnhub.io/api/v1/calendar/earnings?from=' + from + '&to=' + toISO +
       '&symbol=' + encodeURIComponent(sym) + '&token=' + FINNHUB_KEY, { signal: AbortSignal.timeout(cfg.fundTimeout) });
     if (!r.ok) return null;
     const j = await r.json();
-    const list = (j && j.earningsCalendar) || [];
-    return list.length ? { inside: true, date: list[0].date } : { inside: false, date: null };
+    const dates = ((j && j.earningsCalendar) || []).map(e => e.date).filter(Boolean).sort();
+    return { date: dates.length ? dates[0] : null };
   } catch (e) { return null; }
 }
 
@@ -645,29 +733,32 @@ async function enrichOptions(meta, cfg, stockTrend) {
       try { contracts = await fetchOptionChain(sym, spot, cfg, 25, 60); dteOff = true; } catch (e) {}
       await sleep(gap);
     }
-    const picked = contracts.length ? pickExpiry(contracts) : null;
-    if (!picked) { out.symbols[sym] = { has_options: false }; done++; continue; }
-    const atmIV = atmIvOf(picked.calls, picked.puts, spot);
-    const earn = await earningsCheck(sym, picked.expiry, cfg);
+    const groups = contracts.length ? groupExpiries(contracts, spot) : [];
+    if (!groups.length) { out.symbols[sym] = { has_options: false }; done++; continue; }
+    const anchor = anchorGroup(groups);                                       // expiry nearest 37 DTE — symbol-level IV/flags only
+    const atmIV = anchor.atmIV;
+    const earn = await earningsNext(sym, groups[groups.length - 1].expiry, cfg);   // one call covers the WHOLE window
     if (FINNHUB_KEY) await sleep(cfg.fundGapMs);
     if (atmIV != null) recordIv(hist, sym, today, atmIV, cfg.ivHistKeep);
     out.symbols[sym] = {
-      has_options: true, px: spot, expiry: picked.expiry, dte: picked.dte, dte_off_window: dteOff || undefined,
+      has_options: true, px: spot, expiry: anchor.expiry, dte: anchor.dte, dte_off_window: dteOff || undefined,
+      expiries: groups.map(g => [g.expiry, g.dte]),                 // every expiry evaluated this run (panel shows the window)
       atm_iv: atmIV != null ? +atmIV.toFixed(4) : null,
       iv_pctl: atmIV != null ? ivPercentile(hist, sym, atmIV) : null,
       iv_obs: (hist[sym] || []).length,
       flags: {
         iv_high: atmIV != null ? atmIV > cfg.ivHigh : null,       // met → credit spreads (BPS/BCS) favoured
         iv_low:  atmIV != null ? atmIV < cfg.ivLow  : null,       // met → debit spreads (Bull Call/Bear Put) favoured
-        earnings_inside: earn ? earn.inside : null,               // credit cards: must be false; null = could not check
-        earnings_date:   earn ? earn.date   : null,
+        earnings_inside: earn ? (earn.date != null && earn.date <= anchor.expiry) : null,   // vs the ANCHOR expiry (back-compat); each credit spread carries its own per-expiry value
+        earnings_date:   earn ? earn.date   : null,               // next earnings between today and the window end (null = none found)
+        mc_20b: (meta[sym].mc || 0) >= 2e10,                      // credit cards' "ideally large cap > $20bn" — informational
         spy_bear: spy ? spy.bear : null,                          // market-regime flag: S&P 500 50MA<150MA (BPS card's "S&P in a bull market" check)
         stock_sma20: (stockTrend[sym] || {}).sma20 != null ? stockTrend[sym].sma20 : null,   // stock's own daily SMAs (tool's 20/50)
         stock_sma50: (stockTrend[sym] || {}).sma50 != null ? stockTrend[sym].sma50 : null,
         stock_trend_up: (stockTrend[sym] || {}).up != null ? stockTrend[sym].up : null,       // met (up) = daily 20-SMA > 50-SMA — BPS card's "stock in an uptrend"
         stock_adx: (stockTrend[sym] || {}).adx != null ? stockTrend[sym].adx : null,          // Wilder ADX(14): < ~20 = rangebound (Iron Condor gate); > ~25 = trending
       },
-      spreads: buildSpreads(spot, atmIV, picked.dte, picked.calls, picked.puts, cfg),
+      spreads: bestSpreads(spot, groups, earn, cfg),
     };
     withOpts++; done++;
     if (done % 25 === 0) process.stderr.write(`  options ${done}/${syms.length}\r`);
@@ -809,5 +900,5 @@ async function main() {
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
 module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals, splitAdjustedShares, fetchSplitsFor, daysBetweenISO,
-                   parseOcc, pickExpiry, byDelta, atmIvOf, buildSpreads, earningsCheck, fetchSpyRegime, adxLatest, dailySmaTrend,
+                   parseOcc, groupExpiries, anchorGroup, byDelta, atmIvOf, buildSpreadsForExpiry, bestSpreads, earningsNext, fetchSpyRegime, adxLatest, dailySmaTrend,
                    loadIvHistory, recordIv, ivPercentile, enrichOptions, CFG };
