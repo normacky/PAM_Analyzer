@@ -706,12 +706,12 @@
         <div class="glo">
           <div><b>UC1 / UC2</b> — Up Continuation (long, Lesson 16/17). Up flow above the 50sma; a <i>minority</i> pullback (no majority flush) forces an LP; bullish EXE closes back at/above it within 5 bars. Deck gates enforced: no flush-<i>up</i> bar in the 3 bars into the pullback's origin, structure near/testing the 20/50 SMA, EXE still below the pullback's interior high. "2" = the deeper two-leg (A-B-C-D) variant.</div>
           <div><b>DC1 / DC2</b> — Down Continuation (short). Exact mirror: down flow, minority bounce into an LP, no flush-down into the origin, near/testing 20/50 SMA, bearish EXE rejects it within 5 bars while still above the interior low.</div>
-          <div><b>UR1 / UR2</b> — Reversal shorts (Lesson 9/19). The approach into the LP swing-high is a <i>majority flush-up MOVE</i>: steep (≥1.5×ATR per bar) and starting at/beyond the 50% line of X (the LP) to Y (the lowest point right of X). Bearish EXE closes back at/below the LP within 5 bars. <b>UR2</b> = in up flow (double top in an uptrend), with the current retracement bigger than the prior one; <b>UR1</b> = sideways/non-up-flow (verify the range by eye).</div>
-          <div><b>DR1 / DR2</b> — Reversal longs. Exact mirror: majority flush-<i>down</i> move into an LP swing-low (leg from at/above the 50% X–Y line), bullish EXE recovers it within 5 bars. <b>DR2</b> = down flow (double bottom in a downtrend) + bigger retracement than the prior; <b>DR1</b> = sideways/non-down-flow. A slow grind into the LP is a wave, not a flush ⇒ no reversal label.</div>
+          <div><b>UR1 / UR2</b> — Reversal shorts (Lesson 9/19). <b>UR1</b> is the general case: a force top at a live LP swing-high with a bearish EXE closing back at/below it within 5 bars, in <i>either</i> flow. <b>UR2</b> is the refined <i>subset</i>: up flow, plus a <i>majority flush-up MOVE</i> into the LP — steep (≥1.5×ATR per bar) and starting at/beyond the 50% line of X (the LP) to Y (the lowest point right of X) — plus a retracement bigger than the prior one. A UR2 is the one the deck says usually marks a real trend change.</div>
+          <div><b>DR1 / DR2</b> — Reversal longs. Exact mirror: <b>DR1</b> = force bottom at a live LP swing-low, bullish EXE recovers it within 5 bars, either flow. <b>DR2</b> = the subset: down flow + a majority flush-<i>down</i> move into the LP (leg from at/beyond the 50% X–Y line) + a bigger retracement than the prior one. A slow grind into the LP is a wave, not a flush — that is still a DR1, just not a DR2.</div>
           <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Then a single <i>Force Strike bar</i> — a same-direction EXE (PIN / Ice Cream / Mark Up-Down) — pierces the mother's extreme intrabar and closes back inside on that same bar, occurring within 3 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
-          <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars.</div>
+          <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars. A swing level needs <b>3 higher/lower bars to its LEFT and 1 to its right</b> (v0.19: left precedence, plus one bar of confirmation) and dies once any bar <i>closes</i> through it.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
-          <div><b>1 vs 2</b> — a depth/flush heuristic here, not exact slide geometry; eyeball the structure to confirm.</div>
+          <div><b>1 vs 2</b> — the "2" is always the narrower case: for continuations a deeper two-leg pullback, for reversals a majority flush + bigger retracement. Every "2" is also a "1". Geometry is approximated, not slide-exact — eyeball the structure to confirm.</div>
         </div>
       </details>
     </div>
@@ -868,13 +868,24 @@ function classifyBar(b,avg){
                       if(c<=bot3)return{type:'ICE-CREAM',dir:'bear',flush:false,bf};}
   return{type:'neutral',dir:null,flush:false,bf};
 }
-function pivots(b,k){const hi=b.map(_=>false),lo=b.map(_=>false);
-  for(let i=k;i<b.length-k;i++){let mh=-1e9,ml=1e9;
-    for(let j=i-k;j<=i+k;j++){mh=Math.max(mh,b[j].high);ml=Math.min(ml,b[j].low);}
+function pivots(b,kl,kr){
+  // v0.19 — ASYMMETRIC swing pivots: kl bars of LEFT precedence, kr bars of right confirmation.
+  // Until v0.18 this was symmetric (3 left AND 3 right), which was never a course rule — the deck
+  // never defines a swing mechanically, and "Left Precedence" earns its name from the bars to the
+  // LEFT. Demanding 3 higher lows to the right as well means a low that is undercut within 2-3 bars
+  // (exactly what happens in a fast pullback) never becomes an LP at all, so no force can ever form
+  // against it. Real case (LITE weekly, Jul 2026): the 776.01 shelf was disqualified purely because
+  // the 2nd and 3rd bars to its right were lower, and a textbook UC1 went unlabelled. The right side
+  // is only confirmation lag; kr=1 keeps a level from being called on the bar itself while still
+  // recognising it one bar later. The un-breached rule in enrich() prunes the rest.
+  if(kr==null)kr=1; if(kl==null)kl=3;
+  const hi=b.map(_=>false),lo=b.map(_=>false);
+  for(let i=kl;i<b.length-kr;i++){let mh=-1e9,ml=1e9;
+    for(let j=i-kl;j<=i+kr;j++){mh=Math.max(mh,b[j].high);ml=Math.min(ml,b[j].low);}
     if(b[i].high===mh)hi[i]=true;if(b[i].low===ml)lo[i]=true;}
   return{hi,lo};}
 function enrich(bars){
-  const c=bars.map(b=>b.close),s50=sma(c,50),s20=sma(c,20),s200=sma(c,200),a=atr(bars,14),{hi,lo}=pivots(bars,3);
+  const c=bars.map(b=>b.close),s50=sma(c,50),s20=sma(c,20),s200=sma(c,200),a=atr(bars,14),{hi,lo}=pivots(bars,3,1);
   const rg=bars.map(b=>b.high-b.low);
   bars.forEach((b,i)=>{const w=rg.slice(Math.max(0,i-10),i),avg=w.length?w.reduce((x,y)=>x+y,0)/w.length:0;
     b.cls=classifyBar(b,avg);b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;});
@@ -935,7 +946,7 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.18';
+const ENGINE_VERSION='v0.19';
 function findForce(bars,i,FW=5){
   // Force detection, v0.15 rules (v0.18: also returns j — the LP entry's own bar index,
   // which is point X for the majority-flush geometry):
@@ -1124,47 +1135,60 @@ function scan(bars){
         ?`force-top scenario — strike bar pierced above LP ${fmt(fs.lp)} and closed back at/below it (standalone-tradeable per course)`
         :'inside-bar trap — strike bar pierced above mother high and closed back inside (formation only, no LP involved)';}
     else if(force==='bottom'&&eB){
-      // v0.18 — deck-aligned split (Lessons 9/16/17/19, owner-ratified 12 Jul 2026):
-      // the approach leg decides the FAMILY. Majority flush MOVE (50% X–Y geometry +
-      // ≥1.5×ATR/bar steepness) -> reversal (DR2 in down flow with bigger-retracement
-      // rule, DR1 otherwise — sideways defined as "not in the trend's flow"). No
-      // majority flush -> continuation in up flow, gated by the deck's characteristics
-      // (no flush-up bar into the origin, near/test 20/50 SMA, EXE early vs interior
-      // high). EXE window is 5 bars for BOTH families (owner override of the reversal
-      // decks' 4). Gates failing -> silent: the pattern has no name in the taxonomy.
+      // v0.19 — the "1" family is the SUPERSET, not a sibling. The deck (Lesson 19) gives DR1's
+      // flow as "above &/or below 50 SMA" and states DR2 is a SUBSET of DR1; v0.18 inverted that,
+      // making a majority flush a precondition for the whole reversal family, so a force bottom in
+      // DOWN flow with no majority flush had no reachable label at all and the scan went silent.
+      // (Real case: DXYZ weekly, Jul 2026 — live LP 23.81, bullish ice-cream EXE reclaiming it,
+      // down flow: a textbook DR1 that fell off the end of the tree.)
+      //
+      // v0.19 tree: the approach leg still decides FAMILY, but only where the two families actually
+      // compete — up flow, where a force bottom could be either a UC retracement or a DR reversal.
+      // A minority pullback in up flow -> continuation (deck gates as before; gates failing stays
+      // silent, since with no majority down move there is nothing for a reversal to reverse).
+      // EVERYTHING ELSE that is a genuine force bottom with a bullish EXE at a live LP is at least
+      // a DR1. DR2 is then the refined subset: down flow + majority flush MOVE + bigger retracement.
+      // EXE window remains 5 bars for both families (owner override of the reversal decks' 4).
       const mf=majorityFlush(bars,i,fRes);
-      if(mf.ok){
-        if(flow==='down'){
-          const br=biggerRetracement(bars,i,fRes,mf.yExt);
-          if(br.ok){label='DR2';dir='long';
-            why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bullish EXE recovered the LP`;}
-          else if(br.unmeasurable){label='DR2';dir='long';
-            why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bullish EXE recovered the LP`;}
-          // measurably smaller retracement than the prior one -> not DR2 per deck -> silent
-        }else{label='DR1';dir='long';
-          why=`sideways/non-down-flow context · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · bullish EXE recovered the LP — verify the range visually`;}
-      }else if(flow==='up'){
+      if(flow==='up'&&!mf.ok){                       // continuation family (UC) — the only contested case
         const g=contGates(bars,i,'up');
         if(g.ok){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
           why=`up flow · minority pullback forced ${fmt(lv)} · no flush-up into the origin · near/testing 20/50 SMA · bullish EXE reclaimed it early`;}
+      }else{                                         // reversal family (DR) — DR2 if it qualifies, else DR1
+        const br=(mf.ok&&flow==='down')?biggerRetracement(bars,i,fRes,mf.yExt):null;
+        if(br&&br.ok){label='DR2';dir='long';
+          why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bullish EXE recovered the LP`;}
+        else if(br&&br.unmeasurable){label='DR2';dir='long';
+          why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bullish EXE recovered the LP`;}
+        else{label='DR1';dir='long';
+          const tier=mf.ok
+            ? (br?'majority flush-down present but the retracement is SMALLER than the prior one — DR1, not DR2'
+                 :`majority flush-down into the LP but flow is ${flow}, not down — DR1, not DR2 (verify the range by eye)`)
+            : 'no majority flush-down — the approach was a wave, so DR1 (the general reversal), not DR2';
+          why=`${flow} flow · force-bottom (bear trap) at ${fmt(lv)} · bullish EXE recovered it · ${tier}`;}
       }
     }
     else if(force==='top'&&eS){
-      // v0.18 — exact mirror of the force-bottom tree above.
+      // v0.19 — exact mirror of the force-bottom tree above. UR1 is the superset (deck: flow
+      // "above &/or below 50 SMA"); UR2 is the subset needing up flow + majority flush + bigger
+      // retracement. A force top in UP flow with no majority flush was silent in v0.18; it is a UR1.
       const mf=majorityFlush(bars,i,fRes);
-      if(mf.ok){
-        if(flow==='up'){
-          const br=biggerRetracement(bars,i,fRes,mf.yExt);
-          if(br.ok){label='UR2';dir='short';
-            why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bearish EXE rejected the LP`;}
-          else if(br.unmeasurable){label='UR2';dir='short';
-            why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bearish EXE rejected the LP`;}
-        }else{label='UR1';dir='short';
-          why=`sideways/non-up-flow context · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · bearish EXE rejected the LP — verify the range visually`;}
-      }else if(flow==='down'){
+      if(flow==='down'&&!mf.ok){                     // continuation family (DC) — the only contested case
         const g=contGates(bars,i,'down');
         if(g.ok){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
           why=`down flow · minority bounce forced ${fmt(lv)} · no flush-down into the origin · near/testing 20/50 SMA · bearish EXE rejected it early`;}
+      }else{                                         // reversal family (UR) — UR2 if it qualifies, else UR1
+        const br=(mf.ok&&flow==='up')?biggerRetracement(bars,i,fRes,mf.yExt):null;
+        if(br&&br.ok){label='UR2';dir='short';
+          why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bearish EXE rejected the LP`;}
+        else if(br&&br.unmeasurable){label='UR2';dir='short';
+          why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bearish EXE rejected the LP`;}
+        else{label='UR1';dir='short';
+          const tier=mf.ok
+            ? (br?'majority flush-up present but the retracement is SMALLER than the prior one — UR1, not UR2'
+                 :`majority flush-up into the LP but flow is ${flow}, not up — UR1, not UR2 (verify the range by eye)`)
+            : 'no majority flush-up — the approach was a wave, so UR1 (the general reversal), not UR2';
+          why=`${flow} flow · force-top (bull trap) at ${fmt(lv)} · bearish EXE rejected it · ${tier}`;}
       }
     }
     if(label){
