@@ -74,9 +74,9 @@
   #chartOverlay{position:absolute;pointer-events:none;z-index:4}
   .legend{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11px;color:var(--mut);padding:8px 14px 6px}
   .legend b{display:inline-block;width:16px;height:0;border-top-width:2px;border-top-style:solid;vertical-align:middle;margin-right:6px}
-  .tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  .tip{position:absolute;pointer-events:none;background:rgba(17,22,29,0.72);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);border:1px solid rgba(255,255,255,0.09);border-radius:8px;
     padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--txt);min-width:172px;
-    opacity:0;transition:opacity .08s;z-index:5;box-shadow:0 8px 24px #0008}
+    opacity:0;transition:opacity .08s;z-index:5;box-shadow:0 8px 24px #0006}
   .tip .d{color:var(--force);margin-bottom:3px}
   .tip .row{display:flex;justify-content:space-between;gap:14px;color:var(--mut)}
   .tip .row b{color:var(--txt);font-weight:500}
@@ -234,7 +234,7 @@
   [data-theme="light"] .btn:hover{border-color:#cfc8ba}
   [data-theme="light"] .layers button:hover{border-color:#cfc8ba}
   [data-theme="light"] .drawer-btn.open{border-color:var(--line)}
-  [data-theme="light"] .tip{box-shadow:0 10px 30px rgba(60,52,40,.18)}
+  [data-theme="light"] .tip{background:rgba(255,255,255,0.78);border-color:rgba(60,52,40,0.14);box-shadow:0 10px 30px rgba(60,52,40,.18)}
   /* ---- effectiveness disclosure affordance ---- */
   .eff-disc{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid var(--line);border-radius:5px;color:var(--mut);font-size:9px;margin-right:10px;vertical-align:middle;transition:.15s;flex:none}
   .eff tr.eff-grp:hover .eff-disc{border-color:var(--force);color:var(--force);background:var(--panel-in)}
@@ -1671,9 +1671,19 @@ function showTip(b,mx,rWidth,isTouch){     // the rich OHLC card (unchanged cont
     <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
     <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
     <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
-  if(isTouch){ const w=196; tip.style.left=(mx>rWidth/2?8:Math.max(8,rWidth-w-8))+'px'; }   // keep the card clear of the finger
-  else { tip.style.left=Math.min(mx+14,rWidth-190)+'px'; }
-  tip.style.top='18px'; tip.style.opacity=1;
+  tip.style.opacity=1;                                          // show it first so we can measure its real size
+  const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
+  const tw=tip.offsetWidth||196, th=tip.offsetHeight||120, gapX=16, gapY=isTouch?22:16;
+  // horizontal: sit to the right of the pointer, flip to the left near the right edge, then clamp inside the chart
+  let lx=ox+mx+gapX;
+  if(lx+tw>ox+rWidth-4) lx=ox+mx-tw-gapX;
+  lx=Math.max(ox+4,Math.min(lx,ox+rWidth-tw-4));
+  // vertical: mouse -> just below the pointer (flips above near the bottom); touch -> ABOVE the fingertip so your finger never covers it
+  let ty;
+  if(isTouch){ ty=oy+my-th-gapY; if(ty<oy+4) ty=oy+my+gapY+20; }
+  else { ty=oy+my+gapY; if(ty+th>oy+chartH-4) ty=oy+my-th-gapY; }
+  ty=Math.max(oy+4,Math.min(ty,oy+chartH-th-4));
+  tip.style.left=lx+'px'; tip.style.top=ty+'px';
 }
 function renderXhair(mx,my,isTouch,rWidth){   // mx,my = CSS px relative to the chart's top-left
   if(!GEO||!ov||!octx)return;
