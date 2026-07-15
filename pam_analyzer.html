@@ -71,6 +71,7 @@
   .chartcard{border:1px solid var(--line);border-radius:14px;background:var(--panel);
     padding:14px 10px 6px;position:relative;overflow:hidden}
   #chart{display:block;width:100%;height:440px;touch-action:pan-y}
+  #chartOverlay{position:absolute;pointer-events:none;z-index:4}
   .legend{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:11px;color:var(--mut);padding:8px 14px 6px}
   .legend b{display:inline-block;width:16px;height:0;border-top-width:2px;border-top-style:solid;vertical-align:middle;margin-right:6px}
   .tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;
@@ -559,6 +560,7 @@
     <button class="chart-collapse-btn" id="chartCollapse" type="button">▾ Hide chart</button>
   <div class="chartcard">
     <canvas id="chart"></canvas>
+    <canvas id="chartOverlay"></canvas>
     <div class="tip" id="tip"></div>
     <div style="display:flex;align-items:center;gap:8px;padding:6px 12px 2px">
       <button class="btn" id="fitAll" style="padding:5px 9px;font-size:11px">Fit all</button>
@@ -1323,6 +1325,7 @@ function renderLog(){
 
 /* ---------- chart ---------- */
 const cv=$('#chart'),ctx=cv.getContext('2d');let GEO=null;
+const ov=$('#chartOverlay'),octx=ov&&ov.getContext('2d');
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 /* ============================================================
    EFFECTIVENESS — score every historical PAM / Turtle signal on
@@ -1471,7 +1474,7 @@ function drawCore(){
   const pad=(hi-lo)*0.06;hi+=pad;lo-=pad;
   const x=i=>padL+(n<=1?plotW/2:i/(n-1)*plotW), y=p=>priceTop+(hi-p)/(hi-lo)*priceH;
   const cw=Math.max(2,Math.min(11,plotW/n*0.6));
-  GEO={view,x,y,i0,padR,W,priceBot};
+  GEO={view,x,y,i0,padR,W,priceBot,priceTop,priceH,hi,lo,padL,chartBot,H};
 
   // ----- vertical gridlines: minor (week / month) + major (month / quarter), aligned to candles -----
   ctx.font='10px IBM Plex Mono';
@@ -1620,7 +1623,86 @@ function drawCore(){
   });
   function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 }
-function draw(){drawCore();}
+function draw(){drawCore();syncOverlay();}
+
+/* ============================================================
+   CROSSHAIR OVERLAY
+   A second, transparent <canvas> sits exactly on top of the chart.
+   We only ever draw the thin crosshair + two little axis pills on it,
+   so the (expensive) candles are never repainted while the pointer
+   moves — that keeps scrubbing smooth. Point anywhere and you read
+   the EXACT price at the pointer's height (right axis) and the date
+   of the bar the vertical line snaps to (bottom axis). Works with the
+   mouse on desktop and with a press-and-hold on mobile.
+   ============================================================ */
+function syncOverlay(){                    // keep the overlay locked onto the chart's exact size/position
+  if(!ov||!octx)return;
+  const dpr=window.devicePixelRatio||1;
+  ov.style.left=cv.offsetLeft+'px'; ov.style.top=cv.offsetTop+'px';
+  ov.style.width=cv.clientWidth+'px'; ov.style.height=cv.clientHeight+'px';
+  ov.width=Math.max(1,Math.round(cv.clientWidth*dpr));
+  ov.height=Math.max(1,Math.round(cv.clientHeight*dpr));
+  octx.setTransform(dpr,0,0,dpr,0,0);      // draw in CSS pixels, same as the base chart
+}
+function clearXhair(){ if(ov&&octx) octx.clearRect(0,0,ov.clientWidth,ov.clientHeight); }
+function xhColors(){ return THEME==='light'
+  ? {line:'#9b8f74',fill:'#4a4636',txt:'#fdfbf6'}
+  : {line:'#6178a0',fill:'#213047',txt:'#eaf0fb'}; }
+function xhDate(d){const m=String(d).split('-'); return m.length<3?String(d):(m[2]+' '+MON[+m[1]-1]+' '+m[0]);}
+function xhPrice(p){const a=Math.abs(p); return a>=1000?p.toFixed(1):a>=1?p.toFixed(2):p.toFixed(4);}
+function xhPill(cx,cy,text,C){             // a small filled axis label centred on (cx,cy)
+  octx.font='600 10px IBM Plex Mono'; octx.textBaseline='middle'; octx.textAlign='center';
+  const w=octx.measureText(text).width+10, h=15;
+  octx.globalAlpha=1; octx.fillStyle=C.fill; octx.fillRect(cx-w/2,cy-h/2,w,h);
+  octx.strokeStyle=C.line; octx.lineWidth=1; octx.strokeRect(cx-w/2+0.5,cy-h/2+0.5,w-1,h-1);
+  octx.fillStyle=C.txt; octx.fillText(text,cx,cy+0.5);
+}
+function showTip(b,mx,rWidth,isTouch){     // the rich OHLC card (unchanged content, just shared by mouse + touch)
+  if(!b)return;
+  const trig=TRIGS.find(t=>t.i===b.i);
+  const dirw=b.cls.dir==='bull'?'<span style="color:var(--long)">bullish</span>':b.cls.dir==='bear'?'<span style="color:var(--short)">bearish</span>':'neutral';
+  const ib=[];
+  if(S.ind.stoch&&b.stochK!=null)ib.push('Stoch '+b.stochK.toFixed(0)+'/'+(b.stochD!=null?b.stochD.toFixed(0):'–'));
+  if(S.ind.rsi&&b.rsi!=null)ib.push('RSI '+b.rsi.toFixed(0));
+  if(S.ind.macd&&b.macd!=null)ib.push('MACD '+b.macd.toFixed(2));
+  if(S.ind.atr&&b.atrW!=null)ib.push('ATR '+b.atrW.toFixed(2));
+  const indLine=ib.length?`<div class="cls" style="color:#8895ad">${ib.join(' · ')}</div>`:'';
+  tip.innerHTML=`<div class="d">${b.date}</div>
+    <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
+    <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
+    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
+  if(isTouch){ const w=196; tip.style.left=(mx>rWidth/2?8:Math.max(8,rWidth-w-8))+'px'; }   // keep the card clear of the finger
+  else { tip.style.left=Math.min(mx+14,rWidth-190)+'px'; }
+  tip.style.top='18px'; tip.style.opacity=1;
+}
+function renderXhair(mx,my,isTouch,rWidth){   // mx,my = CSS px relative to the chart's top-left
+  if(!GEO||!ov||!octx)return;
+  const g=GEO;
+  if(mx<0||mx>g.W||my<0||my>g.H){ clearXhair(); tip.style.opacity=0; return; }
+  let best=g.view[0],bd=1e9;                    // snap the vertical line to the nearest candle (dates are discrete)
+  for(const b of g.view){const d=Math.abs(g.x(b.i-g.i0)-mx); if(d<bd){bd=d;best=b;}}
+  const bx=g.x(best.i-g.i0);
+  const inPrice=my>=g.priceTop&&my<=g.priceBot;  // a "price" only means something inside the price panel
+  const C=xhColors();
+  clearXhair();
+  octx.save();
+  octx.lineWidth=1; octx.setLineDash([4,4]); octx.strokeStyle=C.line; octx.globalAlpha=.9;
+  octx.beginPath(); octx.moveTo(bx,g.priceTop); octx.lineTo(bx,g.chartBot); octx.stroke();   // vertical — spans every panel
+  if(inPrice){ octx.beginPath(); octx.moveTo(g.padL,my); octx.lineTo(g.W-g.padR,my); octx.stroke(); } // horizontal — price panel only
+  octx.setLineDash([]); octx.globalAlpha=1;
+  if(inPrice){                                    // exact price pill on the right axis
+    const price=g.hi-(my-g.priceTop)/g.priceH*(g.hi-g.lo);
+    const py=Math.max(g.priceTop+8,Math.min(g.priceBot-8,my));
+    octx.textAlign='left'; octx.textBaseline='middle'; octx.font='600 10px IBM Plex Mono';
+    const t=xhPrice(price), w=octx.measureText(t).width+10, h=15, px=g.W-g.padR+3;
+    octx.fillStyle=C.fill; octx.fillRect(px,py-h/2,w,h);
+    octx.strokeStyle=C.line; octx.lineWidth=1; octx.strokeRect(px+0.5,py-h/2+0.5,w-1,h-1);
+    octx.fillStyle=C.txt; octx.fillText(t,px+5,py+0.5);
+  }
+  { const dx=Math.max(g.padL+2,Math.min(g.W-g.padR-2,bx)); xhPill(dx,g.chartBot+11,xhDate(best.date),C); } // date pill on the bottom axis
+  octx.restore();
+  showTip(best,mx,rWidth,isTouch);
+}
 
 /* hover tooltip + horizontal pan/zoom */
 const tip=$('#tip');
@@ -1639,46 +1721,43 @@ $('#fitAll').onclick=()=>{S.span=BARS.length;S.start=0;draw();};
 function zoomBy(f){const fullN=BARS.length,right=S.start+S.span;let span=Math.round(S.span*f);span=Math.max(12,Math.min(fullN,span));S.span=span;S.start=clampStart(right-span);draw();}
 $('#zIn').onclick=()=>zoomBy(0.8); $('#zOut').onclick=()=>zoomBy(1.25);
 /* ---- touch: 1-finger horizontal pan, 2-finger pinch zoom (vertical swipe scrolls the page) ---- */
-let touch=null;
+let touch=null,lpTimer=null,touchXhair=false;
 function tdist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);}
-cv.addEventListener('touchstart',e=>{ if(!BARS.length)return;
-  if(e.touches.length===1){touch={mode:'pan',x:e.touches[0].clientX,y:e.touches[0].clientY,start:S.start,decided:false,horiz:false};}
-  else if(e.touches.length>=2){touch={mode:'zoom',d0:Math.max(1,tdist(e.touches)),span0:S.span,right:S.start+S.span};}
+function clearLP(){ if(lpTimer){clearTimeout(lpTimer);lpTimer=null;} }
+function enterXhair(clientX,clientY){        // press-and-hold engaged: turn the finger into a crosshair
+  if(!touch||!GEO)return; touchXhair=true; cv.style.touchAction='none';   // capture every direction so you can scrub freely
+  try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}               // tiny haptic hint (ignored where unsupported)
+  const r=cv.getBoundingClientRect(); renderXhair(clientX-r.left,clientY-r.top,true,r.width); }
+function exitXhairGesture(){ touchXhair=false; cv.style.touchAction=''; }  // lift finger: keep the crosshair on screen so it stays readable
+cv.addEventListener('touchstart',e=>{ if(!BARS.length)return; clearLP(); clearXhair(); tip.style.opacity=0; touchXhair=false;
+  if(e.touches.length===1){ const t0=e.touches[0];
+    touch={mode:'pan',x:t0.clientX,y:t0.clientY,start:S.start,decided:false,horiz:false};
+    lpTimer=setTimeout(()=>{ if(touch&&touch.mode==='pan'&&!touch.decided) enterXhair(touch.x,touch.y); },320);   // hold still ~0.3s -> crosshair
+  } else if(e.touches.length>=2){ touch={mode:'zoom',d0:Math.max(1,tdist(e.touches)),span0:S.span,right:S.start+S.span}; }
 },{passive:true});
 cv.addEventListener('touchmove',e=>{ if(!touch||!BARS.length)return;
+  if(touchXhair&&e.touches.length===1){ e.preventDefault();       // in crosshair mode: scrub, don't pan
+    const r=cv.getBoundingClientRect(); renderXhair(e.touches[0].clientX-r.left,e.touches[0].clientY-r.top,true,r.width); return; }
   if(touch.mode==='pan'&&e.touches.length===1){
     const dx=e.touches[0].clientX-touch.x, dy=e.touches[0].clientY-touch.y;
-    if(!touch.decided){ if(Math.abs(dx)<6&&Math.abs(dy)<6)return; touch.decided=true; touch.horiz=Math.abs(dx)>=Math.abs(dy); }
+    if(!touch.decided){ if(Math.abs(dx)<6&&Math.abs(dy)<6)return; touch.decided=true; touch.horiz=Math.abs(dx)>=Math.abs(dy); clearLP(); }  // movement cancels the hold
     if(!touch.horiz)return;
     e.preventDefault();
     const plotW=cv.clientWidth-8-58, perBar=plotW/Math.max(1,S.span-1);
     S.start=clampStart(touch.start-Math.round(dx/perBar)); tip.style.opacity=0; draw();
-  } else if(touch.mode==='zoom'&&e.touches.length>=2){
+  } else if(touch.mode==='zoom'&&e.touches.length>=2){ clearLP();
     e.preventDefault(); const d=Math.max(1,tdist(e.touches));
     let span=Math.round(touch.span0*(touch.d0/d)); span=Math.max(12,Math.min(BARS.length,span));
     S.span=span; S.start=clampStart(touch.right-span); draw();
   }
 },{passive:false});
-cv.addEventListener('touchend',e=>{ if(e.touches.length===0)touch=null; },{passive:true});
+cv.addEventListener('touchend',e=>{ clearLP(); if(e.touches.length===0){ touch=null; if(touchXhair)exitXhairGesture(); } },{passive:true});
 
-cv.addEventListener('mousemove',ev=>{if(!GEO)return;const r=cv.getBoundingClientRect(),mx=ev.clientX-r.left;
-  if(drag){const plotW=cv.clientWidth-8-58, perBar=plotW/Math.max(1,(S.span-1)), dxBars=Math.round((ev.clientX-drag.x)/perBar);
+cv.addEventListener('mousemove',ev=>{if(!GEO)return;const r=cv.getBoundingClientRect(),mx=ev.clientX-r.left,my=ev.clientY-r.top;
+  if(drag){clearXhair();tip.style.opacity=0;const plotW=cv.clientWidth-8-58, perBar=plotW/Math.max(1,(S.span-1)), dxBars=Math.round((ev.clientX-drag.x)/perBar);
     S.start=clampStart(drag.start-dxBars);draw();return;}
-  let best=GEO.view[0],bd=1e9;GEO.view.forEach(b=>{const d=Math.abs(GEO.x(b.i-GEO.i0)-mx);if(d<bd){bd=d;best=b;}});
-  const b=best;if(!b)return;const trig=TRIGS.find(t=>t.i===b.i);
-  const dirw=b.cls.dir==='bull'?'<span style="color:var(--long)">bullish</span>':b.cls.dir==='bear'?'<span style="color:var(--short)">bearish</span>':'neutral';
-  const ib=[];
-  if(S.ind.stoch&&b.stochK!=null)ib.push('Stoch '+b.stochK.toFixed(0)+'/'+(b.stochD!=null?b.stochD.toFixed(0):'–'));
-  if(S.ind.rsi&&b.rsi!=null)ib.push('RSI '+b.rsi.toFixed(0));
-  if(S.ind.macd&&b.macd!=null)ib.push('MACD '+b.macd.toFixed(2));
-  if(S.ind.atr&&b.atrW!=null)ib.push('ATR '+b.atrW.toFixed(2));
-  const indLine=ib.length?`<div class="cls" style="color:#8895ad">${ib.join(' · ')}</div>`:'';
-  tip.innerHTML=`<div class="d">${b.date}</div>
-    <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
-    <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
-    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
-  tip.style.left=Math.min(mx+14,r.width-190)+'px';tip.style.top='18px';tip.style.opacity=1;});
-cv.addEventListener('mouseleave',()=>tip.style.opacity=0);
+  renderXhair(mx,my,false,r.width);});
+cv.addEventListener('mouseleave',()=>{tip.style.opacity=0;clearXhair();});
 
 /* controls */
 function segWire(id,fn){document.querySelectorAll(`#${id} button`).forEach(b=>{b.onclick=()=>{
@@ -1852,8 +1931,8 @@ async function syncMerge(){try{const remote=await dRead();
       const seen=new Set(CHECKLOG.map(e=>e.s+'|'+e.t));                       // union check-log (no lost entries across devices)
       (remote.checklog||[]).forEach(e=>{const k=e.s+'|'+e.t;if(!seen.has(k)){CHECKLOG.push(e);seen.add(k);}});
       CHECKLOG.sort((a,b)=>b.t-a.t); if(CHECKLOG.length>500)CHECKLOG.length=500;
-      (remote.watchlist||[]).forEach(s=>{if(!WL.includes(s))WL.push(s);});      // union watchlist
-      if((remote.updatedAt||0)>+(LS.get('pam_upd')||0)){                        // newer scalar settings win
+      if((remote.updatedAt||0)>+(LS.get('pam_upd')||0)){                        // newer device wins: watchlist + scalar settings
+        if(Array.isArray(remote.watchlist))WL=remote.watchlist.slice();          // REPLACE (not union) so removals carry across devices
         if(remote.apiKey&&$('#keyInput'))$('#keyInput').value=remote.apiKey;
         if(remote.tf)S.tf=remote.tf; if(remote.layers)Object.assign(S.layers,remote.layers); if(remote.ind)Object.assign(S.ind,remote.ind);
         if(typeof remote.lens==='number')S.lens=remote.lens; if(typeof remote.recentOnly==='boolean')S.recentOnly=remote.recentOnly;
@@ -2665,13 +2744,18 @@ async function sbMerge(){
       const seen=new Set(CHECKLOG.map(e=>e.s+'|'+e.t));
       (remote.checklog||[]).forEach(e=>{const k=e.s+'|'+e.t;if(!seen.has(k)){CHECKLOG.push(e);seen.add(k);}});
       CHECKLOG.sort((a,b)=>b.t-a.t); if(CHECKLOG.length>500)CHECKLOG.length=500;
-      (remote.watchlist||[]).forEach(x=>{if(!WL.includes(x))WL.push(x);});
       if((remote.updatedAt||0)>+(LS.get('pam_upd')||0)){
+        // Watchlist follows "newest device wins": REPLACE with the remote list rather than union it in.
+        // Union could only ever add symbols, never drop one — so a deletion made on another device
+        // was silently re-added here and pushed back, resurrecting it. Replacing lets removals carry across.
+        if(Array.isArray(remote.watchlist))WL=remote.watchlist.slice();
         if(remote.apiKey&&$('#keyInput'))$('#keyInput').value=remote.apiKey;
         if(remote.tf)S.tf=remote.tf; if(remote.layers)Object.assign(S.layers,remote.layers); if(remote.ind)Object.assign(S.ind,remote.ind);
         if(typeof remote.lens==='number')S.lens=remote.lens; if(typeof remote.recentOnly==='boolean')S.recentOnly=remote.recentOnly;
         if(remote.lastSym)S.lastSym=remote.lastSym; if(remote.name)S.name=remote.name;
       }
+      // If LOCAL is the newer copy we keep its watchlist untouched and push it up below, so a deletion
+      // you just made on THIS device wins over an older cloud copy too.
       renderWL();renderCheckLog();syncToggleUI();
       if(typeof recompute==='function'){try{recompute();}catch(e){}}
     }
