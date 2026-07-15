@@ -1657,7 +1657,7 @@ function xhPill(cx,cy,text,C){             // a small filled axis label centred 
   octx.strokeStyle=C.line; octx.lineWidth=1; octx.strokeRect(cx-w/2+0.5,cy-h/2+0.5,w-1,h-1);
   octx.fillStyle=C.txt; octx.fillText(text,cx,cy+0.5);
 }
-function showTip(b,mx,rWidth,isTouch){     // the rich OHLC card (unchanged content, just shared by mouse + touch)
+function showTip(b,mx,my,rWidth,isTouch){   // rich OHLC card (shared by mouse + touch); mx,my = pointer in chart CSS px
   if(!b)return;
   const trig=TRIGS.find(t=>t.i===b.i);
   const dirw=b.cls.dir==='bull'?'<span style="color:var(--long)">bullish</span>':b.cls.dir==='bear'?'<span style="color:var(--short)">bearish</span>':'neutral';
@@ -1671,18 +1671,21 @@ function showTip(b,mx,rWidth,isTouch){     // the rich OHLC card (unchanged cont
     <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
     <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
     <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
-  tip.style.opacity=1;                                          // show it first so we can measure its real size
+  tip.style.opacity=1;                                          // show first so offsetWidth/offsetHeight read its real size
   const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
-  const tw=tip.offsetWidth||196, th=tip.offsetHeight||120, gapX=16, gapY=isTouch?22:16;
-  // horizontal: sit to the right of the pointer, flip to the left near the right edge, then clamp inside the chart
+  const tw=tip.offsetWidth||196, th=tip.offsetHeight||120;
+  const gapX=16, gapY=isTouch?26:16;                            // touch needs more gap so the fingertip never covers the card
+  // horizontal: follow the pointer on its RIGHT; the moment the box would spill past the right edge
+  //   (i.e. start covering the right-side candles) flip it to the LEFT of the pointer, then clamp on-chart
   let lx=ox+mx+gapX;
-  if(lx+tw>ox+rWidth-4) lx=ox+mx-tw-gapX;
-  lx=Math.max(ox+4,Math.min(lx,ox+rWidth-tw-4));
-  // vertical: mouse -> just below the pointer (flips above near the bottom); touch -> ABOVE the fingertip so your finger never covers it
+  if(lx+tw>ox+rWidth-6) lx=ox+mx-gapX-tw;
+  lx=Math.max(ox+6,Math.min(lx,ox+rWidth-tw-6));
+  // vertical: mouse sits just BELOW the pointer (flips above near the bottom);
+  //   touch sits ABOVE the fingertip (flips below near the top) so your finger never covers it
   let ty;
-  if(isTouch){ ty=oy+my-th-gapY; if(ty<oy+4) ty=oy+my+gapY+20; }
-  else { ty=oy+my+gapY; if(ty+th>oy+chartH-4) ty=oy+my-th-gapY; }
-  ty=Math.max(oy+4,Math.min(ty,oy+chartH-th-4));
+  if(isTouch){ ty=oy+my-gapY-th; if(ty<oy+6) ty=oy+my+gapY; }
+  else       { ty=oy+my+gapY;    if(ty+th>oy+chartH-6) ty=oy+my-gapY-th; }
+  ty=Math.max(oy+6,Math.min(ty,oy+chartH-th-6));
   tip.style.left=lx+'px'; tip.style.top=ty+'px';
 }
 function renderXhair(mx,my,isTouch,rWidth){   // mx,my = CSS px relative to the chart's top-left
@@ -1711,7 +1714,7 @@ function renderXhair(mx,my,isTouch,rWidth){   // mx,my = CSS px relative to the 
   }
   { const dx=Math.max(g.padL+2,Math.min(g.W-g.padR-2,bx)); xhPill(dx,g.chartBot+11,xhDate(best.date),C); } // date pill on the bottom axis
   octx.restore();
-  showTip(best,mx,rWidth,isTouch);
+  showTip(best,mx,my,rWidth,isTouch);
 }
 
 /* hover tooltip + horizontal pan/zoom */
