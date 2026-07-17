@@ -2600,9 +2600,19 @@ if(S.lastSym && ($('#keyInput').value||'').trim() && !DRIVE.connected){ $('#tkIn
 })();
 /* ===== options button on the chart panel (mirrors the scan-row options toggle) ===== */
 function chartOptDir(){
-  const rows=(SCAN&&SCAN.data&&SCAN.data.rows)||[]; const r=rows.find(x=>x.t===S.ticker);
-  if(r&&r.dir)return r.dir;
+  // v0.19.1 fix — the trigger badge on THIS chart wins. If the header says "DR1 active" the options
+  // card must lean the same way, mirroring the scan drawer (which uses the direction of the exact
+  // trigger row you tapped). Previously the scan list was checked FIRST and rows.find() took the
+  // first row for the ticker regardless of direction or timeframe, so a ticker with BOTH a long row
+  // (e.g. Turtle) and a short PAM row could show bull spreads on the chart but bear spreads in the
+  // drawer — same data, opposite lean.
   if(typeof ACTIVE!=='undefined'&&ACTIVE&&ACTIVE.dir)return ACTIVE.dir;
+  // No active trigger on the chart: use the freshest scan row for this ticker on the CHART's
+  // timeframe (read straight from the scan file, not whatever timeframe the scan tab is showing).
+  const blk=(typeof scanTfBlock==='function')?scanTfBlock((typeof S!=='undefined'&&S.tf)||'1'):null;
+  const mine=((blk&&blk.rows)||[]).filter(x=>x.t===S.ticker);
+  if(mine.length){ mine.sort((a,b)=>((a.ago!=null?a.ago:99)-(b.ago!=null?b.ago:99))); return mine[0].dir; }
+  // Last resort: the chart's flow direction.
   return (typeof A!=='undefined'&&A&&A.flow==='down')?'short':'long';
 }
 function chartOptSync(){
