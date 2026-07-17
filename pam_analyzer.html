@@ -329,6 +329,11 @@
   .optcard .ohwarn{font-size:9.5px;color:var(--short);background:#231310;border:1px solid #532f27;padding:1px 6px;border-radius:4px;margin-left:4px}
   .optcard .ohsub{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:3px}
   .optcard .ohguide{font-size:12px;color:var(--mut);margin:7px 0 2px}
+  .osdir{display:flex;gap:6px;margin:7px 0 2px;flex-wrap:wrap}
+  .osdirbtn{font-family:var(--mono);font-size:11px;padding:3px 11px;border-radius:999px;border:1px solid var(--faint);background:transparent;color:var(--faint);cursor:pointer}
+  .osdirbtn.on.long{border-color:var(--long);color:var(--long)}
+  .osdirbtn.on.short{border-color:var(--short);color:var(--short)}
+  .osdirbtn:not(.on):hover{color:var(--txt)}
   .optspread{border:1px solid var(--hair);border-radius:8px;background:var(--panel);padding:9px 11px;margin-top:8px}
   .optspread.fav{border-color:var(--force);box-shadow:0 0 0 1px #53452233}
   .optspread .osh{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -2296,6 +2301,34 @@ function optDetailCard(t,dir){
     +(ivPct!=null?' <span class="ohiv '+ivTag.toLowerCase()+'">'+ivTag+'</span>':'')
     +(o.dte_off_window?' <span class="ohwarn">DTE off-window</span>':'');
   wrap.appendChild(oh);
+  // v0.19.2 — every options card now carries BOTH sides. The default side follows the context it
+  // was opened from (chart -> the chart's active trigger; scan drawer -> the row you tapped) and
+  // this toggle flips to the other. A ticker can legitimately fire opposite triggers at once
+  // (PAM fades the move, Turtle chases it — opposite by design), so instead of the two entry
+  // points silently disagreeing, the card names the trigger behind each side.
+  const _fam=l=>/^S[12]s?$/.test(l||'')?'Turtle':'PAM';
+  const _byDir={};
+  try{
+    (((SCAN||{}).data||{}).rows||[]).filter(x=>x.t===t).forEach(x=>{
+      const cur=_byDir[x.dir]; if(!cur||((x.ago!=null?x.ago:99)<(cur.ago!=null?cur.ago:99))) _byDir[x.dir]={trig:x.trig,ago:x.ago};
+    });
+    if(typeof S!=='undefined'&&S.ticker===t&&typeof ACTIVE!=='undefined'&&ACTIVE&&ACTIVE.dir&&!_byDir[ACTIVE.dir]) _byDir[ACTIVE.dir]={trig:ACTIVE.label,ago:0};
+  }catch(e){}
+  const seg=document.createElement('div'); seg.className='osdir';
+  [['long','\u25b2 bull side'],['short','\u25bc bear side']].forEach(pair2=>{
+    const d=pair2[0], txt=pair2[1];
+    const b=document.createElement('button'); b.type='button';
+    b.className='osdirbtn '+d+((long?'long':'short')===d?' on':'');
+    b.textContent=txt+(_byDir[d]?(' \u00b7 '+_byDir[d].trig):'');
+    b.onclick=()=>{ if((long?'long':'short')!==d) wrap.replaceWith(optDetailCard(t,d)); };
+    seg.appendChild(b);
+  });
+  wrap.appendChild(seg);
+  if(_byDir.long&&_byDir.short){
+    const bn=document.createElement('div'); bn.className='ohsub';
+    bn.textContent=t+' fired fresh triggers both ways \u2014 '+_byDir.long.trig+' (long \u00b7 '+_fam(_byDir.long.trig)+') vs '+_byDir.short.trig+' (short \u00b7 '+_fam(_byDir.short.trig)+'). Fade-vs-chase disagreement is by design \u2014 toggle to compare.';
+    wrap.appendChild(bn);
+  }
   const pl=document.createElement('div'); pl.className='ohsub';
   const _blk=scanOptBlock()||{};
   const _hi=(_blk.iv_high_threshold!=null)?Math.round(_blk.iv_high_threshold*100):35;
