@@ -1493,9 +1493,11 @@ function earnPflagGet(){ try{ const f=JSON.parse(localStorage.getItem('pam_earn_
 function earnPflagSet(id){ try{ const f=earnPflagGet(); f.d=earnTodayISO(); f[id]=1; localStorage.setItem('pam_earn_pflag',JSON.stringify(f)); }catch(e){} }
 /* each provider returns {rows:[[date,hour,est,act],...]} | {deny:true} (plan lacks it) | {rate:true} (throttled right now) */
 async function earnMdRows(sym,key){                              // marketdata.app — reportDate + reportTime + est + actual, ~1y on the free tier
-  const from=new Date(Date.now()-460*864e5).toISOString().slice(0,10);
+  const from=new Date(Date.now()-370*864e5).toISOString().slice(0,10);   // 370d covers the 1-year 2-Day chart and stays inside the proven free-tier reach
   const to=new Date(Date.now()+70*864e5).toISOString().slice(0,10);
-  const r=await fetch('https://api.marketdata.app/v1/stocks/earnings/'+encodeURIComponent(sym)+'/?from='+from+'&to='+to+'&token='+encodeURIComponent(key));
+  const mk=t=>fetch('https://api.marketdata.app/v1/stocks/earnings/'+encodeURIComponent(sym)+'/?from='+from+'&to='+t+'&token='+encodeURIComponent(key));
+  let r=await mk(to);
+  if(r.status===402)r=await mk(new Date().toISOString().slice(0,10));   // forward reach beyond the plan? retry with the proven history-only window before giving up
   if(r.status===401||r.status===402||r.status===403)return {deny:true};
   if(r.status===429)return {rate:true};
   let j=null; try{ j=await r.json(); }catch(e){ return {rows:[]}; }
