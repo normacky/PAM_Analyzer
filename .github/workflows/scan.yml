@@ -56,6 +56,7 @@ jobs:
           git add iv_history.json 2>/dev/null || true        # IV history accumulator (may not exist on the first run)
           git add enrichment_cache.json 2>/dev/null || true  # shares/industry cache (may not exist on the first run)
           git add earnings.json 2>/dev/null || true          # earnings calendar accumulator (dates + EPS est/actual)
+          git add earnings_backfill.json 2>/dev/null || true # backfill bookkeeping (probe result + done list)
           git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || { echo "nothing to commit"; exit 0; }
           # The scan runs ~3 hours, so main may have moved on (e.g. you edited files) while it ran. Rebase our
           # results commit onto the latest main and push, retrying a few times. This is exactly what failed before:
