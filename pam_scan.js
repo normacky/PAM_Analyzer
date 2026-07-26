@@ -82,6 +82,11 @@ const CFG = {
   fundCacheFile:     process.env.PAM_FUND_CACHE       || 'enrichment_cache.json', // shares-outstanding + industry cache, committed back to the repo
   fundCacheDays:     parseInt(process.env.PAM_FUND_CACHE_DAYS || '30', 10),       // re-pull a ticker from Finnhub only when its cached snapshot is older than this
   splitLookbackDays: parseInt(process.env.PAM_SPLIT_LOOKBACK   || '40', 10),      // how far back to ask Alpaca for splits each run — MUST exceed fundCacheDays so no split is missed within a cache cycle
+  /* ---- earnings calendar (dates + EPS est/actual for the whole universe, one bulk call) ---- */
+  earnFile:     process.env.PAM_EARN_FILE || 'earnings.json',            // accumulator, committed back to the repo; the analyzer fetches it next to scan_results.json
+  earnFwdDays:  parseInt(process.env.PAM_EARN_FWD  || '65', 10),         // forward reach: covers the panel's "next month" view AND the options 25-60 DTE earnings_inside check in one pull
+  earnBackDays: parseInt(process.env.PAM_EARN_BACK || '7', 10),          // nightly look-back so a just-reported epsActual replaces last week's estimate-only row
+  earnKeepDays: parseInt(process.env.PAM_EARN_KEEP || '460', 10),        // ~15 months of history retained — enough past markers for a 1-year 2-Day chart
 };
 
 const FINNHUB_KEY = process.env.FINNHUB_KEY;   // free key from finnhub.io — adds market cap + industry
@@ -604,10 +609,113 @@ function bestSpreads(spot, groups, earn, cfg) {
   return out;
 }
 
-// next earnings date between today and `toISO` — ONE Finnhub call per symbol, covering the
-// whole expiry window; per-expiry "inside" checks are then done locally for free.
+/* ---- 4e. earnings calendar — dates + EPS estimate/actual for the WHOLE universe ----
+ * One bulk Finnhub /calendar/earnings call (no &symbol=) returns every US company reporting
+ * inside a date window, so a single nightly request covers all ~11,600 counters. The result is
+ * kept in earnings.json (committed back to the repo, like iv_history.json) with the shape
+ *   { updated, symbols: { "LIN": [["2026-04-17","bmo",4.20,4.33], ...] } }   // [date, hour, epsEstimate, epsActual]
+ * sorted by date per symbol. The analyzer fetches this file from the same folder as
+ * scan_results.json and draws the chart markers / scan-row chips from it.
+ *
+ * Merge rules, documented:
+ *   - The nightly window is [today-earnBackDays, today+earnFwdDays]. Because that window is
+ *     pulled IN FULL every night, tonight's pull is the complete truth for all FUTURE dates:
+ *     every stored future entry is dropped and rebuilt from the pull. That is what makes a
+ *     rescheduled report (Aug 4 -> Aug 11) disappear from the old date instead of lingering.
+ *   - PAST entries are never deleted by the pull — they are upserted by (symbol, date), which is
+ *     how a row that was estimate-only last week gains its epsActual after the company reports.
+ *   - First ever run (empty file): a best-effort BACKFILL walks ~15 months of history in ~80-day
+ *     bulk chunks. Finnhub's free tier may refuse deep history; any refused chunk is logged in
+ *     plain English and skipped — markers then simply deepen night by night from that point on.
+ *   - Entries older than earnKeepDays are pruned so the file stays bounded (~15 months).
+ *   - Rows are filtered to the scan universe so foreign/OTC noise never bloats the file.
+ */
+let EARN_STORE = null;   // { SYM: [[date,hour,est,act],...] } — set by updateEarnings, read by earningsNext
+
+async function fetchEarningsWindow(fromISO, toISO, cfg) {
+  const r = await fetch('https://finnhub.io/api/v1/calendar/earnings?from=' + fromISO + '&to=' + toISO +
+    '&token=' + FINNHUB_KEY, { signal: AbortSignal.timeout(Math.max(cfg.fundTimeout, 30000)) });
+  if (!r.ok) throw new Error('Finnhub ' + r.status);
+  const j = await r.json();
+  return (j && j.earningsCalendar) || [];
+}
+
+// pure merge so it can be unit-tested without the network. rows = raw Finnhub entries.
+function mergeEarnings(store, rows, universe, today, keepDays) {
+  const cutoff = isoDay(new Date(Date.parse(today + 'T00:00:00Z') - keepDays * 86400000));
+  const touched = new Set();
+  let future = 0, past = 0;
+  for (const e of rows) {
+    const sym = e.symbol, d = e.date;
+    if (!sym || !d || (universe && !universe.has(sym))) continue;
+    const hour = (e.hour === 'bmo' || e.hour === 'amc' || e.hour === 'dmh') ? e.hour : '';
+    const est = (e.epsEstimate == null || isNaN(+e.epsEstimate)) ? null : +(+e.epsEstimate).toFixed(4);
+    const act = (e.epsActual   == null || isNaN(+e.epsActual))   ? null : +(+e.epsActual).toFixed(4);
+    const list = store[sym] = store[sym] || [];
+    if (d > today && !touched.has(sym)) {              // first future row for this symbol this merge:
+      store[sym] = store[sym].filter(x => x[0] <= today);   // wipe stored futures — the pull is the whole truth for them
+      touched.add(sym);
+    }
+    const cur = store[sym];
+    const at = cur.findIndex(x => x[0] === d);
+    if (at >= 0) cur[at] = [d, hour, est, act];        // upsert: a reported quarter replaces its estimate-only row
+    else cur.push([d, hour, est, act]);
+    if (d > today) future++; else past++;
+  }
+  for (const sym of Object.keys(store)) {
+    store[sym] = store[sym].filter(x => x[0] >= cutoff).sort((a, b) => a[0] < b[0] ? -1 : 1);
+    if (!store[sym].length) delete store[sym];
+  }
+  return { future, past };
+}
+
+async function updateEarnings(universe, cfg) {
+  if (!FINNHUB_KEY) { console.error('No FINNHUB_KEY set — skipping the earnings calendar (no earnings.json this run).'); return; }
+  const today = isoDay(new Date());
+  let store = {};
+  try { store = JSON.parse(fs.readFileSync(cfg.earnFile, 'utf8')).symbols || {}; } catch (e) { store = {}; }
+  const firstRun = !Object.keys(store).length;
+
+  if (firstRun) {   // best-effort history backfill in ~80-day bulk chunks, oldest first
+    console.error('earnings.json is empty — attempting a ~15-month history backfill (free tier may refuse the older chunks; that is fine).');
+    let ok = 0, refused = 0;
+    for (let back = cfg.earnKeepDays; back > 0; back -= 80) {
+      const from = isoDay(new Date(Date.now() - back * 86400000));
+      const to   = isoDay(new Date(Date.now() - Math.max(0, back - 80) * 86400000));
+      try {
+        const rows = await fetchEarningsWindow(from, to, cfg);
+        mergeEarnings(store, rows, universe, today, cfg.earnKeepDays);
+        if (rows.length) ok++; else refused++;
+      } catch (e) { refused++; console.error('  backfill chunk ' + from + '→' + to + ' refused (' + e.message + ') — skipped.'); }
+      await sleep(1200);
+    }
+    console.error('  backfill: ' + ok + ' chunk(s) returned data, ' + refused + ' empty/refused.');
+  }
+
+  const from = isoDay(new Date(Date.now() - cfg.earnBackDays * 86400000));
+  const to   = isoDay(new Date(Date.now() + cfg.earnFwdDays  * 86400000));
+  try {
+    const rows = await fetchEarningsWindow(from, to, cfg);
+    const m = mergeEarnings(store, rows, universe, today, cfg.earnKeepDays);
+    console.error('Earnings calendar: ' + m.future + ' upcoming + ' + m.past + ' recent report rows merged across ' + Object.keys(store).length + ' counters (' + from + ' → ' + to + ').');
+  } catch (e) {
+    console.error('Earnings calendar pull failed (' + e.message + ') — keeping the existing earnings.json as-is.');
+  }
+  try { fs.writeFileSync(cfg.earnFile, JSON.stringify({ updated: new Date().toISOString(), window: [from, to], symbols: store }, null, 0)); }
+  catch (e) { console.error('  could not write ' + cfg.earnFile + ': ' + e.message); }
+  EARN_STORE = store;
+}
+
+// next earnings date between today and `toISO`. Reads the bulk EARN_STORE first (zero extra API
+// calls — this used to be one Finnhub call per optionable ticker); the per-symbol call survives
+// only as a fallback for the rare run where the bulk pull failed.
 // Returns { date: 'YYYY-MM-DD' | null }, or null if the check could not run.
 async function earningsNext(sym, toISO, cfg) {
+  if (EARN_STORE) {
+    const today = isoDay(new Date());
+    const hit = (EARN_STORE[sym] || []).find(e => e[0] > today && e[0] <= toISO);
+    return { date: hit ? hit[0] : null };
+  }
   if (!FINNHUB_KEY) return null;
   try {
     const from = new Date().toISOString().slice(0, 10);
@@ -738,7 +846,7 @@ async function enrichOptions(meta, cfg, stockTrend) {
     const anchor = anchorGroup(groups);                                       // expiry nearest 37 DTE — symbol-level IV/flags only
     const atmIV = anchor.atmIV;
     const earn = await earningsNext(sym, groups[groups.length - 1].expiry, cfg);   // one call covers the WHOLE window
-    if (FINNHUB_KEY) await sleep(cfg.fundGapMs);
+    if (FINNHUB_KEY && !EARN_STORE) await sleep(cfg.fundGapMs);   // pacing only matters when earningsNext fell back to a live per-symbol call
     if (atmIV != null) recordIv(hist, sym, today, atmIV, cfg.ivHistKeep);
     out.symbols[sym] = {
       has_options: true, px: spot, expiry: anchor.expiry, dte: anchor.dte, dte_off_window: dteOff || undefined,
@@ -807,6 +915,11 @@ async function main() {
   const eng = loadEngine(CFG.htmlPath);
   console.error('Engine loaded from ' + CFG.htmlPath + '. Fetching universe…');
   const { syms, names } = await fetchUniverse(CFG);
+
+  // earnings calendar for the whole universe (bulk pull + accumulator) — runs FIRST so the
+  // options enrichment's earnings_inside check reads it locally instead of calling Finnhub per symbol
+  try { await updateEarnings(new Set(syms), CFG); }
+  catch (e) { console.error('Earnings calendar step failed (' + e.message + ') — scan continues without it.'); }
 
   const meta = {};   // ticker -> { name, px, mc, industry } — shared across ALL timeframes (any ticker firing in any tf)
   // one accumulator per timeframe: '1' = daily, '2' = 2-Day (daily aggregated x2), 'W' = native weekly
@@ -900,5 +1013,5 @@ async function main() {
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
 module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals, splitAdjustedShares, fetchSplitsFor, daysBetweenISO,
-                   parseOcc, groupExpiries, anchorGroup, byDelta, atmIvOf, buildSpreadsForExpiry, bestSpreads, earningsNext, fetchSpyRegime, adxLatest, dailySmaTrend,
+                   parseOcc, groupExpiries, anchorGroup, byDelta, atmIvOf, buildSpreadsForExpiry, bestSpreads, earningsNext, mergeEarnings, updateEarnings, fetchSpyRegime, adxLatest, dailySmaTrend,
                    loadIvHistory, recordIv, ivPercentile, enrichOptions, CFG };

@@ -314,6 +314,7 @@
   /* ---- options enrichment card (vertical-spread candidates from the opt block) ---- */
   .pill.info{color:var(--mut);background:var(--panel-in);border:1px solid var(--line)}
   .optbadge{font-family:var(--mono);font-size:10px;letter-spacing:.02em;color:var(--force);background:transparent;border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-top:3px;cursor:pointer;transition:.15s}
+  .earnchip{font-family:var(--mono);font-size:9px;letter-spacing:.02em;color:var(--force);border:1px solid var(--force);border-radius:5px;padding:0 5px;margin-left:6px;opacity:.9;cursor:help;vertical-align:1px}
   .optbadge:hover{border-color:var(--force)}
   .optbadge.on{background:#231c10;border-color:#534522}
   .optbadge.ready{color:var(--long);border-color:#1f4d44;background:#0f211d}
@@ -540,6 +541,7 @@
       <button data-ly="channels">Donchian 55/20/10</button>
       <button data-ly="turtle">Turtle S1/S2</button>
       <button data-ly="reverse">Reverse S1s/S2s</button>
+      <button data-ly="earnings" class="on">Earnings</button>
     </div>
     <span class="ctl-label" style="margin-left:8px">Declutter</span>
     <div class="seg" id="segRecent"><button data-r="0" class="on">All</button><button data-r="1">Recent</button></div>
@@ -1304,7 +1306,7 @@ function analyse(bars){
    STATE + RENDER
    ============================================================ */
 const S={src:'NVDA',tf:'2',lens:1,ticker:PAM_DATA.ticker,name:(PAM_DATA.name||''),effMonths:36,
-  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false}, recentOnly:false,
+  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false,earnings:true}, recentOnly:false,
   ind:{stoch:false,rsi:false,macd:false,atr:false}, span:null, start:null};
 const THEMES={dark:{grid:'#1b232c',chipBg:'#10161d',zero:'#2a3550'},light:{grid:'#e7e1d4',chipBg:'#fffdf9',zero:'#ded7ca'}};
 let THEME='dark'; try{THEME=localStorage.getItem('pam_theme')||'dark';}catch(e){}
@@ -1395,6 +1397,48 @@ function renderLog(){
   $('#log').innerHTML=rows.join('');
 }
 
+/* ---------- earnings calendar (earnings.json written nightly by pam_scan.js) ----------
+   EARN.sym = { "LIN": [["2026-04-17","bmo",4.20,4.33], ...] }   [date, hour, epsEstimate, epsActual]
+   Fetched from the same folder as scan_results.json. Past reports become glyphs in the chart's
+   events strip (detail joins the bar's mouseover card); the NEXT report becomes a countdown chip
+   pinned at the right edge with its own mouseover; scan rows get an E·Nd chip when a report falls
+   inside a typical hold (<=10 days). All of it sits behind the "Earnings" layer toggle. */
+let EARN={sym:null,tried:false,_ck:'',_marks:[],_byI:null,_next:null};
+function earnUrl(){
+  let u=''; try{u=($('#scanUrl')&&$('#scanUrl').value)||localStorage.getItem('pam_scan_url')||'';}catch(e){}
+  if(!u&&typeof DEFAULT_SCAN_URL==='string')u=DEFAULT_SCAN_URL;
+  return u?u.replace(/[^\/]*$/,'earnings.json'):'';
+}
+async function earnLoad(){
+  const u=earnUrl(); if(!u||EARN.tried)return; EARN.tried=true;
+  try{ const r=await fetch(u,{cache:'no-store'}); if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json(); EARN.sym=(j&&j.symbols)||{}; EARN._ck='';
+    if(typeof draw==='function'&&BARS.length)draw();
+    if(typeof scanRenderList==='function')scanRenderList();
+  }catch(e){ /* silent: the file simply is not there yet until the first scan after this update */ }
+}
+function earnTodayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function earnHourLbl(h){return h==='bmo'?'before open':h==='amc'?'after close':h==='dmh'?'during mkt':'';}
+function earnEps(v){return v==null?'\u2013':'$'+(+v).toFixed(2);}
+function earnBeat(est,act){ if(est==null||act==null)return null; const d=act-est, pct=Math.abs(est)>1e-9?(d/Math.abs(est)*100):null;
+  return {beat:d>=0, txt:(d>=0?'beat':'miss')+(pct!=null?' '+(d>=0?'+':'')+pct.toFixed(1)+'%':'')}; }
+function earnDateNice(d){const m=String(d).split('-');return m.length<3?String(d):(+m[2]+' '+MON[+m[1]-1]+' \u2019'+m[0].slice(2));}
+function earnNextFor(t){ const l=EARN.sym&&EARN.sym[t]; if(!l)return null; const today=earnTodayISO();
+  for(const e of l){ if(e[0]>today)return e; } return null; }
+function earnSync(){   // map this symbol's reports onto the loaded bars; rebuilt only when symbol/bars change
+  if(!EARN.sym){EARN._marks=[];EARN._byI=null;EARN._next=null;return;}
+  const key=(S.ticker||'')+'|'+S.tf+'|'+BARS.length+'|'+(BARS.length?BARS[BARS.length-1].date:'');
+  if(key===EARN._ck)return;
+  EARN._ck=key; EARN._marks=[]; EARN._byI={}; EARN._next=null;
+  const list=EARN.sym[S.ticker]; if(!list||!BARS.length)return;
+  const lastD=BARS[BARS.length-1].date, today=earnTodayISO();
+  for(const e of list){
+    if(e[0]>today){ if(!EARN._next)EARN._next=e; continue; }        // earliest future report -> the countdown chip
+    if(e[0]>lastD)continue;                                          // reported, but past this chart's last bar
+    const i=BARS.findIndex(b=>b.date>=e[0]); if(i<0)continue;        // glyph sits on the bar on/after the report date
+    EARN._marks.push({i,e}); EARN._byI[i]=e;
+  }
+}
 /* ---------- chart ---------- */
 const cv=$('#chart'),ctx=cv.getContext('2d');let GEO=null;
 const ov=$('#chartOverlay'),octx=ov&&ov.getContext('2d');
@@ -1526,12 +1570,14 @@ function drawCore(){
   const narrowCV=(window.innerWidth||1200)<981; if(narrowCV)inds=[];   /* phones: pinned chart shows price-only so it stays compact */
   let priceH=narrowCV?255:Math.max(300,440-inds.length*18), panelH=84, panelGap=12; const axisH=22;
   const ribH=(S.layers.turtle||S.layers.reverse)?16:0;
+  earnSync();
+  const evH=(S.layers.earnings&&EARN.sym&&(EARN._marks.length||EARN._next))?13:0;   // events strip between the panels and the date labels
   /* desktop: keep the whole chart inside the viewport so the sticky box stays locked to the right panel */
   if(!narrowCV && (window.innerWidth||0)>=981){
     let reserve=224;
     try{ const sc=cv.closest('.stage-chart'); if(sc){ const c=(sc.offsetHeight-cv.offsetHeight)+28; if(c>110&&c<340)reserve=c; } }catch(e){}
     const maxH=Math.max(320,(window.innerHeight||800)-reserve);
-    const fixed=padT+ribH+axisH;
+    const fixed=padT+ribH+axisH+evH;
     if(fixed+priceH+inds.length*(panelH+panelGap)>maxH){
       const p=maxH-fixed-inds.length*(panelH+panelGap);
       if(p>=210){ priceH=p; }
@@ -1540,13 +1586,13 @@ function drawCore(){
   }
   const priceTop=padT, priceBot=priceTop+priceH; let cur=priceBot+ribH;
   inds.forEach(p=>{p.top=cur+panelGap;p.bot=p.top+panelH;cur=p.bot;});
-  const chartBot=cur, H=chartBot+axisH;
+  const chartBot=cur, H=chartBot+evH+axisH;
   cv.style.height=H+'px'; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   let hi=-1e9,lo=1e9;view.forEach(b=>{hi=Math.max(hi,b.high);lo=Math.min(lo,b.low);});
   const pad=(hi-lo)*0.06;hi+=pad;lo-=pad;
   const x=i=>padL+(n<=1?plotW/2:i/(n-1)*plotW), y=p=>priceTop+(hi-p)/(hi-lo)*priceH;
   const cw=Math.max(2,Math.min(11,plotW/n*0.6));
-  GEO={view,x,y,i0,padR,W,priceBot,priceTop,priceH,hi,lo,padL,chartBot,H};
+  GEO={view,x,y,i0,padR,W,priceBot,priceTop,priceH,hi,lo,padL,chartBot,H,evH};
 
   // ----- vertical gridlines: minor (week / month) + major (month / quarter), aligned to candles -----
   ctx.font='10px IBM Plex Mono';
@@ -1562,7 +1608,7 @@ function drawCore(){
      ctx.strokeStyle='rgba(126,143,176,0.15)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(xc,priceTop);ctx.lineTo(xc,chartBot);ctx.stroke();
      if(xc-lastLabelX>=44){ const c=P[i],wy=c.y!==lastYr; lastYr=c.y;
        const lab=wy?(MON[c.mo]+' ’'+String(c.y).slice(2)):MON[c.mo];
-       ctx.fillStyle='#6b7790';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lab,xc,chartBot+5); lastLabelX=xc; } }}
+       ctx.fillStyle='#6b7790';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lab,xc,chartBot+evH+5); lastLabelX=xc; } }}
   ctx.textBaseline='middle';
   for(let g=0;g<=4;g++){const p=lo+(hi-lo)*g/4,yy=y(p);
     ctx.strokeStyle=TH.grid;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();
@@ -1658,6 +1704,27 @@ function drawCore(){
       ctx.fillStyle=col;ctx.fillText(t.label,xc,ly);});
   }
 
+  // ----- Earnings layer: past reports as E-glyphs in the events strip; next report pinned right -----
+  GEO.earnUp=null;
+  if(evH){
+    const ecy=chartBot+evH/2+0.5;
+    ctx.font='700 8px IBM Plex Mono'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    EARN._marks.forEach(mk=>{ if(mk.i<i0||mk.i>=i0+n)return; const xc=x(mk.i-i0), e=mk.e;
+      // amber = reported but no actual on file yet; green = beat; red = miss; grey = actual with no estimate
+      const col = e[3]==null ? '#d4a85c' : (e[2]==null ? '#9fb2c9' : (e[3]>=e[2] ? '#5fb89e' : '#cf7a64'));
+      ctx.fillStyle=TH.chipBg; ctx.strokeStyle=col; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(xc,ecy,5,0,6.2832); ctx.fill(); ctx.stroke();
+      ctx.fillStyle=col; ctx.fillText('E',xc,ecy+0.5); });
+    if(EARN._next && i0+n>=BARS.length){                       // the future has no bar to sit on, so the chip pins to the right edge
+      const e=EARN._next, dl=Math.round((Date.parse(e[0])-Date.parse(earnTodayISO()))/864e5);
+      if(dl>=0){ const txt='E\u00b7'+(dl===0?'today':dl+'d');
+        ctx.font='700 9px IBM Plex Mono';
+        const tw=ctx.measureText(txt).width+12, ex=W-padR-tw-2;
+        ctx.fillStyle=TH.chipBg; ctx.strokeStyle='#d4a85c'; ctx.lineWidth=1; ctx.globalAlpha=.96;
+        roundRect(ex,ecy-7,tw,14,3); ctx.fill(); ctx.stroke(); ctx.globalAlpha=1;
+        ctx.fillStyle='#d4a85c'; ctx.fillText(txt,ex+tw/2,ecy+0.5);
+        GEO.earnUp={x:ex,y:ecy-7,w:tw,h:14,e}; } }
+  }
   // active trade overlay (only when the latest bar is in view)
   if(S.lens&&S.layers.pam&&TRADE&&(i0+n>=BARS.length)){const t=TRADE,x1=W-padR;const xr0=x(view.length-1)-cw*1.5;
     ctx.fillStyle='#5fb89e';ctx.globalAlpha=.15;ctx.fillRect(xr0,y(Math.max(t.entryLo,t.entryHi)),x1-xr0,Math.abs(y(t.entryLo)-y(t.entryHi)));ctx.globalAlpha=1;
@@ -1739,10 +1806,16 @@ function showTip(b,mx,my,rWidth,isTouch){   // rich OHLC card (shared by mouse +
   if(S.ind.macd&&b.macd!=null)ib.push('MACD '+b.macd.toFixed(2));
   if(S.ind.atr&&b.atrW!=null)ib.push('ATR '+b.atrW.toFixed(2));
   const indLine=ib.length?`<div class="cls" style="color:#8895ad">${ib.join(' · ')}</div>`:'';
+  let earnLine='';
+  { const e=(S.layers.earnings&&EARN._byI)?EARN._byI[b.i]:null;
+    if(e){ const bt=earnBeat(e[2],e[3]), h=earnHourLbl(e[1]);
+      earnLine='<div class="cls"><span style="color:var(--force)">Earnings</span> '+earnDateNice(e[0])+(h?' \u00b7 '+h:'')
+        +' \u00b7 Est '+earnEps(e[2])+(e[3]!=null?' \u00b7 Act '+earnEps(e[3]):'')
+        +(bt?' \u00b7 <b style="color:'+(bt.beat?'var(--long)':'var(--short)')+'">'+bt.txt+'</b>':'')+'</div>'; } }
   tip.innerHTML=`<div class="d">${b.date}</div>
     <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
     <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
-    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
+    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}${earnLine}`;
   tip.style.opacity=1;                                          // show first so offsetWidth/offsetHeight read its real size
   const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
   const tw=tip.offsetWidth||196, th=tip.offsetHeight||120;
@@ -1784,9 +1857,26 @@ function renderXhair(mx,my,isTouch,rWidth){   // mx,my = CSS px relative to the 
     octx.strokeStyle=C.line; octx.lineWidth=1; octx.strokeRect(px+0.5,py-h/2+0.5,w-1,h-1);
     octx.fillStyle=C.txt; octx.fillText(t,px+5,py+0.5);
   }
-  { const dx=Math.max(g.padL+2,Math.min(g.W-g.padR-2,bx)); xhPill(dx,g.chartBot+11,xhDate(best.date),C); } // date pill on the bottom axis
+  { const dx=Math.max(g.padL+2,Math.min(g.W-g.padR-2,bx)); xhPill(dx,g.chartBot+(g.evH||0)+11,xhDate(best.date),C); } // date pill on the bottom axis
   octx.restore();
+  const up=g.earnUp;                                            // pointer over the pinned next-earnings chip -> its own card
+  if(up && mx>=up.x-3 && mx<=up.x+up.w+3 && my>=up.y-3 && my<=up.y+up.h+3){ earnUpTip(up.e,mx,my,rWidth,isTouch); return; }
   showTip(best,mx,my,rWidth,isTouch);
+}
+function earnUpTip(e,mx,my,rWidth,isTouch){                     // mouseover card for the NEXT report (date · BMO/AMC · est EPS)
+  const h=earnHourLbl(e[1]);
+  tip.innerHTML='<div class="d">Next earnings</div>'
+    +'<div class="row"><span>Date</span><b>'+earnDateNice(e[0])+'</b></div>'
+    +(h?'<div class="row"><span>Time</span><b>'+h+'</b></div>':'')
+    +'<div class="row"><span>Est EPS</span><b>'+earnEps(e[2])+'</b></div>'
+    +'<div class="cls" style="color:#8895ad">from the nightly scan \u00b7 dates can shift</div>';
+  tip.style.opacity=1;
+  const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
+  const tw=tip.offsetWidth||180, th=tip.offsetHeight||96, gapX=16, gapY=isTouch?26:16;
+  let lx=ox+mx+gapX; if(lx+tw>ox+rWidth-6)lx=ox+mx-gapX-tw; lx=Math.max(ox+6,Math.min(lx,ox+rWidth-tw-6));
+  let ty=oy+my-gapY-th; if(ty<oy+6)ty=oy+my+gapY;              // chip lives at the bottom, so the card prefers ABOVE the pointer
+  ty=Math.max(oy+6,Math.min(ty,oy+chartH-th-6));
+  tip.style.left=lx+'px'; tip.style.top=ty+'px';
 }
 
 /* hover tooltip + horizontal pan/zoom */
@@ -2213,6 +2303,13 @@ function scanRenderList(){
     const s=document.createElement('div'); s.className='s'; s.textContent=r.t; s.style.color='var(--'+(r.dir==='long'?'long':'short')+')';
     tk.appendChild(s);
     if(m.name){ const n=document.createElement('div'); n.className='n'; n.textContent=m.name; n.title=m.name; tk.appendChild(n); }
+    { const _en=earnNextFor(r.t);                               // E·Nd chip only when a report falls within 10 days — mouseover has the detail
+      if(_en){ const dl=Math.round((Date.parse(_en[0])-Date.parse(earnTodayISO()))/864e5);
+        if(dl>=0&&dl<=10){ const ec=document.createElement('span'); ec.className='earnchip';
+          ec.textContent='E\u00b7'+(dl===0?'today':dl+'d');
+          const _h=earnHourLbl(_en[1]);
+          ec.title='Earnings '+earnDateNice(_en[0])+(_h?' \u00b7 '+_h:'')+' \u00b7 Est EPS '+earnEps(_en[2])+' \u2014 lands inside a typical hold';
+          tk.appendChild(ec); } } }
     row.appendChild(tk);
     if(hasUnit){ const uc=document.createElement('div'); uc.className='sccell-unit'; const u=r.unit; uc.textContent=(u!=null)?(u+(['th','st','nd','rd'][(u%10<4&&!(u%100>10&&u%100<14))?u%10:0])):'–'; if(u!=null&&u>1)uc.style.color='var(--force)'; uc.title=(u!=null)?('unit '+u+' of the pyramid'):''; row.appendChild(uc); }
     if(hasPx){ const px=document.createElement('div'); px.className='sccell-px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'\u2013'; row.appendChild(px); }
@@ -2572,6 +2669,7 @@ async function scanLoadUrl(silent){
     const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('HTTP '+r.status);
     scanApply(await r.json());
     try{localStorage.setItem('pam_scan_url',url);}catch(e){}
+    EARN.tried=false; earnLoad();                               // earnings.json lives in the same folder as scan_results.json
   }catch(e){ if(!silent)alert('Could not load that URL: '+e.message); }
 }
 function scanLoadFile(file){
@@ -2632,6 +2730,7 @@ function scanInit(){
   if(plo)plo.addEventListener('pointerdown',e=>pxDrag('lo',e));
   if(phi)phi.addEventListener('pointerdown',e=>pxDrag('hi',e));
   try{ const u=localStorage.getItem('pam_scan_url')||DEFAULT_SCAN_URL; if(u&&$('#scanUrl')){ $('#scanUrl').value=u; scanLoadUrl(true); } }catch(e){}
+  earnLoad();                                                   // also covers the case where the scan URL fetch itself fails
   scanRenderChips();
 }
 (function initSync(){
