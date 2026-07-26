@@ -488,6 +488,22 @@
           <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--long);text-decoration:none">free key ↗</a>
         </div>
         <div class="drawer-row">
+          <span class="ctl-label">Earnings</span>
+          <input id="mdKeyInput" type="password" placeholder="marketdata.app token (optional)" autocomplete="off" spellcheck="false"
+            style="font-family:var(--mono);font-size:12.5px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:150px;outline:none">
+          <a href="https://www.marketdata.app/" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--long);text-decoration:none">token ↗</a>
+        </div>
+        <div class="drawer-row">
+          <span class="ctl-label"></span>
+          <input id="avKeyInput" type="password" placeholder="Alpha Vantage key (optional fallback)" autocomplete="off" spellcheck="false"
+            style="font-family:var(--mono);font-size:12.5px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 10px;flex:1;min-width:150px;outline:none">
+          <a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--long);text-decoration:none">free key ↗</a>
+        </div>
+        <div class="drawer-row" style="margin-top:-4px">
+          <span class="ctl-label"></span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.45">for HISTORICAL earnings on the chart (est + actual EPS at their report dates) — either key works; paste one and re-chart the symbol</span>
+        </div>
+        <div class="drawer-row">
           <span class="ctl-label">Source</span>
           <div class="seg" id="segData"><button data-d="NVDA" class="on">Live data</button><button data-d="PASTE">Paste…</button></div>
         </div>
@@ -1415,7 +1431,7 @@ async function earnLoad(){
     const j=await r.json(); EARN.sym=(j&&j.symbols)||{}; EARN._ck='';
     if(typeof draw==='function'&&BARS.length)draw();
     if(typeof scanRenderList==='function')scanRenderList();
-    earnTdFetch(S.ticker);                                        // fill the charted symbol's history (and re-apply today's TD cache over the fresh store)
+    earnHistFetch(S.ticker);                                      // fill the charted symbol's history (and re-apply today's cache over the fresh store)
   }catch(e){ /* silent: the file simply is not there yet until the first scan after this update */ }
 }
 function earnTodayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -1470,26 +1486,70 @@ function earnMergeRows(sym,rows){ if(!rows||!rows.length)return false;
     else if(list[at][3]==null&&r[3]!=null){ list[at]=[d,list[at][1]||r[1],(list[at][2]!=null?list[at][2]:r[2]),r[3]]; changed=true; } }
   if(changed){ list.sort((a,b)=>a[0]<b[0]?-1:1); EARN._ck=''; }
   return changed; }
-async function earnTdFetch(sym){
+function earnNum(v){ return (v==null||v===''||isNaN(+v))?null:+(+v).toFixed(4); }
+/* one flag per provider per day: once a provider says "your plan lacks this endpoint" it is not
+   asked again until tomorrow, so a missing plan never burns more than one call a day */
+function earnPflagGet(){ try{ const f=JSON.parse(localStorage.getItem('pam_earn_pflag')||'{}'); return f.d===earnTodayISO()?f:{}; }catch(e){ return {}; } }
+function earnPflagSet(id){ try{ const f=earnPflagGet(); f.d=earnTodayISO(); f[id]=1; localStorage.setItem('pam_earn_pflag',JSON.stringify(f)); }catch(e){} }
+/* each provider returns {rows:[[date,hour,est,act],...]} | {deny:true} (plan lacks it) | {rate:true} (throttled right now) */
+async function earnMdRows(sym,key){                              // marketdata.app — reportDate + reportTime + est + actual, ~1y on the free tier
+  const from=new Date(Date.now()-460*864e5).toISOString().slice(0,10);
+  const to=new Date(Date.now()+70*864e5).toISOString().slice(0,10);
+  const r=await fetch('https://api.marketdata.app/v1/stocks/earnings/'+encodeURIComponent(sym)+'/?from='+from+'&to='+to+'&token='+encodeURIComponent(key));
+  if(r.status===401||r.status===402||r.status===403)return {deny:true};
+  if(r.status===429)return {rate:true};
+  let j=null; try{ j=await r.json(); }catch(e){ return {rows:[]}; }
+  if(!j||j.s==='error')return {deny:true};
+  if(j.s!=='ok'||!j.reportDate)return {rows:[]};                 // s:'no_data' — this symbol simply has nothing
+  const iso=v=>(typeof v==='number')?new Date(v*1000).toISOString().slice(0,10):String(v).slice(0,10);
+  const rows=[];
+  for(let i=0;i<j.reportDate.length;i++){ const d=iso(j.reportDate[i]); if(!d||d.length<10||d[4]!=='-')continue;
+    rows.push([d, earnTdHour((j.reportTime||[])[i]), earnNum(j.estimatedEPS&&j.estimatedEPS[i]), earnNum(j.reportedEPS&&j.reportedEPS[i])]); }
+  return {rows};
+}
+async function earnAvRows(sym,key){                              // Alpha Vantage EARNINGS — reportedDate + est + actual, free 25 calls/day
+  const r=await fetch('https://www.alphavantage.co/query?function=EARNINGS&symbol='+encodeURIComponent(sym)+'&apikey='+encodeURIComponent(key));
+  let j=null; try{ j=await r.json(); }catch(e){ return {rows:[]}; }
+  if(j&&(j.Note||j.Information))return {rate:true};              // daily/minute cap reached — try again later, never cached as failure
+  if(j&&j['Error Message'])return {deny:true};
+  const q=(j&&j.quarterlyEarnings)||[]; const rows=[];
+  for(const e of q){ const d=String(e.reportedDate||'').slice(0,10); if(d.length<10)continue;
+    rows.push([d, earnTdHour(e.reportTime), earnNum(e.estimatedEPS), earnNum(e.reportedEPS)]); }   // 'None' strings become null
+  return {rows};
+}
+async function earnTdRows(sym,key){                              // Twelve Data /earnings — works only on Grow+ plans; kept for anyone who has one
+  const r=await fetch('https://api.twelvedata.com/earnings?symbol='+encodeURIComponent(sym)+'&outputsize=24&apikey='+encodeURIComponent(key));
+  let j=null; try{ j=await r.json(); }catch(e){ return {rows:[]}; }
+  if(j&&j.status==='error')return (+j.code===429)?{rate:true}:{deny:true};
+  const rows=((j&&j.earnings)||[]).map(e=>[e.date,earnTdHour(e.time),earnNum(e.eps_estimate),earnNum(e.eps_actual)]).filter(x=>x[0]);
+  return {rows};
+}
+async function earnHistFetch(sym){                               // provider cascade: marketdata.app -> Alpha Vantage -> Twelve Data
   sym=(sym||'').trim().toUpperCase();
   if(!S.layers.earnings||!sym||sym==='PASTED'||EARN_TD_INFLIGHT[sym])return;
-  const key=($('#keyInput').value||'').trim(); if(!key)return;     // direct key only — the group's shared-key proxy wraps price series, not earnings
   const today=earnTodayISO(), list=(EARN.sym&&EARN.sym[sym])||[];
   if(list.filter(e=>e[0]<=today).length>=3 && list.some(e=>e[0]>today))return;   // store already rich for this one
   const cached=earnTdCacheGet(sym);
   if(cached){ if(earnMergeRows(sym,cached.rows)){draw();if(typeof scanRenderList==='function')scanRenderList();} return; }
+  const flags=earnPflagGet();
+  const provs=[
+    {id:'md',key:(($('#mdKeyInput')&&$('#mdKeyInput').value)||'').trim(),fn:earnMdRows},
+    {id:'av',key:(($('#avKeyInput')&&$('#avKeyInput').value)||'').trim(),fn:earnAvRows},
+    {id:'td',key:(($('#keyInput')&&$('#keyInput').value)||'').trim(),fn:earnTdRows}];
   EARN_TD_INFLIGHT[sym]=1;
   try{
-    const r=await fetch('https://api.twelvedata.com/earnings?symbol='+encodeURIComponent(sym)+'&outputsize=24&apikey='+encodeURIComponent(key));
-    const j=await r.json();
-    if(j&&j.status==='error'){ if(+j.code!==429)earnTdCachePut(sym,[]); return; }  // plan lacks it -> remember for today; rate-limit -> just retry on a later click
-    const rows=((j&&j.earnings)||[]).map(e=>[e.date,earnTdHour(e.time),
-      (e.eps_estimate==null||e.eps_estimate===''||isNaN(+e.eps_estimate))?null:+(+e.eps_estimate).toFixed(4),
-      (e.eps_actual==null||e.eps_actual===''||isNaN(+e.eps_actual))?null:+(+e.eps_actual).toFixed(4)]).filter(x=>x[0]);
-    earnTdCachePut(sym,rows);
-    if(earnMergeRows(sym,rows)){ draw(); if(typeof scanRenderList==='function')scanRenderList(); }
-  }catch(e){ /* silent */ }
-  finally{ delete EARN_TD_INFLIGHT[sym]; }
+    for(const p of provs){
+      if(!p.key||flags[p.id])continue;
+      let res=null; try{ res=await p.fn(sym,p.key); }catch(e){ continue; }        // network hiccup — try the next provider
+      if(res&&res.deny){ earnPflagSet(p.id); continue; }
+      if(res&&res.rate){ continue; }
+      const rows=(res&&res.rows)||[];
+      if(rows.length){ earnTdCachePut(sym,rows);
+        if(earnMergeRows(sym,rows)){ draw(); if(typeof scanRenderList==='function')scanRenderList(); }
+        return; }
+    }
+    earnTdCachePut(sym,[]);                                      // every provider came up empty — remember that for today
+  } finally{ delete EARN_TD_INFLIGHT[sym]; }
 }
 /* ---------- chart ---------- */
 const cv=$('#chart'),ctx=cv.getContext('2d');let GEO=null;
@@ -2077,7 +2137,7 @@ async function fetchSymbol(ticker){
     recompute(); buildEff(); renderEffectiveness();
     setStatus(ticker+': '+daily.close.length+' daily'+(weekly?(' · '+weekly.close.length+' weekly'):' · no weekly (2-Day fallback)')+(coName?(' · '+coName):'')+' loaded','ok');
     S.lastSym=ticker; if(typeof logCheck==='function'){logCheck(ticker,S.name);}else if(typeof saveLocal==='function'){saveLocal();}
-    earnTdFetch(ticker);                                          // top up this symbol's earnings history (non-blocking, silent)
+    earnHistFetch(ticker);                                        // top up this symbol's earnings history (non-blocking, silent)
   }catch(err){
     setStatus('Couldn’t load '+ticker+': '+err.message+'. Check the symbol/key, or use “Paste data…”.','err');
   }finally{ $('#fetchBtn').disabled=false; }
@@ -2121,9 +2181,11 @@ function syncToggleUI(){
   document.querySelectorAll('#segTf button').forEach(b=>b.classList.toggle('on',b.dataset.tf===S.tf));
   document.querySelectorAll('#segLens button').forEach(b=>b.classList.toggle('on',(+b.dataset.l)===S.lens));
   document.querySelectorAll('#segRecent button').forEach(b=>b.classList.toggle('on',((+b.dataset.r)===1)===S.recentOnly));}
-function localState(){return {v:1,apiKey:($('#keyInput').value||'').trim(),watchlist:WL.slice(),lastSym:S.lastSym||'',tf:S.tf,layers:S.layers,ind:S.ind,lens:S.lens,recentOnly:S.recentOnly,effMonths:S.effMonths,name:S.name||'',checklog:CHECKLOG.slice(),updatedAt:Date.now()};}
+function localState(){return {v:1,apiKey:($('#keyInput').value||'').trim(),mdKey:(($('#mdKeyInput')&&$('#mdKeyInput').value)||'').trim(),avKey:(($('#avKeyInput')&&$('#avKeyInput').value)||'').trim(),watchlist:WL.slice(),lastSym:S.lastSym||'',tf:S.tf,layers:S.layers,ind:S.ind,lens:S.lens,recentOnly:S.recentOnly,effMonths:S.effMonths,name:S.name||'',checklog:CHECKLOG.slice(),updatedAt:Date.now()};}
 function applyState(st){if(!st)return;
   if(st.apiKey&&$('#keyInput'))$('#keyInput').value=st.apiKey;
+  if(st.mdKey&&$('#mdKeyInput'))$('#mdKeyInput').value=st.mdKey;
+  if(st.avKey&&$('#avKeyInput'))$('#avKeyInput').value=st.avKey;
   if(Array.isArray(st.watchlist))WL=st.watchlist.slice();
   if(st.tf)S.tf=st.tf;
   if(st.layers)Object.assign(S.layers,st.layers);
@@ -2176,6 +2238,7 @@ function connectDrive(){DRIVE.cid=($('#cid').value||'').trim();if(!DRIVE.cid){sy
 function attachSavers(){
   ['#layers','#indicators','#segTf','#segLens','#segRecent'].forEach(sel=>document.querySelectorAll(sel+' button').forEach(b=>b.addEventListener('click',()=>setTimeout(saveLocal,0))));
   const k=$('#keyInput');if(k)k.addEventListener('input',()=>setTimeout(saveLocal,0));
+  ['#mdKeyInput','#avKeyInput'].forEach(sel=>{const e=$(sel);if(e)e.addEventListener('input',()=>setTimeout(saveLocal,0));});
   const ey=$('#effYears');if(ey){ey.min='0';ey.max=String(EFF_WINDOWS.length-1);ey.step='1';ey.value=String(Math.max(0,EFF_WINDOWS.indexOf(S.effMonths||36)));ey.addEventListener('input',()=>{S.effMonths=EFF_WINDOWS[+ey.value]||36;renderEffectiveness();setTimeout(saveLocal,0);});}
   const wa=$('#wlAdd');if(wa)wa.onclick=()=>addWL(($('#tkInput').value||S.lastSym||''));
   const stg=$('#syncToggle');if(stg)stg.onclick=()=>{const p=$('#syncPanel');p.style.display=p.style.display==='none'?'block':'none';};
