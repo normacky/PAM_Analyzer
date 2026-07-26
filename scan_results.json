@@ -3,7 +3,7 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-07-26T10:27:50.151Z",
+ "generated_at": "2026-07-26T13:01:55.447Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
@@ -192223,8 +192223,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 78.75,
@@ -192247,7 +192247,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 95,
@@ -192263,7 +192263,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 80,
@@ -192316,7 +192316,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -192459,8 +192459,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 314.39,
@@ -192483,7 +192483,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 360,
@@ -192499,7 +192499,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 335,
@@ -192552,7 +192552,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -192864,8 +192864,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-06",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 145.49,
@@ -192888,7 +192888,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 157.5,
@@ -192904,7 +192904,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 140,
@@ -192957,7 +192957,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -193100,8 +193100,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-03",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 6.99,
@@ -193270,8 +193270,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-05",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 144.95,
@@ -193336,8 +193336,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-06",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 4.88,
@@ -193360,7 +193360,7 @@
       },
       "expiry": "2026-09-04",
       "dte": 40,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bear_put": {
       "long_k": 5,
@@ -193900,8 +193900,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-05",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 45.62,
@@ -193924,7 +193924,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bear_put": {
       "long_k": 50,
@@ -194192,8 +194192,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 81.31,
@@ -194216,7 +194216,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 92.5,
@@ -194232,7 +194232,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 85,
@@ -194285,7 +194285,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -194310,8 +194310,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-29",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 242.72,
@@ -194334,7 +194334,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 270,
@@ -194350,7 +194350,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 250,
@@ -194403,7 +194403,7 @@
       },
       "expiry": "2026-09-04",
       "dte": 40,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -194583,8 +194583,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 113.02,
@@ -194607,7 +194607,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 120,
@@ -194623,7 +194623,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 115,
@@ -194676,7 +194676,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -194702,8 +194702,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-03",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 312.13,
@@ -194726,7 +194726,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 370,
@@ -194742,7 +194742,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 300,
@@ -194795,7 +194795,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -195057,8 +195057,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 134.96,
@@ -195081,7 +195081,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 145,
@@ -195097,7 +195097,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 135,
@@ -195150,7 +195150,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -195240,8 +195240,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-29",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 14.73,
@@ -195264,7 +195264,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bear_put": {
       "long_k": 15,
@@ -195302,7 +195302,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -195328,8 +195328,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 141.27,
@@ -195352,7 +195352,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 150,
@@ -195368,7 +195368,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 145,
@@ -195421,7 +195421,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -195683,8 +195683,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 115.82,
@@ -195707,7 +195707,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 140,
@@ -195723,7 +195723,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 120,
@@ -195776,7 +195776,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -195921,8 +195921,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 39.03,
@@ -195945,7 +195945,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 40,
@@ -195961,7 +195961,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bear_put": {
       "long_k": 40,
@@ -195999,7 +195999,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -196137,8 +196137,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-06",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 83.12,
@@ -196161,7 +196161,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 90,
@@ -196177,7 +196177,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 85,
@@ -196215,7 +196215,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -196296,8 +196296,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 74.14,
@@ -196598,8 +196598,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 275.42,
@@ -196622,7 +196622,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 290,
@@ -196638,7 +196638,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 280,
@@ -196691,7 +196691,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -196717,8 +196717,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 247.49,
@@ -196741,7 +196741,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 280,
@@ -196757,7 +196757,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 250,
@@ -196810,7 +196810,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -196954,8 +196954,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-11",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 11.41,
@@ -197185,8 +197185,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 108.3,
@@ -197209,7 +197209,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 125,
@@ -197225,7 +197225,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 100,
@@ -197278,7 +197278,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -197353,8 +197353,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 21.68,
@@ -197377,7 +197377,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 22.5,
@@ -197393,7 +197393,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 20,
@@ -197446,7 +197446,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -197671,8 +197671,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-05",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 248.67,
@@ -197695,7 +197695,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 280,
@@ -197711,7 +197711,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 260,
@@ -197764,7 +197764,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -198108,8 +198108,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 291.03,
@@ -198132,7 +198132,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 330,
@@ -198148,7 +198148,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 270,
@@ -198201,7 +198201,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -198227,8 +198227,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-06",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 50.72,
@@ -198251,7 +198251,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 60,
@@ -198267,7 +198267,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 52.5,
@@ -198320,7 +198320,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -198465,8 +198465,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-29",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 22.64,
@@ -198489,7 +198489,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 24,
@@ -198505,7 +198505,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 23,
@@ -198558,7 +198558,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -198734,8 +198734,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 533.06,
@@ -198758,7 +198758,7 @@
       },
       "expiry": "2026-09-04",
       "dte": 40,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 650,
@@ -198774,7 +198774,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 525,
@@ -198827,7 +198827,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -198853,8 +198853,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 236.16,
@@ -198877,7 +198877,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 270,
@@ -198893,7 +198893,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 240,
@@ -198946,7 +198946,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -198972,8 +198972,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-03",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 355.99,
@@ -198996,7 +198996,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 400,
@@ -199012,7 +199012,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 360,
@@ -199065,7 +199065,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -199090,8 +199090,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-04",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 365.1,
@@ -199114,7 +199114,7 @@
       },
       "expiry": "2026-09-04",
       "dte": 40,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 410,
@@ -199130,7 +199130,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 375,
@@ -199183,7 +199183,7 @@
       },
       "expiry": "2026-09-04",
       "dte": 40,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -199209,8 +199209,8 @@
     "flags": {
      "iv_high": false,
      "iv_low": true,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 33.65,
@@ -199233,7 +199233,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 35,
@@ -199249,7 +199249,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bear_put": {
       "long_k": 35,
@@ -199287,7 +199287,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -199313,8 +199313,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-27",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 69.9,
@@ -199337,7 +199337,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 65,
@@ -199393,8 +199393,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-06",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 17.93,
@@ -199417,7 +199417,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 19,
@@ -199592,8 +199592,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-29",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 14.85,
@@ -199616,7 +199616,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 16,
@@ -199632,7 +199632,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bear_put": {
       "long_k": 15,
@@ -199673,8 +199673,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-06",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 50.96,
@@ -199697,7 +199697,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 57.5,
@@ -199713,7 +199713,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 50,
@@ -199766,7 +199766,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -199792,8 +199792,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-10",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 21.02,
@@ -199816,7 +199816,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 27.5,
@@ -199832,7 +199832,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 22.5,
@@ -199885,7 +199885,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -199990,8 +199990,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-30",
      "mc_20b": true,
      "spy_bear": false,
      "stock_sma20": 243.84,
@@ -200014,7 +200014,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 260,
@@ -200030,7 +200030,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 230,
@@ -200083,7 +200083,7 @@
       },
       "expiry": "2026-08-28",
       "dte": 33,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -200109,8 +200109,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-07-31",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 195.94,
@@ -200133,7 +200133,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 230,
@@ -200149,7 +200149,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 210,
@@ -200202,7 +200202,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
@@ -200228,8 +200228,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-08-03",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 73.26,
@@ -200252,7 +200252,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bcs": {
       "short_k": 90,
@@ -200268,7 +200268,7 @@
       },
       "expiry": "2026-08-21",
       "dte": 26,
-      "earnings_inside": false
+      "earnings_inside": true
      },
      "bull_call": {
       "long_k": 75,
@@ -200321,7 +200321,7 @@
       },
       "expiry": "2026-09-18",
       "dte": 54,
-      "earnings_inside": false
+      "earnings_inside": true
      }
     }
    },
