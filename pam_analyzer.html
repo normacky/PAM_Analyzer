@@ -509,7 +509,7 @@
         </div>
         <div class="drawer-row" style="margin-top:-2px">
           <span class="ctl-label"></span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--faint)">build v0.20.4b · 26 Jul 2026 — if this line is missing after a deploy, the browser is still on an old copy</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--faint)">build v0.20.5 · 26 Jul 2026 — if this line is missing after a deploy, the browser is still on an old copy</span>
         </div>
       </div>
 
@@ -1481,7 +1481,7 @@ function earnTdCachePut(sym,rows,sig){ try{ const c=JSON.parse(localStorage.getI
   c[sym]={d:earnTodayISO(),sig:sig||'',rows:rows||[]};
   const ks=Object.keys(c); if(ks.length>150){ ks.sort((a,b)=>String(c[a].d).localeCompare(String(c[b].d))); ks.slice(0,ks.length-150).forEach(k=>delete c[k]); }
   localStorage.setItem('pam_earn_c2',JSON.stringify(c)); }catch(x){} }
-function earnPflagClear(id){ try{ const f=earnPflagGet(); if(f[id]){ delete f[id]; f.d=earnTodayISO(); localStorage.setItem('pam_earn_pflag',JSON.stringify(f)); } }catch(e){} }
+function earnPflagClear(id){ try{ const f=earnPflagGet(); if(f[id]){ delete f[id]; f.d=earnTodayISO(); localStorage.setItem('pam_earn_pflag2',JSON.stringify(f)); } }catch(e){} }
 function earnHint(msg){ const e=$('#earnHint'); if(e)e.textContent=msg; }
 const EARN_PNAME={md:'marketdata.app',av:'Alpha Vantage',td:'Twelve Data'};
 function earnTdHour(t){ t=String(t||'').toLowerCase();
@@ -1502,8 +1502,8 @@ function earnMergeRows(sym,rows){ if(!rows||!rows.length)return false;
 function earnNum(v){ return (v==null||v===''||isNaN(+v))?null:+(+v).toFixed(4); }
 /* one flag per provider per day: once a provider says "your plan lacks this endpoint" it is not
    asked again until tomorrow, so a missing plan never burns more than one call a day */
-function earnPflagGet(){ try{ const f=JSON.parse(localStorage.getItem('pam_earn_pflag')||'{}'); return f.d===earnTodayISO()?f:{}; }catch(e){ return {}; } }
-function earnPflagSet(id){ try{ const f=earnPflagGet(); f.d=earnTodayISO(); f[id]=1; localStorage.setItem('pam_earn_pflag',JSON.stringify(f)); }catch(e){} }
+function earnPflagGet(){ try{ const f=JSON.parse(localStorage.getItem('pam_earn_pflag2')||'{}'); return f.d===earnTodayISO()?f:{}; }catch(e){ return {}; } }
+function earnPflagSet(id){ try{ const f=earnPflagGet(); f.d=earnTodayISO(); f[id]=1; localStorage.setItem('pam_earn_pflag2',JSON.stringify(f)); }catch(e){} }
 /* each provider returns {rows:[[date,hour,est,act],...]} | {deny:true} (plan lacks it) | {rate:true} (throttled right now) */
 async function earnMdRows(sym,key){                              // marketdata.app — reportDate + reportTime + est + actual, ~1y on the free tier
   const from=new Date(Date.now()-370*864e5).toISOString().slice(0,10);   // 370d covers the 1-year 2-Day chart and stays inside the proven free-tier reach
@@ -1511,10 +1511,20 @@ async function earnMdRows(sym,key){                              // marketdata.a
   const mk=t=>fetch('https://api.marketdata.app/v1/stocks/earnings/'+encodeURIComponent(sym)+'/?from='+from+'&to='+t+'&token='+encodeURIComponent(key));
   let r=await mk(to);
   if(r.status===402)r=await mk(new Date().toISOString().slice(0,10));   // forward reach beyond the plan? retry with the proven history-only window before giving up
-  if(r.status===401||r.status===402||r.status===403)return {deny:true};
-  if(r.status===429)return {rate:true};
+  /* status semantics straight from marketdata's docs — only true key/plan problems earn a day-flag:
+     401 bad token / 402 after retry = plan gap -> deny (flag for the day)
+     403 = the ONE-DEVICE rule (IP changed, ~5-min temporary block) -> transient, never flag
+     404 = no data for this symbol (ETFs etc.) -> empty answer, never flag
+     429 = daily credits spent (resets 9:30pm Singapore) -> transient, never flag
+     203 = served from their cache, same body as 200 -> treat as success */
+  if(r.status===401||r.status===402)return {deny:true};
+  if(r.status===403)return {soft:'marketdata.app blocked this device for ~5 min (one device at a time \u2014 the token was just used from another IP)'};
+  if(r.status===404)return {rows:[]};
+  if(r.status===429){ let left=null; try{ left=r.headers&&r.headers.get&&r.headers.get('x-api-ratelimit-remaining'); }catch(e){}
+    return {soft:'marketdata.app daily credits spent'+(left!=null?(' ('+left+' left)'):'')+' \u2014 resets 9:30pm SG'}; }
   let j=null; try{ j=await r.json(); }catch(e){ return {rows:[]}; }
-  if(!j||j.s==='error')return {deny:true};
+  if(!j)return {rows:[]};
+  if(j.s==='error')return {rows:[]};                             // symbol-level error body — not a plan problem, never flag
   if(j.s!=='ok'||!j.reportDate)return {rows:[]};                 // s:'no_data' — this symbol simply has nothing
   const iso=v=>(typeof v==='number')?new Date(v*1000).toISOString().slice(0,10):String(v).slice(0,10);
   const rows=[];
@@ -1565,6 +1575,8 @@ async function earnHistFetch(sym){                               // provider cas
         try{console.warn('[earnings]',p.id,'threw:',e&&e.message);}catch(x){} continue; }
       if(res&&res.deny){ earnPflagSet(p.id); earnHint(EARN_PNAME[p.id]+': key/plan refused \u2014 not asked again today');
         try{console.warn('[earnings]',p.id,'denied for',sym);}catch(x){} continue; }
+      if(res&&res.soft){ earnHint(res.soft+' \u2014 will retry on a later chart');
+        try{console.warn('[earnings]',p.id,'transient for',sym,':',res.soft);}catch(x){} continue; }
       if(res&&res.rate){ earnHint(EARN_PNAME[p.id]+' rate-limited \u2014 will retry on a later chart');
         try{console.warn('[earnings]',p.id,'rate-limited for',sym);}catch(x){} continue; }
       answered=true;
