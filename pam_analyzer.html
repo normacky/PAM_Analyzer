@@ -1415,6 +1415,7 @@ async function earnLoad(){
     const j=await r.json(); EARN.sym=(j&&j.symbols)||{}; EARN._ck='';
     if(typeof draw==='function'&&BARS.length)draw();
     if(typeof scanRenderList==='function')scanRenderList();
+    earnTdFetch(S.ticker);                                        // fill the charted symbol's history (and re-apply today's TD cache over the fresh store)
   }catch(e){ /* silent: the file simply is not there yet until the first scan after this update */ }
 }
 function earnTodayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -1438,6 +1439,57 @@ function earnSync(){   // map this symbol's reports onto the loaded bars; rebuil
     const i=BARS.findIndex(b=>b.date>=e[0]); if(i<0)continue;        // glyph sits on the bar on/after the report date
     EARN._marks.push({i,e}); EARN._byI[i]=e;
   }
+}
+/* ---- on-demand history: Twelve Data /earnings, using the SAME key already in the app ----
+   The scanner's bulk feed only reaches ~30 days back on the free tier, so when a symbol is
+   charted the analyzer asks Twelve Data for that ONE symbol's earnings history (~14 quarters:
+   date, time, EPS estimate, EPS actual). Fired once per symbol per day (cached in localStorage),
+   only when the store is thin for that symbol, and it fails silently if the Twelve Data plan
+   lacks the endpoint — the store and nightly accumulation then carry the layer on their own.
+   The scanner's data stays authoritative: TD fills gaps, it never overwrites a stored actual,
+   and it only supplies an UPCOMING date when the store has none (that heals bulk-feed misses). */
+let EARN_TD_INFLIGHT={};
+function earnTdCacheGet(sym){ try{ const c=JSON.parse(localStorage.getItem('pam_earn_td')||'{}');
+  const e=c[sym]; return (e&&e.d===earnTodayISO())?e:null; }catch(x){ return null; } }
+function earnTdCachePut(sym,rows){ try{ const c=JSON.parse(localStorage.getItem('pam_earn_td')||'{}');
+  c[sym]={d:earnTodayISO(),rows:rows||[]};
+  const ks=Object.keys(c); if(ks.length>150){ ks.sort((a,b)=>String(c[a].d).localeCompare(String(c[b].d))); ks.slice(0,ks.length-150).forEach(k=>delete c[k]); }
+  localStorage.setItem('pam_earn_td',JSON.stringify(c)); }catch(x){} }
+function earnTdHour(t){ t=String(t||'').toLowerCase();
+  if(/pre|before|bmo/.test(t))return 'bmo'; if(/after|post|amc/.test(t))return 'amc';
+  const m=t.match(/^(\d{1,2}):(\d{2})/); if(m){ const hm=(+m[1])*60+(+m[2]); return hm<570?'bmo':hm>=960?'amc':'dmh'; }
+  return ''; }
+function earnMergeRows(sym,rows){ if(!rows||!rows.length)return false;
+  if(!EARN.sym)EARN.sym={};
+  const list=EARN.sym[sym]=EARN.sym[sym]||[], today=earnTodayISO();
+  const hasFut=list.some(e=>e[0]>today); let changed=false;
+  for(const r of rows){ const d=r[0]; if(!d)continue;
+    if(d>today&&hasFut)continue;                                  // the scanner owns the future; TD only fills a MISSING one
+    const at=list.findIndex(e=>e[0]===d);
+    if(at<0){ list.push(r.slice()); changed=true; }
+    else if(list[at][3]==null&&r[3]!=null){ list[at]=[d,list[at][1]||r[1],(list[at][2]!=null?list[at][2]:r[2]),r[3]]; changed=true; } }
+  if(changed){ list.sort((a,b)=>a[0]<b[0]?-1:1); EARN._ck=''; }
+  return changed; }
+async function earnTdFetch(sym){
+  sym=(sym||'').trim().toUpperCase();
+  if(!S.layers.earnings||!sym||sym==='PASTED'||EARN_TD_INFLIGHT[sym])return;
+  const key=($('#keyInput').value||'').trim(); if(!key)return;     // direct key only — the group's shared-key proxy wraps price series, not earnings
+  const today=earnTodayISO(), list=(EARN.sym&&EARN.sym[sym])||[];
+  if(list.filter(e=>e[0]<=today).length>=3 && list.some(e=>e[0]>today))return;   // store already rich for this one
+  const cached=earnTdCacheGet(sym);
+  if(cached){ if(earnMergeRows(sym,cached.rows)){draw();if(typeof scanRenderList==='function')scanRenderList();} return; }
+  EARN_TD_INFLIGHT[sym]=1;
+  try{
+    const r=await fetch('https://api.twelvedata.com/earnings?symbol='+encodeURIComponent(sym)+'&outputsize=24&apikey='+encodeURIComponent(key));
+    const j=await r.json();
+    if(j&&j.status==='error'){ if(+j.code!==429)earnTdCachePut(sym,[]); return; }  // plan lacks it -> remember for today; rate-limit -> just retry on a later click
+    const rows=((j&&j.earnings)||[]).map(e=>[e.date,earnTdHour(e.time),
+      (e.eps_estimate==null||e.eps_estimate===''||isNaN(+e.eps_estimate))?null:+(+e.eps_estimate).toFixed(4),
+      (e.eps_actual==null||e.eps_actual===''||isNaN(+e.eps_actual))?null:+(+e.eps_actual).toFixed(4)]).filter(x=>x[0]);
+    earnTdCachePut(sym,rows);
+    if(earnMergeRows(sym,rows)){ draw(); if(typeof scanRenderList==='function')scanRenderList(); }
+  }catch(e){ /* silent */ }
+  finally{ delete EARN_TD_INFLIGHT[sym]; }
 }
 /* ---------- chart ---------- */
 const cv=$('#chart'),ctx=cv.getContext('2d');let GEO=null;
@@ -2025,6 +2077,7 @@ async function fetchSymbol(ticker){
     recompute(); buildEff(); renderEffectiveness();
     setStatus(ticker+': '+daily.close.length+' daily'+(weekly?(' · '+weekly.close.length+' weekly'):' · no weekly (2-Day fallback)')+(coName?(' · '+coName):'')+' loaded','ok');
     S.lastSym=ticker; if(typeof logCheck==='function'){logCheck(ticker,S.name);}else if(typeof saveLocal==='function'){saveLocal();}
+    earnTdFetch(ticker);                                          // top up this symbol's earnings history (non-blocking, silent)
   }catch(err){
     setStatus('Couldn’t load '+ticker+': '+err.message+'. Check the symbol/key, or use “Paste data…”.','err');
   }finally{ $('#fetchBtn').disabled=false; }

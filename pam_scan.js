@@ -87,6 +87,9 @@ const CFG = {
   earnFwdDays:  parseInt(process.env.PAM_EARN_FWD  || '65', 10),         // forward reach: covers the panel's "next month" view AND the options 25-60 DTE earnings_inside check in one pull
   earnBackDays: parseInt(process.env.PAM_EARN_BACK || '7', 10),          // nightly look-back so a just-reported epsActual replaces last week's estimate-only row
   earnKeepDays: parseInt(process.env.PAM_EARN_KEEP || '460', 10),        // ~15 months of history retained — enough past markers for a 1-year 2-Day chart
+  earnBfFile:   process.env.PAM_EARN_BF   || 'earnings_backfill.json',   // rolling backfill bookkeeping (probe result + per-symbol done list) — clients never fetch this
+  earnPerSymPerNight: parseInt(process.env.PAM_EARN_PERSYM || '550', 10),// per-symbol history pulls per night when the key allows deep history (~10 min; whole universe in ~3 weeks)
+  earnTopupMax: parseInt(process.env.PAM_EARN_TOPUP || '250', 10),       // fired tickers healed per night when the bulk feed missed their upcoming report date
 };
 
 const FINNHUB_KEY = process.env.FINNHUB_KEY;   // free key from finnhub.io — adds market cap + industry
@@ -669,6 +672,78 @@ function mergeEarnings(store, rows, universe, today, keepDays) {
   return { future, past };
 }
 
+async function fetchEarningsSym(sym, fromISO, toISO, cfg) {
+  const r = await fetch('https://finnhub.io/api/v1/calendar/earnings?from=' + fromISO + '&to=' + toISO +
+    '&symbol=' + encodeURIComponent(sym) + '&token=' + FINNHUB_KEY, { signal: AbortSignal.timeout(cfg.fundTimeout) });
+  if (!r.ok) throw new Error('Finnhub ' + r.status);
+  const j = await r.json();
+  return (j && j.earningsCalendar) || [];
+}
+
+/* Rolling per-symbol history backfill. The bulk endpoint proved to be capped at ~30 days of
+ * history on the free tier, so deep history has to come symbol-by-symbol — IF the key allows it.
+ * A one-shot PROBE settles that: ask for AAPL over a strictly-old window (15 → 2 months back);
+ * rows back = deep history works ('ok'), none = the per-symbol route is capped too ('shallow').
+ * Under 'ok', up to earnPerSymPerNight symbols are pulled each night (~15-month window each,
+ * paced under the 60/min limit, hard 12-minute wall-clock cap) and ticked off in a done-list in
+ * earnings_backfill.json — the whole universe completes in ~3 weeks and never repeats. Under
+ * 'shallow' the step logs why and skips; the probe re-runs monthly so a key upgrade is picked up
+ * automatically. Either way the nightly bulk accumulation keeps deepening history as a floor. */
+async function backfillEarningsPerSymbol(store, syms, universe, cfg) {
+  let bf = { probe: null, probedAt: '', done: {} };
+  try { bf = Object.assign(bf, JSON.parse(fs.readFileSync(cfg.earnBfFile, 'utf8'))); } catch (e) {}
+  const today = isoDay(new Date());
+  const probeStale = !bf.probedAt || (Date.parse(today) - Date.parse(bf.probedAt)) > 30 * 86400000;
+  if (bf.probe !== 'ok' && probeStale) {
+    try {
+      const rows = await fetchEarningsSym('AAPL', isoDay(new Date(Date.now() - 450 * 86400000)), isoDay(new Date(Date.now() - 60 * 86400000)), cfg);
+      bf.probe = rows.length >= 2 ? 'ok' : 'shallow'; bf.probedAt = today;
+      console.error('Earnings history probe: per-symbol deep history is ' + (bf.probe === 'ok' ? 'AVAILABLE on this key — rolling backfill will run nightly.' : 'NOT available on this key (free tier caps history ~30 days). Chart history will come from the analyzer\u2019s Twelve Data lookup and nightly accumulation instead; re-probing monthly.'));
+    } catch (e) { console.error('Earnings history probe failed (' + e.message + ') — will retry next run.'); }
+  }
+  if (bf.probe === 'ok') {
+    const todo = syms.filter(s => !bf.done[s]).slice(0, cfg.earnPerSymPerNight);
+    if (todo.length) {
+      console.error('Earnings backfill: ' + todo.length + ' symbols this night (' + syms.filter(s => !bf.done[s]).length + ' remaining in total)…');
+      const t0 = Date.now(); let n = 0;
+      for (const s of todo) {
+        if (Date.now() - t0 > 12 * 60000) { console.error('  12-minute cap reached — ' + (todo.length - n) + ' of tonight\u2019s batch roll to tomorrow.'); break; }
+        try {
+          const rows = await fetchEarningsSym(s, isoDay(new Date(Date.now() - cfg.earnKeepDays * 86400000)), isoDay(new Date(Date.now() + cfg.earnFwdDays * 86400000)), cfg);
+          mergeEarnings(store, rows, universe, today, cfg.earnKeepDays);
+          bf.done[s] = 1; n++;
+          if (n % 100 === 0) console.error('  …' + n + ' done');
+        } catch (e) { await sleep(30000); }   // likely a rate-limit blip: breathe, retry the symbol next night
+        await sleep(1150);
+      }
+      console.error('  backfill: ' + n + ' symbols pulled tonight.');
+    }
+  }
+  try { fs.writeFileSync(cfg.earnBfFile, JSON.stringify(bf, null, 0)); } catch (e) {}
+}
+
+/* Heal bulk-feed gaps for the tickers that actually fired: the free bulk response sometimes
+ * omits a counter entirely (LIN, for one), so any FIRED ticker with no upcoming report on file
+ * gets one per-symbol look before the options step reads earnings_inside. Forward-window
+ * per-symbol calls work on every tier, so this needs no probe. */
+async function topupEarningsFired(firedSyms, universe, cfg) {
+  if (!FINNHUB_KEY || !EARN_STORE) return;
+  const today = isoDay(new Date());
+  const missing = firedSyms.filter(s => !((EARN_STORE[s] || []).some(e => e[0] > today))).slice(0, cfg.earnTopupMax);
+  if (!missing.length) return;
+  console.error('Earnings top-up: ' + missing.length + ' fired ticker(s) had no upcoming report on file — pulling each individually…');
+  const from = isoDay(new Date(Date.now() - cfg.earnBackDays * 86400000));
+  const to   = isoDay(new Date(Date.now() + cfg.earnFwdDays  * 86400000));
+  let healed = 0;
+  for (const s of missing) {
+    try { const rows = await fetchEarningsSym(s, from, to, cfg); if (rows.length) healed++; mergeEarnings(EARN_STORE, rows, universe, today, cfg.earnKeepDays); }
+    catch (e) {}
+    await sleep(1150);
+  }
+  console.error('  top-up: ' + healed + ' of ' + missing.length + ' now have report data.');
+  try { fs.writeFileSync(cfg.earnFile, JSON.stringify({ updated: new Date().toISOString(), window: [from, to], symbols: EARN_STORE }, null, 0)); } catch (e) {}
+}
+
 async function updateEarnings(universe, cfg) {
   if (!FINNHUB_KEY) { console.error('No FINNHUB_KEY set — skipping the earnings calendar (no earnings.json this run).'); return; }
   const today = isoDay(new Date());
@@ -701,6 +776,7 @@ async function updateEarnings(universe, cfg) {
   } catch (e) {
     console.error('Earnings calendar pull failed (' + e.message + ') — keeping the existing earnings.json as-is.');
   }
+  await backfillEarningsPerSymbol(store, Array.from(universe).sort(), universe, cfg);   // deep per-symbol history when the key allows it (self-probing)
   try { fs.writeFileSync(cfg.earnFile, JSON.stringify({ updated: new Date().toISOString(), window: [from, to], symbols: store }, null, 0)); }
   catch (e) { console.error('  could not write ' + cfg.earnFile + ': ' + e.message); }
   EARN_STORE = store;
@@ -974,6 +1050,11 @@ async function main() {
 
   await addFundamentals(meta, CFG);   // market cap / industry for every fired ticker, across all timeframes (no-op without FINNHUB_KEY)
 
+  // any FIRED ticker the bulk earnings feed missed gets a per-symbol look now, so the options
+  // step's earnings_inside check and the panel's chips see it (heals the LIN-style bulk gap)
+  try { await topupEarningsFired(Object.keys(meta), new Set(syms), CFG); }
+  catch (e) { console.error('Earnings top-up failed (' + e.message + ') — scan continues: ' + e.message); }
+
   // options enrichment: vertical-spread candidates + IV flags for every fired ticker (PAM_OPT=0 to skip)
   let opt = null;
   try { opt = await enrichOptions(meta, CFG, stockTrend); }
@@ -1013,5 +1094,5 @@ async function main() {
 
 if (require.main === module) main().catch(e => { console.error(e); process.exitCode = 1; });
 module.exports = { loadEngine, detectFresh, seriesFromAlpaca, fetchUniverse, fetchBars, addFundamentals, splitAdjustedShares, fetchSplitsFor, daysBetweenISO,
-                   parseOcc, groupExpiries, anchorGroup, byDelta, atmIvOf, buildSpreadsForExpiry, bestSpreads, earningsNext, mergeEarnings, updateEarnings, fetchSpyRegime, adxLatest, dailySmaTrend,
+                   parseOcc, groupExpiries, anchorGroup, byDelta, atmIvOf, buildSpreadsForExpiry, bestSpreads, earningsNext, mergeEarnings, updateEarnings, backfillEarningsPerSymbol, topupEarningsFired, fetchEarningsSym, fetchSpyRegime, adxLatest, dailySmaTrend,
                    loadIvHistory, recordIv, ivPercentile, enrichOptions, CFG };
