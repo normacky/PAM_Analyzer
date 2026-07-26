@@ -501,7 +501,7 @@
         </div>
         <div class="drawer-row" style="margin-top:-4px">
           <span class="ctl-label"></span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.45">for HISTORICAL earnings on the chart (est + actual EPS at their report dates) — either key works; paste one and re-chart the symbol</span>
+          <span id="earnHint" style="font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.45">for HISTORICAL earnings on the chart (est + actual EPS at their report dates) — either key works; paste one and re-chart the symbol</span>
         </div>
         <div class="drawer-row">
           <span class="ctl-label">Source</span>
@@ -1465,12 +1465,21 @@ function earnSync(){   // map this symbol's reports onto the loaded bars; rebuil
    The scanner's data stays authoritative: TD fills gaps, it never overwrites a stored actual,
    and it only supplies an UPCOMING date when the store has none (that heals bulk-feed misses). */
 let EARN_TD_INFLIGHT={};
-function earnTdCacheGet(sym){ try{ const c=JSON.parse(localStorage.getItem('pam_earn_td')||'{}');
-  const e=c[sym]; return (e&&e.d===earnTodayISO())?e:null; }catch(x){ return null; } }
-function earnTdCachePut(sym,rows){ try{ const c=JSON.parse(localStorage.getItem('pam_earn_td')||'{}');
-  c[sym]={d:earnTodayISO(),rows:rows||[]};
+/* per-symbol per-day cache. sig = which key fields are filled in ('md,av,td' subset) — an EMPTY
+   answer is only trusted while that set is unchanged, so pasting a new key immediately re-asks
+   instead of sitting on this morning's keyless "no data" for the rest of the day (the v0.20.3 bug).
+   Non-empty answers stay valid for the whole day regardless. Fresh namespace abandons old entries. */
+function earnTdCacheGet(sym,sig){ try{ const c=JSON.parse(localStorage.getItem('pam_earn_c2')||'{}');
+  const e=c[sym]; if(!e||e.d!==earnTodayISO())return null;
+  if((e.rows||[]).length)return e;
+  return (e.sig===sig)?e:null; }catch(x){ return null; } }
+function earnTdCachePut(sym,rows,sig){ try{ const c=JSON.parse(localStorage.getItem('pam_earn_c2')||'{}');
+  c[sym]={d:earnTodayISO(),sig:sig||'',rows:rows||[]};
   const ks=Object.keys(c); if(ks.length>150){ ks.sort((a,b)=>String(c[a].d).localeCompare(String(c[b].d))); ks.slice(0,ks.length-150).forEach(k=>delete c[k]); }
-  localStorage.setItem('pam_earn_td',JSON.stringify(c)); }catch(x){} }
+  localStorage.setItem('pam_earn_c2',JSON.stringify(c)); }catch(x){} }
+function earnPflagClear(id){ try{ const f=earnPflagGet(); if(f[id]){ delete f[id]; f.d=earnTodayISO(); localStorage.setItem('pam_earn_pflag',JSON.stringify(f)); } }catch(e){} }
+function earnHint(msg){ const e=$('#earnHint'); if(e)e.textContent=msg; }
+const EARN_PNAME={md:'marketdata.app',av:'Alpha Vantage',td:'Twelve Data'};
 function earnTdHour(t){ t=String(t||'').toLowerCase();
   if(/pre|before|bmo/.test(t))return 'bmo'; if(/after|post|amc/.test(t))return 'amc';
   const m=t.match(/^(\d{1,2}):(\d{2})/); if(m){ const hm=(+m[1])*60+(+m[2]); return hm<570?'bmo':hm>=960?'amc':'dmh'; }
@@ -1531,26 +1540,41 @@ async function earnHistFetch(sym){                               // provider cas
   if(!S.layers.earnings||!sym||sym==='PASTED'||EARN_TD_INFLIGHT[sym])return;
   const today=earnTodayISO(), list=(EARN.sym&&EARN.sym[sym])||[];
   if(list.filter(e=>e[0]<=today).length>=3 && list.some(e=>e[0]>today))return;   // store already rich for this one
-  const cached=earnTdCacheGet(sym);
-  if(cached){ if(earnMergeRows(sym,cached.rows)){draw();if(typeof scanRenderList==='function')scanRenderList();} return; }
-  const flags=earnPflagGet();
   const provs=[
     {id:'md',key:(($('#mdKeyInput')&&$('#mdKeyInput').value)||'').trim(),fn:earnMdRows},
     {id:'av',key:(($('#avKeyInput')&&$('#avKeyInput').value)||'').trim(),fn:earnAvRows},
     {id:'td',key:(($('#keyInput')&&$('#keyInput').value)||'').trim(),fn:earnTdRows}];
+  const sig=provs.filter(p=>p.key).map(p=>p.id).join(',');
+  const cached=earnTdCacheGet(sym,sig);
+  if(cached){ if(earnMergeRows(sym,cached.rows)){draw();if(typeof scanRenderList==='function')scanRenderList();}
+    if((cached.rows||[]).length)earnHint(sym+' \u00b7 '+cached.rows.length+' reports (today\u2019s cache)');
+    return; }
+  const flags=earnPflagGet();
   EARN_TD_INFLIGHT[sym]=1;
   try{
+    let answered=false;                                          // true only if some source genuinely returned an answer (even an empty one)
     for(const p of provs){
       if(!p.key||flags[p.id])continue;
-      let res=null; try{ res=await p.fn(sym,p.key); }catch(e){ continue; }        // network hiccup — try the next provider
-      if(res&&res.deny){ earnPflagSet(p.id); continue; }
-      if(res&&res.rate){ continue; }
+      let res=null;
+      try{ res=await p.fn(sym,p.key); }
+      catch(e){ earnHint(EARN_PNAME[p.id]+': call blocked in the browser (network/CORS) \u2014 trying next source');
+        try{console.warn('[earnings]',p.id,'threw:',e&&e.message);}catch(x){} continue; }
+      if(res&&res.deny){ earnPflagSet(p.id); earnHint(EARN_PNAME[p.id]+': key/plan refused \u2014 not asked again today');
+        try{console.warn('[earnings]',p.id,'denied for',sym);}catch(x){} continue; }
+      if(res&&res.rate){ earnHint(EARN_PNAME[p.id]+' rate-limited \u2014 will retry on a later chart');
+        try{console.warn('[earnings]',p.id,'rate-limited for',sym);}catch(x){} continue; }
+      answered=true;
       const rows=(res&&res.rows)||[];
-      if(rows.length){ earnTdCachePut(sym,rows);
+      if(rows.length){ earnTdCachePut(sym,rows,sig);
         if(earnMergeRows(sym,rows)){ draw(); if(typeof scanRenderList==='function')scanRenderList(); }
+        earnHint(sym+' \u00b7 '+rows.length+' reports \u00b7 '+EARN_PNAME[p.id]);
         return; }
+      try{console.warn('[earnings]',p.id,'had no data for',sym);}catch(x){}
     }
-    earnTdCachePut(sym,[]);                                      // every provider came up empty — remember that for today
+    if(answered){ earnTdCachePut(sym,[],sig); earnHint('no earnings data found for '+sym); }   // a real "no data" answer — remember it for this key-set today
+    else if(!sig){ earnHint('paste a marketdata.app token or Alpha Vantage key above'); }
+    /* otherwise: every source denied/failed — the specific reason stays on screen, nothing is
+       cached, and the day-flags alone stop repeat calls, so a transient failure retries later */
   } finally{ delete EARN_TD_INFLIGHT[sym]; }
 }
 /* ---------- chart ---------- */
@@ -2241,6 +2265,7 @@ function attachSavers(){
   ['#layers','#indicators','#segTf','#segLens','#segRecent'].forEach(sel=>document.querySelectorAll(sel+' button').forEach(b=>b.addEventListener('click',()=>setTimeout(saveLocal,0))));
   const k=$('#keyInput');if(k)k.addEventListener('input',()=>setTimeout(saveLocal,0));
   ['#mdKeyInput','#avKeyInput'].forEach(sel=>{const e=$(sel);if(e)e.addEventListener('input',()=>setTimeout(saveLocal,0));});
+  [['#mdKeyInput','md'],['#avKeyInput','av']].forEach(([sel,id])=>{const e=$(sel);if(e)e.addEventListener('change',()=>{earnPflagClear(id);earnHistFetch(S.ticker);});});
   const ey=$('#effYears');if(ey){ey.min='0';ey.max=String(EFF_WINDOWS.length-1);ey.step='1';ey.value=String(Math.max(0,EFF_WINDOWS.indexOf(S.effMonths||36)));ey.addEventListener('input',()=>{S.effMonths=EFF_WINDOWS[+ey.value]||36;renderEffectiveness();setTimeout(saveLocal,0);});}
   const wa=$('#wlAdd');if(wa)wa.onclick=()=>addWL(($('#tkInput').value||S.lastSym||''));
   const stg=$('#syncToggle');if(stg)stg.onclick=()=>{const p=$('#syncPanel');p.style.display=p.style.display==='none'?'block':'none';};
