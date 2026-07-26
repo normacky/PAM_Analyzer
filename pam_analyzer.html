@@ -836,9 +836,70 @@ let NVDA_DAILY = PAM_DATA.daily, NVDA_WEEKLY = PAM_DATA.weekly;   // mutable: li
    ============================================================ */
 function aggregate(daily,n){
   const {open:o,high:h,low:l,close:c,time:t,volume:v}=daily,bars=[];
-  for(let i=0;i<c.length;i+=n){const j=Math.min(i+n,c.length);
-    bars.push({date:t[j-1],open:o[i],high:Math.max(...h.slice(i,j)),low:Math.min(...l.slice(i,j)),
-      close:c[j-1],vol:v.slice(i,j).reduce((a,b)=>a+b,0)});}
+  const mk=(i,j)=>({date:t[j-1],open:o[i],high:Math.max(...h.slice(i,j)),low:Math.min(...l.slice(i,j)),
+      close:c[j-1],vol:v.slice(i,j).reduce((a,b)=>a+b,0)});
+  if(n<=1){for(let i=0;i<c.length;i++)bars.push(mk(i,i+1));return bars;}
+  /* v0.20 — TOS-style fixed grid for multi-day bars.
+     The old loop paired from whatever bar happened to sit first in the fetched window, so every
+     candle's day-composition reshuffled as the window rolled forward one day, and the chart's
+     grid (1300-bar pull) could disagree with the nightly scanner's (~500-calendar-day pull).
+     Pair boundaries are now pinned to an absolute anchor date, verified against Thinkorswim
+     (2026-06-03 opens a real TOS 2-Day bar; the grid is continuous — no reset at year end), so:
+       - the same two days always pair together, no matter how much history is loaded;
+       - the chart and the nightly scanner produce identical 2-Day bars;
+       - the newest bar is a 1-day "forming" bar whenever its 2nd day hasn't traded yet — as in TOS.
+     HOW THE ANCHOR IS APPLIED — built to need NO scheduled maintenance, ever:
+       1. Anchor INSIDE the loaded series → pairing counts the series' own bars outward from it
+          (exact, immune to any calendar surprise).
+       2. Anchor OUTSIDE the series — the scanner's ~500-day window from late 2027 on, a young
+          listing, a short paste → the engine COMPUTES the NYSE calendar (weekends + the
+          exchange's published holiday rules, incl. Good Friday via the Easter algorithm and the
+          Saturday/Sunday observation shifts) and carries the grid's parity across the gap.
+     The ONLY edit this block should ever need again: if the market takes an UNSCHEDULED full-day
+     closure (national mourning, disaster — last one: 9 Jan 2025, the Carter funeral), append that
+     date to CLOSURES below. Even a missed one is self-announcing: the symptom is a visible one-day
+     offset vs TOS — the exact mismatch that motivated this fix — and only after that closure has
+     left the fetched window. */
+  const ANCHORS=['2026-06-03'];
+  const CLOSURES=['2001-09-11','2001-09-12','2001-09-13','2001-09-14','2004-06-11','2007-01-02',
+                  '2012-10-29','2012-10-30','2018-12-05','2025-01-09'];
+  const p2=x=>String(x).padStart(2,'0');
+  const iso=(y,m,d)=>y+'-'+p2(m)+'-'+p2(d);
+  const dow=s2=>new Date(s2+'T00:00:00Z').getUTCDay();
+  const nthDow=(y,m,w,q)=>{const f2=dow(iso(y,m,1));return iso(y,m,1+((w-f2+7)%7)+7*(q-1));};
+  const lastMon=(y,m,dmax)=>{const wd=dow(iso(y,m,dmax));return iso(y,m,dmax-((wd-1+7)%7));};
+  const obs=(y,m,d)=>{const w=dow(iso(y,m,d));if(w===6)return d>1?iso(y,m,d-1):null;if(w===0)return iso(y,m,d+1);return iso(y,m,d);};
+  const HC={};
+  const holi=y=>{ if(HC[y])return HC[y];
+    const hs=new Set();
+    const ny=obs(y,1,1); if(ny)hs.add(ny);                          // New Year's (Jan-1 on a Saturday is NOT observed)
+    hs.add(nthDow(y,1,1,3)); hs.add(nthDow(y,2,1,3));               // MLK, Washington's Birthday
+    { const a=y%19,b=Math.floor(y/100),cc=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),
+        g=Math.floor((b-f+1)/3),hh=(19*a+b-dd-g+15)%30,ii=Math.floor(cc/4),kx=cc%4,
+        L=(32+2*e+2*ii-hh-kx)%7,mm=Math.floor((a+11*hh+22*L)/451),
+        mo=Math.floor((hh+L-7*mm+114)/31),da=((hh+L-7*mm+114)%31)+1;
+      const eg=new Date(Date.UTC(y,mo-1,da)); eg.setUTCDate(eg.getUTCDate()-2);
+      hs.add(eg.toISOString().slice(0,10)); }                       // Good Friday = Easter - 2
+    hs.add(lastMon(y,5,31));                                        // Memorial Day
+    if(y>=2022){const j=obs(y,6,19);if(j)hs.add(j);}                // Juneteenth (NYSE holiday since 2022)
+    { const j4=obs(y,7,4); if(j4)hs.add(j4); }                      // Independence Day
+    hs.add(nthDow(y,9,1,1)); hs.add(nthDow(y,11,4,4));              // Labor Day, Thanksgiving
+    { const xm=obs(y,12,25); if(xm)hs.add(xm); }                    // Christmas
+    return HC[y]=hs; };
+  const isTD=s2=>{const w=dow(s2);return w>0&&w<6&&!holi(+s2.slice(0,4)).has(s2)&&CLOSURES.indexOf(s2)<0;};
+  const countTD=(a2,b2)=>{let cn=0;const d2=new Date(a2+'T00:00:00Z'),e2=new Date(b2+'T00:00:00Z');
+    for(;d2<e2;d2.setUTCDate(d2.getUTCDate()+1)){if(isTD(d2.toISOString().slice(0,10)))cn++;}return cn;};
+  const As=ANCHORS.slice().sort();
+  let k=-1;
+  for(const A of As){ if(t.length&&A>=t[0]&&A<=t[t.length-1]){let i=0;while(i<t.length&&t[i]<A)i++;if(i<t.length)k=i;} }
+  let s;
+  if(k>=0)s=k%n;                                     // 1. exact: count the series' own bars from the anchor
+  else if(!t.length)s=0;
+  else{ const F=t[0]; let A=As[0]; for(const x of As){if(x<=F)A=x;}   // nearest anchor below F, else earliest above
+        const off=F>=A?countTD(A,F):-countTD(F,A);   // 2. bridge the gap on the computed NYSE calendar
+        const r=((off%n)+n)%n; s=(n-r)%n; }
+  if(s>0)bars.push(mk(0,s));                          // leading partial bar left of the grid
+  for(let i=s;i<c.length;i+=n)bars.push(mk(i,Math.min(i+n,c.length)));
   return bars;
 }
 function sma(v,p){const o=v.map(_=>null);for(let i=0;i<v.length;i++)if(i>=p-1){let s=0;for(let k=i-p+1;k<=i;k++)s+=v[k];o[i]=s/p;}return o;}
@@ -959,7 +1020,7 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.19';
+const ENGINE_VERSION='v0.20';
 function findForce(bars,i,FW=5){
   // Force detection, v0.15 rules (v0.18: also returns j — the LP entry's own bar index,
   // which is point X for the majority-flush geometry):
@@ -2210,12 +2271,15 @@ function optWinTxt(o){ return (o&&o.expiries&&o.expiries.length>1)?(o.expiries[0
 function optEarnIn(sp,o){ return (sp&&sp.earnings_inside!==undefined)?sp.earnings_inside:((o&&o.flags)?o.flags.earnings_inside:null); }
 // true only if EVERY hard criterion on this spread is met (green). Unknown/missing => not met.
 // Deploy-context pills (market regime / stock trend / $20bn cap) are informational and NOT part of this badge.
+// v0.20: liquidity is informational too — the "liquid" pill still shows ✓/✗ on the card, but a wide
+// bid/ask no longer blocks the green badge. (The scanner still uses liquidity when RANKING candidate
+// strikes, so the spread shown remains the most fillable one — it just can't veto the trigger.)
 function optSpreadAllMet(kind,sp,o){
   if(!sp||!sp.ok||!o||!o.flags) return false;
   const credit=(kind==='bps'||kind==='bcs');
   return credit
-    ? (o.flags.iv_high===true && optEarnIn(sp,o)===false && sp.ok.liquidity===true && sp.ok.credit_4x===true)
-    : (o.flags.iv_low===true  && sp.ok.liquidity===true && sp.ok.rr_1to2===true);
+    ? (o.flags.iv_high===true && optEarnIn(sp,o)===false && sp.ok.credit_4x===true)
+    : (o.flags.iv_low===true  && sp.ok.rr_1to2===true);
 }
 function optSpreadCard(kind,sp,o,favoured,alignedLong){
   const card=document.createElement('div'); card.className='optspread'+(favoured?' fav':'');
