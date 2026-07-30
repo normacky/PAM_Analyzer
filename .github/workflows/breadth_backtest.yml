@@ -1,0 +1,66 @@
+# Run-on-demand sector "trigger breadth" history rebuild.
+# Runs breadth_backtest.js — which replays the PAM/Turtle engine over ~3 years of
+# daily bars for every sector-tagged ticker in enrichment_cache.json — then commits
+# breadth_history.json and breadth_history.csv back into the repo for the
+# sector-rotation study. It never runs on a schedule; you start it by hand from
+# the Actions tab -> "PAM breadth backtest" -> "Run workflow".
+name: PAM breadth backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Tickers to scan (0 = whole sector-tagged universe, ~5,400). Use 200 for a quick first test."
+        default: "0"
+      years:
+        description: "Years of breadth history to build"
+        default: "3"
+
+permissions:
+  contents: write               # allow the job to commit the result files
+
+concurrency:
+  group: breadth-backtest       # clicking Run twice just queues the second run instead of colliding
+  cancel-in-progress: false
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # full history so the rebase-before-push below always has the common ancestor
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Rebuild the breadth history
+        env:
+          ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
+          ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
+          PAM_HTML: pam_analyzer.html
+          PAM_LIMIT: ${{ github.event.inputs.limit }}
+          BT_YEARS: ${{ github.event.inputs.years }}
+        run: node breadth_backtest.js
+
+      - name: Publish breadth_history.json + .csv
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add breadth_history.json 2>/dev/null || true
+          git add breadth_history.csv  2>/dev/null || true
+          git commit -m "breadth backtest $(date -u +%Y-%m-%d) [skip ci]" || { echo "nothing to commit"; exit 0; }
+          # main may have moved while the backtest ran (e.g. the nightly scan committed).
+          # Rebase our commit onto the latest main and push, retrying a few times —
+          # the same pattern scan.yml uses.
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              echo "pushed on attempt $attempt"; exit 0
+            fi
+            echo "push attempt $attempt failed - refreshing latest main and retrying..."
+            sleep 5
+          done
+          echo "could not push results after 5 attempts"; exit 1
