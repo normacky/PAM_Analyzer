@@ -1,23 +1,44 @@
 PAM options data probe
-run at: 2026-08-02 10:28 UTC
-commit: e367d0b642a9266568d5d5e38b59df41622794f9
+run at: 2026-08-02 10:33 UTC
+commit: ad0474212a490beeafc89fe3ccc5d01c6cef2e2e
 ----------------------------------------
-Alpaca historical options probe
+Alpaca historical options probe (v2 — constructed OCC ladders, no enumeration)
 Key type: paper  ·  trade API: https://paper-api.alpaca.markets
-Testing whether a past option chain can be rebuilt with bid/ask, and how far back it reaches.
+Probe v1 showed expired contracts are not listed by /v2/options/contracts, so this
+version builds OCC symbols directly and asks for the whole ladder in one request.
+
+### CONTROL: does options quote data work at all, on a live expiry? ###
+  SPY: spot lookup failed: HTTP 403 {"message":"subscription does not permit querying recent SIP data"}
+
+  AAPL: spot lookup failed: HTTP 403 {"message":"subscription does not permit querying recent SIP data"}
+
 
 --- SPY @ 3mo back (2026-05-02, expiry 2026-06-19, 48 DTE) ---
   spot          ok    SPY closed 720.65
-  A enumerate   FAIL  empty response on both status=inactive and status=active
+  A ladder      ok    29 constructed calls, 650-790 (5 wide), e.g. SPY260619C00650000
+  B quotes:opra       FAIL  HTTP 404 {"message":"Not Found"}
+
+  B quotes:indicative FAIL  HTTP 404 {"message":"Not Found"}
+
+  C bars        FAIL  no strike traded in the window
 
 --- AAPL @ 3mo back (2026-05-02, expiry 2026-06-19, 48 DTE) ---
   spot          ok    AAPL closed 280.14
-  A enumerate   FAIL  empty response on both status=inactive and status=active
+  A ladder      ok    11 constructed calls, 255-305 (5 wide), e.g. AAPL260619C00255000
+  B quotes:opra       FAIL  HTTP 404 {"message":"Not Found"}
+
+  B quotes:indicative FAIL  HTTP 404 {"message":"Not Found"}
+
+  C bars        FAIL  no strike traded in the window
 
 Both symbols failed at 3 months back — stopping the walk here.
 
 ================ VERDICT ================
-No historical option quotes available on this key, at any depth tested.
-→ The options backtest cannot run on Alpaca. Next option is marketdata.app
-  historical chains, scoped to ~15 tickers to fit the 100-credit daily budget.
+No historical option quotes at any depth tested.
+Read the CONTROL line above to tell which problem this is:
+  control WORKS  -> live data is fine, history is the wall. Backtest must
+                    move to marketdata.app historical chains (~15 tickers,
+                    scoped to the 100-credit daily budget).
+  control FAILS  -> the account has no options quote entitlement at all;
+                    the nightly scanner is running on snapshots only.
 =========================================
