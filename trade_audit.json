@@ -1,0 +1,8127 @@
+{
+ "meta": {
+  "generated_at": "2026-08-02T14:56:28.463Z",
+  "engine_version": "v0.20",
+  "trades": 212,
+  "tickers": 115,
+  "earliest_entry": "2025-05-22",
+  "lookback_calendar_days": 10,
+  "warmup_days": 420,
+  "timeframes": [
+   "1",
+   "2",
+   "W"
+  ],
+  "provider": "alpaca",
+  "feed": "sip",
+  "adjustment": "split",
+  "no_data_tickers": [
+   "RUTW",
+   "SPXW"
+  ],
+  "caveat": "Replayed triggers, not a record of what you saw. Tickers with no bars are excluded from every conclusion."
+ },
+ "summary": {
+  "by_verdict": {
+   "supported": {
+    "n": 110,
+    "net_pl": -2068.55,
+    "win_rate": 55.5,
+    "median_pl": 191.5
+   },
+   "no_signal": {
+    "n": 10,
+    "net_pl": -4641.94,
+    "win_rate": 60,
+    "median_pl": 520
+   },
+   "against_signal": {
+    "n": 28,
+    "net_pl": 304.63,
+    "win_rate": 53.6,
+    "median_pl": 220
+   },
+   "neutral_structure": {
+    "n": 31,
+    "net_pl": -14852.05,
+    "win_rate": 35.5,
+    "median_pl": -765.06
+   }
+  },
+  "entry_lag": {
+   "fresh_0_1_days": {
+    "n": 47,
+    "net_pl": 14427.11,
+    "win_rate": 63.8,
+    "median_pl": 352.5
+   },
+   "stale_2_plus_days": {
+    "n": 63,
+    "net_pl": -16495.66,
+    "win_rate": 49.2,
+    "median_pl": -60
+   },
+   "note": "Split is descriptive, not a test. A difference here is a HYPOTHESIS to be tested on the full sample, and is confounded with whatever made you act quickly on some names and slowly on others."
+  },
+  "exit_signal_present": {
+   "n": 104,
+   "net_pl": -5860.66,
+   "win_rate": 51.9,
+   "median_pl": 60.5
+  },
+  "exit_signal_absent": {
+   "n": 20,
+   "net_pl": 7113.4,
+   "win_rate": 85,
+   "median_pl": 414
+  },
+  "by_timeframe_of_entry_trigger": {
+   "1": {
+    "n": 58,
+    "net_pl": -4905.31,
+    "win_rate": 56.9,
+    "median_pl": 200
+   },
+   "2": {
+    "n": 42,
+    "net_pl": 2318.62,
+    "win_rate": 54.8,
+    "median_pl": 172.5
+   },
+   "null": {
+    "n": 69,
+    "net_pl": -19189.36,
+    "win_rate": 46.4,
+    "median_pl": -107.5
+   },
+   "W": {
+    "n": 10,
+    "net_pl": 518.14,
+    "win_rate": 50,
+    "median_pl": 191.5
+   }
+  },
+  "by_entry_trigger": {
+   "Bear-FS": {
+    "n": 3,
+    "net_pl": 737,
+    "win_rate": 33.3,
+    "median_pl": -125
+   },
+   "null": {
+    "n": 69,
+    "net_pl": -19189.36,
+    "win_rate": 46.4,
+    "median_pl": -107.5
+   },
+   "Bull-FS": {
+    "n": 25,
+    "net_pl": 6123.94,
+    "win_rate": 56,
+    "median_pl": 210
+   },
+   "S1": {
+    "n": 22,
+    "net_pl": 5114.36,
+    "win_rate": 63.6,
+    "median_pl": 237
+   },
+   "S2": {
+    "n": 7,
+    "net_pl": -2150.5,
+    "win_rate": 42.9,
+    "median_pl": -97.5
+   },
+   "DR1": {
+    "n": 30,
+    "net_pl": -2148.04,
+    "win_rate": 56.7,
+    "median_pl": 194
+   },
+   "DR2": {
+    "n": 3,
+    "net_pl": -3147.57,
+    "win_rate": 33.3,
+    "median_pl": -741.57
+   },
+   "UC1": {
+    "n": 5,
+    "net_pl": -2085.42,
+    "win_rate": 60,
+    "median_pl": 388
+   },
+   "UR1": {
+    "n": 5,
+    "net_pl": -1032.5,
+    "win_rate": 40,
+    "median_pl": -378
+   },
+   "DC2": {
+    "n": 1,
+    "net_pl": 400,
+    "win_rate": 100,
+    "median_pl": 400
+   },
+   "UC2": {
+    "n": 6,
+    "net_pl": -5739.82,
+    "win_rate": 50,
+    "median_pl": 299
+   },
+   "S2s": {
+    "n": 2,
+    "net_pl": 1317.5,
+    "win_rate": 50,
+    "median_pl": 2057.5
+   },
+   "S1s": {
+    "n": 1,
+    "net_pl": 542.5,
+    "win_rate": 100,
+    "median_pl": 542.5
+   }
+  }
+ },
+ "trades": [
+  {
+   "no": 1,
+   "ticker": "CMG",
+   "entry": "2025-05-22",
+   "exit": "2025-07-19",
+   "side": "short",
+   "strategy": "Buy Put",
+   "pl": -125,
+   "cost": 126,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-05-20",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-05-21",
+     "trig": "Bear-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-05-15",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "Bear-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-06-02",
+    "trig": "DR1",
+    "tf": "1",
+    "days_after_entry": 11,
+    "days_before_your_exit": 47
+   }
+  },
+  {
+   "no": 2,
+   "ticker": "TIGO",
+   "entry": "2025-05-29",
+   "exit": "2025-08-07",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": 520,
+   "cost": 200,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-06-02",
+    "trig": "UR1",
+    "tf": "W",
+    "days_after_entry": 4,
+    "days_before_your_exit": 66
+   }
+  },
+  {
+   "no": 3,
+   "ticker": "CPRT",
+   "entry": "2025-06-02",
+   "exit": "2025-07-19",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": -107.5,
+   "cost": 110,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-05-23",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-05-26",
+     "trig": "S1s",
+     "tf": "W"
+    },
+    {
+     "date": "2025-05-30",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-07-14",
+    "trig": "S2s",
+    "tf": "1",
+    "days_after_entry": 42,
+    "days_before_your_exit": 5
+   }
+  },
+  {
+   "no": 4,
+   "ticker": "NU",
+   "entry": "2025-06-03",
+   "exit": "2025-08-04",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": -115.5,
+   "cost": 119,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-05-30",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-06-02",
+     "trig": "UC1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-06-03",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-06-12",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 9,
+    "days_before_your_exit": 53
+   }
+  },
+  {
+   "no": 5,
+   "ticker": "CELH",
+   "entry": "2025-07-01",
+   "exit": "2025-08-18",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": 1481,
+   "cost": 554,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-06-24",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-06-30",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-01",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-07-16",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 15,
+    "days_before_your_exit": 33
+   }
+  },
+  {
+   "no": 6,
+   "ticker": "SOUN",
+   "entry": "2025-07-07",
+   "exit": "2025-09-15",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": 1165,
+   "cost": 505,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-06-30",
+     "trig": "S1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-07",
+     "trig": "S1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-06-27",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-03",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2025-07-10",
+    "trig": "UR2",
+    "tf": "1",
+    "days_after_entry": 3,
+    "days_before_your_exit": 67
+   }
+  },
+  {
+   "no": 7,
+   "ticker": "ASML",
+   "entry": "2025-07-22",
+   "exit": "2025-08-01",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 955,
+   "cost": 1080,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-07-15",
+     "trig": "S2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-07-14",
+     "trig": "Bear-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-07-16",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-17",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-21",
+     "trig": "S1s",
+     "tf": "2"
+    },
+    {
+     "date": "2025-07-21",
+     "trig": "DC2",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-07-25",
+    "trig": "DC1",
+    "tf": "2",
+    "days_after_entry": 3,
+    "days_before_your_exit": 7
+   }
+  },
+  {
+   "no": 8,
+   "ticker": "PANW",
+   "entry": "2025-07-30",
+   "exit": "2025-08-19",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 374,
+   "cost": 375,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-07-28",
+     "trig": "S2",
+     "tf": "W"
+    },
+    {
+     "date": "2025-07-29",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-29",
+     "trig": "S2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-07-22",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-29",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2025-07-30",
+     "trig": "S2s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-07-31",
+    "trig": "S1s",
+    "tf": "2",
+    "days_after_entry": 1,
+    "days_before_your_exit": 19
+   }
+  },
+  {
+   "no": 9,
+   "ticker": "NVO",
+   "entry": "2025-07-31",
+   "exit": "2025-08-18",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 237,
+   "cost": 240,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-07-21",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-07-22",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-25",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-07-21",
+     "trig": "S1s",
+     "tf": "2"
+    },
+    {
+     "date": "2025-07-28",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-28",
+     "trig": "S2s",
+     "tf": "W"
+    },
+    {
+     "date": "2025-07-29",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-29",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 6,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 10,
+   "ticker": "CRCL",
+   "entry": "2025-07-31",
+   "exit": "2025-08-25",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": -2880,
+   "cost": 800,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-08-01",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 24
+   }
+  },
+  {
+   "no": 11,
+   "ticker": "CPRT",
+   "entry": "2025-08-01",
+   "exit": "2025-09-08",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 155,
+   "cost": 160,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-08-07",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 6,
+    "days_before_your_exit": 32
+   }
+  },
+  {
+   "no": 12,
+   "ticker": "NVDA",
+   "entry": "2025-08-04",
+   "exit": "2025-08-28",
+   "side": "long",
+   "strategy": "COVERED / CALL",
+   "pl": 2540,
+   "cost": 18400,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-08-19",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 15,
+    "days_before_your_exit": 9
+   }
+  },
+  {
+   "no": 13,
+   "ticker": "AMZN",
+   "entry": "2025-08-04",
+   "exit": "2025-08-28",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 409.5,
+   "cost": 410,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-01",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-04",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-08-05",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 23
+   }
+  },
+  {
+   "no": 14,
+   "ticker": "NU",
+   "entry": "2025-08-05",
+   "exit": "2025-08-28",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 105,
+   "cost": 155,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-07-28",
+     "trig": "DC2",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-08-19",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 14,
+    "days_before_your_exit": 9
+   }
+  },
+  {
+   "no": 15,
+   "ticker": "ACN",
+   "entry": "2025-08-07",
+   "exit": "2025-09-03",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 402.5,
+   "cost": 570,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-07-29",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-07-28",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-07-31",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 9,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-08-25",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 18,
+    "days_before_your_exit": 9
+   }
+  },
+  {
+   "no": 16,
+   "ticker": "TMDX",
+   "entry": "2025-08-08",
+   "exit": "2025-09-11",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 357.5,
+   "cost": 360,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-04",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-04",
+     "trig": "Bear-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-08-06",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-07",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-08-11",
+    "trig": "UR2",
+    "tf": "1",
+    "days_after_entry": 3,
+    "days_before_your_exit": 31
+   }
+  },
+  {
+   "no": 17,
+   "ticker": "TTD",
+   "entry": "2025-08-08",
+   "exit": "2025-09-11",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": -302.5,
+   "cost": 185,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-01",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-04",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-04",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-05",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-08",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-08",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-08-19",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 11,
+    "days_before_your_exit": 23
+   }
+  },
+  {
+   "no": 18,
+   "ticker": "NVO",
+   "entry": "2025-08-19",
+   "exit": "2025-10-17",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": -508,
+   "cost": 512,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-11",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 8,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2025-09-03",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 15,
+    "days_before_your_exit": 44
+   }
+  },
+  {
+   "no": 19,
+   "ticker": "FTNT",
+   "entry": "2025-08-11",
+   "exit": "2025-09-08",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD",
+   "pl": 191.5,
+   "cost": 413,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-07",
+     "trig": "DR2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-11",
+     "trig": "DR2",
+     "tf": "W"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-01",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-04",
+     "trig": "S1s",
+     "tf": "2"
+    },
+    {
+     "date": "2025-08-04",
+     "trig": "S1s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR2",
+   "entry_trigger_tf": "W",
+   "exit_signal": null
+  },
+  {
+   "no": 20,
+   "ticker": "ALGN",
+   "entry": "2025-08-11",
+   "exit": "2025-09-15",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD",
+   "pl": -470,
+   "cost": 750,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-11",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-08-25",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 14,
+    "days_before_your_exit": 21
+   }
+  },
+  {
+   "no": 21,
+   "ticker": "WFC",
+   "entry": "2025-08-12",
+   "exit": "2025-09-15",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD",
+   "pl": 388,
+   "cost": 280,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-05",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-08",
+     "trig": "UC1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-04",
+     "trig": "UR2",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "UC1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-08-13",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 33
+   }
+  },
+  {
+   "no": 22,
+   "ticker": "CRM",
+   "entry": "2025-08-14",
+   "exit": "2025-08-25",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD",
+   "pl": 1042.5,
+   "cost": 782,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-11",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-08-12",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-13",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-04",
+     "trig": "S1s",
+     "tf": "2"
+    },
+    {
+     "date": "2025-08-11",
+     "trig": "S2s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 23,
+   "ticker": "FI",
+   "entry": "2025-08-15",
+   "exit": "2025-09-17",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD",
+   "pl": -481,
+   "cost": 665,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-11",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-08-13",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-08-25",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 10,
+    "days_before_your_exit": 23
+   }
+  },
+  {
+   "no": 24,
+   "ticker": "CMG",
+   "entry": "2025-08-18",
+   "exit": "2025-09-05",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD",
+   "pl": -472,
+   "cost": 840,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-12",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-08-13",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-18",
+     "trig": "DC1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 5,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-08-20",
+    "trig": "DC2",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 16
+   }
+  },
+  {
+   "no": 25,
+   "ticker": "EXPE",
+   "entry": "2025-08-19",
+   "exit": "2025-09-20",
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD",
+   "pl": -378,
+   "cost": 831,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-11",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-19",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 8,
+   "entry_trigger": "UR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 26,
+   "ticker": "ANET",
+   "entry": "2025-08-21",
+   "exit": "2025-09-27",
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD",
+   "pl": -458,
+   "cost": 812,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-11",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-19",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "UR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-08-22",
+    "trig": "DR1",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 36
+   }
+  },
+  {
+   "no": 27,
+   "ticker": "INTU",
+   "entry": "2025-08-25",
+   "exit": "2025-09-03",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 600,
+   "cost": 4456.2,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-19",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 28,
+   "ticker": "TTD",
+   "entry": "2025-08-27",
+   "exit": "2025-09-03",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 440,
+   "cost": 3800,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-18",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-20",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-19",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-25",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 29,
+   "ticker": "CRWV",
+   "entry": "2025-08-28",
+   "exit": "2025-09-19",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 630,
+   "cost": 3105,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-18",
+     "trig": "DC1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-09-02",
+    "trig": "Bear-FS",
+    "tf": "2",
+    "days_after_entry": 5,
+    "days_before_your_exit": 17
+   }
+  },
+  {
+   "no": 30,
+   "ticker": "DASH",
+   "entry": "2025-08-28",
+   "exit": "2025-09-26",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 194,
+   "cost": 804,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-18",
+     "trig": "UC2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-20",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-26",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-20",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 2,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 31,
+   "ticker": "CELH",
+   "entry": "2025-08-28",
+   "exit": "2025-09-24",
+   "side": "long",
+   "strategy": "COVERED / CALL",
+   "pl": -2549.5,
+   "cost": 6084,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-25",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-09-04",
+    "trig": "Bear-FS",
+    "tf": "2",
+    "days_after_entry": 7,
+    "days_before_your_exit": 20
+   }
+  },
+  {
+   "no": 32,
+   "ticker": "LULU",
+   "entry": "2025-08-29",
+   "exit": "2025-10-03",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -1567.5,
+   "cost": 4980,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-19",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-25",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-10-03",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 35,
+    "days_before_your_exit": 0
+   }
+  },
+  {
+   "no": 33,
+   "ticker": "QBTS",
+   "entry": "2025-08-29",
+   "exit": "2025-09-03",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 1380,
+   "cost": 3360,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-20",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-26",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-19",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 34,
+   "ticker": "HQY",
+   "entry": "2025-09-02",
+   "exit": "2025-12-19",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": -302.5,
+   "cost": 305,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-08-25",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-08-29",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-27",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-01",
+     "trig": "Bear-FS",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-09-19",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 17,
+    "days_before_your_exit": 91
+   }
+  },
+  {
+   "no": 35,
+   "ticker": "ASML",
+   "entry": "2025-09-03",
+   "exit": "2025-09-15",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 1527.5,
+   "cost": 1530,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-03",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-29",
+     "trig": "DC2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 36,
+   "ticker": "FTNT",
+   "entry": "2025-09-04",
+   "exit": "2025-09-23",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 5,
+   "cost": 218,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-01",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-02",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-09-12",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 11
+   }
+  },
+  {
+   "no": 37,
+   "ticker": "META",
+   "entry": "2025-09-05",
+   "exit": "2025-10-10",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -2237.5,
+   "cost": 9333,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-01",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-02",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-02",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-04",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-09-10",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 30
+   }
+  },
+  {
+   "no": 38,
+   "ticker": "AVGO",
+   "entry": "2025-09-06",
+   "exit": "2025-10-10",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": 507,
+   "cost": 2838,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-09-05",
+     "trig": "S2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-09-19",
+    "trig": "Bull-FS",
+    "tf": "1",
+    "days_after_entry": 13,
+    "days_before_your_exit": 21
+   }
+  },
+  {
+   "no": 39,
+   "ticker": "UNH",
+   "entry": "2025-09-08",
+   "exit": "2025-09-23",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 1038,
+   "cost": 1040,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-08",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-02",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-09-16",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 7
+   }
+  },
+  {
+   "no": 40,
+   "ticker": "ADBE",
+   "entry": "2025-09-08",
+   "exit": "2025-10-03",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": 400,
+   "cost": 5577.6,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-02",
+     "trig": "DC2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-29",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-03",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-04",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-08",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 6,
+   "entry_trigger": "DC2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-09-12",
+    "trig": "S1",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 21
+   }
+  },
+  {
+   "no": 41,
+   "ticker": "CRWV",
+   "entry": "2025-09-08",
+   "exit": "2025-10-03",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 248,
+   "cost": 2608,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-05",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-02",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2025-09-03",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-09-25",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 17,
+    "days_before_your_exit": 8
+   }
+  },
+  {
+   "no": 42,
+   "ticker": "DUOL",
+   "entry": "2025-09-11",
+   "exit": "2025-10-06",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 722.5,
+   "cost": 725,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-08",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-10",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-10",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-01",
+     "trig": "S1s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-09-15",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 21
+   }
+  },
+  {
+   "no": 43,
+   "ticker": "TSCO",
+   "entry": "2025-09-08",
+   "exit": "2025-10-24",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -950,
+   "cost": 2090,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-08",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-08-29",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-01",
+     "trig": "Bear-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-02",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-09-03",
+     "trig": "UR2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-09-10",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 44
+   }
+  },
+  {
+   "no": 44,
+   "ticker": "LULU",
+   "entry": "2025-08-29",
+   "exit": "2025-10-23",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 607.5,
+   "cost": 2815,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-08-19",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-08-25",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-10-03",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 35,
+    "days_before_your_exit": 20
+   }
+  },
+  {
+   "no": 45,
+   "ticker": "MMM",
+   "entry": "2025-09-19",
+   "exit": "2026-03-10",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH)",
+   "pl": -1512.41,
+   "cost": 1438,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-09-12",
+     "trig": "UR2",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-09-12",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 46,
+   "ticker": "DUOL",
+   "entry": "2025-09-16",
+   "exit": "2025-10-09",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 815,
+   "cost": 985,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-08",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-10",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-10",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-15",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 6,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 47,
+   "ticker": "FDS",
+   "entry": "2025-09-22",
+   "exit": "2025-12-18",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 842.8,
+   "cost": 1639.9,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-10-16",
+    "trig": "DC2",
+    "tf": "1",
+    "days_after_entry": 24,
+    "days_before_your_exit": 63
+   }
+  },
+  {
+   "no": 48,
+   "ticker": "FANG",
+   "entry": "2025-09-22",
+   "exit": "2025-10-17",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": 570.3,
+   "cost": 1446,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-09-12",
+     "trig": "Bear-FS",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-09-16",
+     "trig": "S1s",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-09-17",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 49,
+   "ticker": "ACN",
+   "entry": "2025-09-22",
+   "exit": "2025-10-24",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 562.5,
+   "cost": 3682,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-19",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-22",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-12",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2025-09-25",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 3,
+    "days_before_your_exit": 29
+   }
+  },
+  {
+   "no": 50,
+   "ticker": "PLUG",
+   "entry": "2025-09-22",
+   "exit": "2025-12-19",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": -97.5,
+   "cost": 100,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-12",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-17",
+     "trig": "S1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-18",
+     "trig": "S2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 4,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-09-23",
+    "trig": "UR2",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 87
+   }
+  },
+  {
+   "no": 51,
+   "ticker": "AMD",
+   "entry": "2025-09-23",
+   "exit": "2025-10-06",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 372.5,
+   "cost": 373,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-18",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-18",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 5,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-09-29",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 6,
+    "days_before_your_exit": 7
+   }
+  },
+  {
+   "no": 52,
+   "ticker": "CELH",
+   "entry": "2025-09-26",
+   "exit": "2025-10-14",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 60.5,
+   "cost": 137,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-16",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-26",
+     "trig": "UC2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-26",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-16",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-03",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 7,
+    "days_before_your_exit": 11
+   }
+  },
+  {
+   "no": 53,
+   "ticker": "CPRT",
+   "entry": "2025-09-26",
+   "exit": "2025-11-21",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -1205,
+   "cost": 1532,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-09-16",
+     "trig": "DC1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-09-18",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-22",
+     "trig": "S2s",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-24",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-10-01",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 51
+   }
+  },
+  {
+   "no": 54,
+   "ticker": "MCD",
+   "entry": "2025-09-29",
+   "exit": "2025-12-19",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Calls",
+   "pl": 395.51,
+   "cost": 1686,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-09-26",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-09-26",
+     "trig": "UC2",
+     "tf": "2",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 55,
+   "ticker": "PLUG",
+   "entry": "2025-09-29",
+   "exit": "2025-12-19",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -75,
+   "cost": 152,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-09-23",
+     "trig": "UR2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-29",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-10-10",
+    "trig": "UR1",
+    "tf": "2",
+    "days_after_entry": 11,
+    "days_before_your_exit": 70
+   }
+  },
+  {
+   "no": 56,
+   "ticker": "ADBE",
+   "entry": "2025-09-30",
+   "exit": "2025-11-20",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Puts",
+   "pl": 2972.55,
+   "cost": 4168,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-09-24",
+     "trig": "Bear-FS",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-09-26",
+     "trig": "Bull-FS",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-09-30",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 57,
+   "ticker": "ACN",
+   "entry": "2025-09-30",
+   "exit": "2025-11-06",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -673,
+   "cost": 1380,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-22",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-24",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-24",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-09-26",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-29",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-25",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-10-10",
+    "trig": "DC2",
+    "tf": "1",
+    "days_after_entry": 10,
+    "days_before_your_exit": 27
+   }
+  },
+  {
+   "no": 58,
+   "ticker": "AXON",
+   "entry": "2025-09-26",
+   "exit": "2025-11-21",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -2475,
+   "cost": 12586.8,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-09-24",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-09-24",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-10-10",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 14,
+    "days_before_your_exit": 42
+   }
+  },
+  {
+   "no": 59,
+   "ticker": "HIMS",
+   "entry": "2025-10-06",
+   "exit": "2025-12-19",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 48.5,
+   "cost": 1294,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-29",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-29",
+     "trig": "Bear-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2025-09-30",
+     "trig": "UR2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-10-10",
+    "trig": "UR2",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 70
+   }
+  },
+  {
+   "no": 60,
+   "ticker": "DSGX",
+   "entry": "2025-10-06",
+   "exit": "2025-12-18",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -2493,
+   "cost": 1816,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-02",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-26",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-10",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 69
+   }
+  },
+  {
+   "no": 61,
+   "ticker": "CRM",
+   "entry": "2025-10-07",
+   "exit": "2025-10-24",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 746,
+   "cost": 788,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-02",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-09-30",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-01",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-07",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-16",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 9,
+    "days_before_your_exit": 8
+   }
+  },
+  {
+   "no": 62,
+   "ticker": "TTD",
+   "entry": "2025-10-08",
+   "exit": "2025-10-31",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 470,
+   "cost": 4480,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-29",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-10-10",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 21
+   }
+  },
+  {
+   "no": 63,
+   "ticker": "SPGI",
+   "entry": "2025-10-08",
+   "exit": "2025-12-11",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH)",
+   "pl": 5264.33,
+   "cost": 3426,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 64,
+   "ticker": "IBM",
+   "entry": "2025-10-09",
+   "exit": "2025-11-19",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": 709.5,
+   "cost": 7628,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-09-29",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-03",
+     "trig": "UR2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "UR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-10-07",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-08",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-09",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "UR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-24",
+    "trig": "S2",
+    "tf": "1",
+    "days_after_entry": 15,
+    "days_before_your_exit": 26
+   }
+  },
+  {
+   "no": 65,
+   "ticker": "CMG",
+   "entry": "2025-10-10",
+   "exit": "2025-12-03",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH)",
+   "pl": -765.06,
+   "cost": 898,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-09-30",
+     "trig": "DC1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-06",
+     "trig": "Bear-FS",
+     "tf": "W",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-10",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 66,
+   "ticker": "META",
+   "entry": "2025-11-11",
+   "exit": "2025-11-26",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -1491.78,
+   "cost": 6650,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-11-10",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 67,
+   "ticker": "CPRT",
+   "entry": "2025-10-14",
+   "exit": "2025-11-21",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -1175,
+   "cost": 1906,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-08",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-10-14",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-14",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-22",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 30
+   }
+  },
+  {
+   "no": 68,
+   "ticker": "T",
+   "entry": "2025-10-15",
+   "exit": "2025-11-20",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -222,
+   "cost": 1420,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-07",
+     "trig": "DR2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-08",
+     "trig": "DR2",
+     "tf": "2"
+    },
+    {
+     "date": "2025-10-14",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-14",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-06",
+     "trig": "S1s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-29",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 14,
+    "days_before_your_exit": 22
+   }
+  },
+  {
+   "no": 69,
+   "ticker": "NU",
+   "entry": "2025-10-16",
+   "exit": "2025-12-18",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": 1245,
+   "cost": 3272,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-13",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-07",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-10",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-10",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-10-27",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 11,
+    "days_before_your_exit": 52
+   }
+  },
+  {
+   "no": 70,
+   "ticker": "RACE",
+   "entry": "2025-10-17",
+   "exit": "2025-12-18",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / EARNINGS",
+   "pl": -2597.5,
+   "cost": 8345,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-17",
+     "trig": "DR2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-09",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-10",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR2",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-11-20",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 34,
+    "days_before_your_exit": 28
+   }
+  },
+  {
+   "no": 71,
+   "ticker": "PANW",
+   "entry": "2025-10-20",
+   "exit": "2025-11-20",
+   "side": "neutral",
+   "strategy": "SNIPER / SPREAD / (ESS) / 20Nov AMC / EARNINGS",
+   "pl": -4145.5,
+   "cost": 11904,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-10",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-20",
+     "trig": "UC2",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 72,
+   "ticker": "INTU",
+   "entry": "2025-10-20",
+   "exit": "2025-11-20",
+   "side": "neutral",
+   "strategy": "SNIPER / SPREAD / (ESS) / 20Nov AMC / EARNINGS",
+   "pl": -735,
+   "cost": 10192,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-13",
+     "trig": "Bull-FS",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-13",
+     "trig": "DR1",
+     "tf": "W",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-14",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-14",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 73,
+   "ticker": "HD",
+   "entry": "2025-10-20",
+   "exit": null,
+   "side": "neutral",
+   "strategy": "SNIPER / SPREAD / (ESS) / 18Nov BMO",
+   "pl": -7075,
+   "cost": 6106,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-14",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 74,
+   "ticker": "HIMS",
+   "entry": "2025-10-20",
+   "exit": "2025-11-28",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / EARNINGS",
+   "pl": -1079.2,
+   "cost": 6286,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-15",
+     "trig": "S1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-16",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-10",
+     "trig": "UR2",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-10",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-10-16",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-17",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-17",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-10-22",
+    "trig": "UR1",
+    "tf": "2",
+    "days_after_entry": 2,
+    "days_before_your_exit": 37
+   }
+  },
+  {
+   "no": 75,
+   "ticker": "FTNT",
+   "entry": "2025-10-20",
+   "exit": "2025-11-07",
+   "side": "neutral",
+   "strategy": "SNIPER / SPREAD / (ESS) / 5Nov AMC",
+   "pl": -897,
+   "cost": 6202,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-10",
+     "trig": "DC2",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-17",
+     "trig": "UC2",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 76,
+   "ticker": "PTON",
+   "entry": "2025-10-21",
+   "exit": "2025-11-21",
+   "side": "long",
+   "strategy": "Buy Call",
+   "pl": -387.5,
+   "cost": 390,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-13",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-21",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-10-23",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 29
+   }
+  },
+  {
+   "no": 77,
+   "ticker": "TMO",
+   "entry": "2025-10-23",
+   "exit": "2025-12-15",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": 1187,
+   "cost": 2931,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-16",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 7,
+   "entry_trigger": "Bear-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 78,
+   "ticker": "KO",
+   "entry": "2025-10-24",
+   "exit": "2025-12-31",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / using Puts",
+   "pl": -1326.97,
+   "cost": 1266,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-14",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-22",
+     "trig": "UR2",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-22",
+     "trig": "S1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-24",
+     "trig": "UR2",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 79,
+   "ticker": "JPM",
+   "entry": "2025-10-27",
+   "exit": "2025-12-23",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH)",
+   "pl": -1479.28,
+   "cost": 2008,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-17",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-22",
+     "trig": "S1s",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-24",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-24",
+     "trig": "UC1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-10-27",
+     "trig": "UC2",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 80,
+   "ticker": "META",
+   "entry": "2025-10-30",
+   "exit": "2025-12-04",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 597,
+   "cost": 10153,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-20",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-10-27",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-23",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-27",
+     "trig": "S1s",
+     "tf": "W"
+    },
+    {
+     "date": "2025-10-30",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-10-30",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-12-03",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 34,
+    "days_before_your_exit": 1
+   }
+  },
+  {
+   "no": 81,
+   "ticker": "AXON",
+   "entry": "2025-11-05",
+   "exit": "2025-12-19",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -60,
+   "cost": 7305,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-10-27",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-10-30",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-11-05",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-11-05",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 9,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-12-15",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 40,
+    "days_before_your_exit": 4
+   }
+  },
+  {
+   "no": 82,
+   "ticker": "CELH",
+   "entry": "2025-11-05",
+   "exit": "2026-01-16",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH)",
+   "pl": -220.29,
+   "cost": 3422,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-10-27",
+     "trig": "Bear-FS",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-10-27",
+     "trig": "UR1",
+     "tf": "W",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-03",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-03",
+     "trig": "S1s",
+     "tf": "W",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-04",
+     "trig": "UC1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 83,
+   "ticker": "DUOL",
+   "entry": "2025-11-06",
+   "exit": "2026-01-16",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -2721.5,
+   "cost": 4293,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-10-29",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-11-07",
+    "trig": "S2s",
+    "tf": "2",
+    "days_after_entry": 1,
+    "days_before_your_exit": 70
+   }
+  },
+  {
+   "no": 84,
+   "ticker": "V",
+   "entry": "2025-11-10",
+   "exit": "2026-01-13",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Calls",
+   "pl": -1516.9,
+   "cost": 2265,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-03",
+     "trig": "UR1",
+     "tf": "W",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-04",
+     "trig": "Bull-FS",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-05",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-06",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-10",
+     "trig": "Bear-FS",
+     "tf": "1",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 85,
+   "ticker": "DIS",
+   "entry": "2025-11-13",
+   "exit": "2026-03-09",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Puts",
+   "pl": 515.91,
+   "cost": 3062.1,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-04",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-10",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-11",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-11",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-13",
+     "trig": "S2s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-13",
+     "trig": "Bear-FS",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-13",
+     "trig": "S1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-13",
+     "trig": "S2s",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 86,
+   "ticker": "PM",
+   "entry": "2025-11-18",
+   "exit": "2025-12-19",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": 220,
+   "cost": 696,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-11-14",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-11-24",
+    "trig": "DR1",
+    "tf": "W",
+    "days_after_entry": 6,
+    "days_before_your_exit": 25
+   }
+  },
+  {
+   "no": 87,
+   "ticker": "CRWV",
+   "entry": "2025-11-20",
+   "exit": "2025-12-19",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 302.5,
+   "cost": 2577,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-11-10",
+     "trig": "S1s",
+     "tf": "W"
+    },
+    {
+     "date": "2025-11-20",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-12-02",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 12,
+    "days_before_your_exit": 17
+   }
+  },
+  {
+   "no": 88,
+   "ticker": "HOOD",
+   "entry": "2025-11-20",
+   "exit": "2025-12-11",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH)",
+   "pl": -1875.9,
+   "cost": 2566,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-11",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-12",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-17",
+     "trig": "S1s",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-19",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 89,
+   "ticker": "SBUX",
+   "entry": "2025-11-22",
+   "exit": "2026-01-20",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Puts",
+   "pl": -367.18,
+   "cost": 2914,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-12",
+     "trig": "UR1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-12",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-13",
+     "trig": "DC1",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-13",
+     "trig": "S1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-17",
+     "trig": "DC1",
+     "tf": "1",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 90,
+   "ticker": "MSCI",
+   "entry": "2025-11-22",
+   "exit": "2025-12-19",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": 560,
+   "cost": 1867,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 91,
+   "ticker": "AMZN",
+   "entry": "2025-11-24",
+   "exit": "2026-03-12",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Calls",
+   "pl": -1376.95,
+   "cost": 2387,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-20",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-24",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 92,
+   "ticker": "AMZN",
+   "entry": "2025-11-24",
+   "exit": "2025-12-22",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": 382.5,
+   "cost": 383,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-11-24",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-11-20",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 93,
+   "ticker": "ADBE",
+   "entry": "2025-11-24",
+   "exit": "2026-02-06",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Puts",
+   "pl": 2536.27,
+   "cost": 4459,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-21",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 94,
+   "ticker": "ACN",
+   "entry": "2025-11-25",
+   "exit": "2026-03-06",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Calls / 0.8",
+   "pl": -2672.33,
+   "cost": 2464,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-18",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2025-11-21",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-24",
+     "trig": "UR1",
+     "tf": "1",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 95,
+   "ticker": "CRM",
+   "entry": "2025-12-05",
+   "exit": "2026-04-16",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Puts",
+   "pl": 758.87,
+   "cost": 2154,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-11-25",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-11-25",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-12-01",
+     "trig": "Bull-FS",
+     "tf": "W",
+     "dir": "long"
+    },
+    {
+     "date": "2025-12-04",
+     "trig": "UC2",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2025-12-05",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 96,
+   "ticker": "UNH",
+   "entry": "2025-12-11",
+   "exit": "2026-01-15",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 352.5,
+   "cost": 3288,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-08",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2025-12-10",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-12-08",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-08",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2025-12-16",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 30
+   }
+  },
+  {
+   "no": 97,
+   "ticker": "HOOD",
+   "entry": "2025-12-18",
+   "exit": "2026-05-15",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / 0.95",
+   "pl": -370.42,
+   "cost": 2408,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2025-12-09",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2025-12-12",
+     "trig": "DC2",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 98,
+   "ticker": "WDC",
+   "entry": "2025-12-19",
+   "exit": "2026-01-14",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 1415,
+   "cost": 4610,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-12-15",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2025-12-22",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 3,
+    "days_before_your_exit": 23
+   }
+  },
+  {
+   "no": 99,
+   "ticker": "VRT",
+   "entry": "2025-12-22",
+   "exit": "2026-03-04",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 693,
+   "cost": 4161,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-22",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-22",
+     "trig": "UC1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-12-12",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2025-12-17",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-18",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "UC1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-12-30",
+    "trig": "DC2",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 64
+   }
+  },
+  {
+   "no": 100,
+   "ticker": "SE",
+   "entry": "2025-12-23",
+   "exit": "2026-03-04",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -1493.5,
+   "cost": 2056,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-16",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-16",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2025-12-22",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2026-01-07",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 15,
+    "days_before_your_exit": 56
+   }
+  },
+  {
+   "no": 101,
+   "ticker": "RBLX",
+   "entry": "2025-12-26",
+   "exit": "2026-01-14",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 325,
+   "cost": 3715.4,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-24",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-12-17",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 2,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 102,
+   "ticker": "BE",
+   "entry": "2025-12-26",
+   "exit": "2026-01-08",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 708.5,
+   "cost": 11232,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-16",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-22",
+     "trig": "UC1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-12-17",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-18",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "UC1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 103,
+   "ticker": "INTC",
+   "entry": "2025-12-29",
+   "exit": "2026-02-18",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 299,
+   "cost": 3056.2,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-24",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2025-12-29",
+     "trig": "UC2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "UC2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2025-12-30",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 50
+   }
+  },
+  {
+   "no": 104,
+   "ticker": "MSCI",
+   "entry": "2026-01-02",
+   "exit": "2026-02-18",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": 770,
+   "cost": 4738,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 105,
+   "ticker": "AEP",
+   "entry": "2026-01-05",
+   "exit": "2026-02-09",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC)",
+   "pl": 2564,
+   "cost": 1807,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2025-12-31",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-05",
+     "trig": "S2s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-01-07",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 33
+   }
+  },
+  {
+   "no": 106,
+   "ticker": "NEE",
+   "entry": "2026-01-05",
+   "exit": "2026-02-02",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": 2459.29,
+   "cost": 2306,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-05",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-05",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-01-07",
+    "trig": "S2s",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 26
+   }
+  },
+  {
+   "no": 107,
+   "ticker": "IREN",
+   "entry": "2026-01-05",
+   "exit": "2026-02-19",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -1131,
+   "cost": 3797,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2025-12-29",
+     "trig": "UC2",
+     "tf": "W"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2025-12-29",
+     "trig": "Bear-FS",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "UC2",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2026-01-09",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 41
+   }
+  },
+  {
+   "no": 108,
+   "ticker": "CRDO",
+   "entry": "2026-01-10",
+   "exit": "2026-02-19",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -2083.5,
+   "cost": 3421.1,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-07",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-07",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-01-02",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-06",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-01-15",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 35
+   }
+  },
+  {
+   "no": 109,
+   "ticker": "FANG",
+   "entry": "2026-01-12",
+   "exit": "2026-03-06",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": -1100.7,
+   "cost": 4817.9,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-01-05",
+     "trig": "Bear-FS",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-01-06",
+     "trig": "DC1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-01-07",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-01-09",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 110,
+   "ticker": "CRWD",
+   "entry": "2026-01-12",
+   "exit": "2026-05-15",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC)",
+   "pl": -6078.56,
+   "cost": 8331,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-07",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-07",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-01-12",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-01-08",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-01-16",
+    "trig": "S2s",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 119
+   }
+  },
+  {
+   "no": 111,
+   "ticker": "QBTS",
+   "entry": "2026-01-13",
+   "exit": "2026-05-15",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 0.77",
+   "pl": -983.1,
+   "cost": 4549,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-01-05",
+     "trig": "UR1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-01-21",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 114
+   }
+  },
+  {
+   "no": 112,
+   "ticker": "AVGO",
+   "entry": "2026-01-14",
+   "exit": "2026-04-09",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC)",
+   "pl": 2477.63,
+   "cost": 9406,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-09",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-09",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-01-12",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2026-01-15",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 84
+   }
+  },
+  {
+   "no": 113,
+   "ticker": "MA",
+   "entry": "2026-01-20",
+   "exit": "2026-04-07",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC)",
+   "pl": -249.75,
+   "cost": 4802,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-01-12",
+     "trig": "DC2",
+     "tf": "W"
+    },
+    {
+     "date": "2026-01-13",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-13",
+     "trig": "DC1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-01-19",
+     "trig": "S1s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-01-22",
+    "trig": "S2s",
+    "tf": "2",
+    "days_after_entry": 2,
+    "days_before_your_exit": 75
+   }
+  },
+  {
+   "no": 114,
+   "ticker": "SPGI",
+   "entry": "2026-01-21",
+   "exit": "2026-02-20",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": 1375,
+   "cost": 6012,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-01-22",
+    "trig": "Bull-FS",
+    "tf": "2",
+    "days_after_entry": 1,
+    "days_before_your_exit": 29
+   }
+  },
+  {
+   "no": 115,
+   "ticker": "PSTG",
+   "entry": "2026-01-22",
+   "exit": "2026-02-17",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 505,
+   "cost": 4860,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-13",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-01-14",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-19",
+     "trig": "Bear-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2026-01-20",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 9,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-01-30",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 18
+   }
+  },
+  {
+   "no": 116,
+   "ticker": "META",
+   "entry": "2026-01-23",
+   "exit": "2026-01-29",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -3814.5,
+   "cost": 6329,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-01-28",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 1
+   }
+  },
+  {
+   "no": 117,
+   "ticker": "INTU",
+   "entry": "2026-01-26",
+   "exit": "2026-03-17",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": -1630,
+   "cost": 5282,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-19",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-01-22",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-22",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 4,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 118,
+   "ticker": "PM",
+   "entry": "2026-01-22",
+   "exit": "2026-02-06",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": -975,
+   "cost": 2151,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-20",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-20",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-01-12",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-12",
+     "trig": "S1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 2,
+   "entry_trigger": "UR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-01-26",
+    "trig": "S2",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 11
+   }
+  },
+  {
+   "no": 119,
+   "ticker": "CELH",
+   "entry": "2026-02-04",
+   "exit": "2026-06-17",
+   "side": "long",
+   "strategy": "COVERED / CALL",
+   "pl": -1751.84,
+   "cost": 7573,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-27",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-01-26",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-30",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-02-04",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 8,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-02",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 26,
+    "days_before_your_exit": 107
+   }
+  },
+  {
+   "no": 120,
+   "ticker": "JPM",
+   "entry": "2026-02-04",
+   "exit": "2026-06-17",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 1.88",
+   "pl": 870.16,
+   "cost": 3822,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-01-26",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-01-26",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-02-03",
+     "trig": "UC2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 1,
+   "entry_trigger": "UC2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-02-09",
+    "trig": "Bear-FS",
+    "tf": "W",
+    "days_after_entry": 5,
+    "days_before_your_exit": 128
+   }
+  },
+  {
+   "no": 121,
+   "ticker": "AMZN",
+   "entry": "2026-02-06",
+   "exit": "2026-02-06",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 3052,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-06",
+     "trig": "DR2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-02",
+     "trig": "S1s",
+     "tf": "W"
+    },
+    {
+     "date": "2026-02-05",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-05",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR2",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 122,
+   "ticker": "AMZN",
+   "entry": "2026-02-06",
+   "exit": "2026-02-13",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 5310.9,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-06",
+     "trig": "DR2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-02",
+     "trig": "S1s",
+     "tf": "W"
+    },
+    {
+     "date": "2026-02-05",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-05",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR2",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 123,
+   "ticker": "NVO",
+   "entry": "2026-02-09",
+   "exit": "2026-05-11",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 0.42",
+   "pl": -741.57,
+   "cost": 4377.1,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-06",
+     "trig": "DR2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-09",
+     "trig": "DR2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-03",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-05",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-02-23",
+    "trig": "S2s",
+    "tf": "W",
+    "days_after_entry": 14,
+    "days_before_your_exit": 77
+   }
+  },
+  {
+   "no": 124,
+   "ticker": "DELL",
+   "entry": "2026-02-10",
+   "exit": "2026-05-11",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 1.04",
+   "pl": null,
+   "cost": 3349,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-02",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2026-02-10",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-03",
+     "trig": "DC1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-02-17",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 7,
+    "days_before_your_exit": 83
+   }
+  },
+  {
+   "no": 125,
+   "ticker": "AXON",
+   "entry": "2026-02-12",
+   "exit": "2026-07-21",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 25277,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-09",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-09",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-02-20",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 8,
+    "days_before_your_exit": 151
+   }
+  },
+  {
+   "no": 126,
+   "ticker": "AMZN",
+   "entry": "2026-02-18",
+   "exit": "2026-07-21",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 1.1",
+   "pl": 5481.1,
+   "cost": 6575,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-09",
+     "trig": "DR2",
+     "tf": "2"
+    },
+    {
+     "date": "2026-02-17",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-18",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-03-12",
+    "trig": "UR1",
+    "tf": "2",
+    "days_after_entry": 22,
+    "days_before_your_exit": 131
+   }
+  },
+  {
+   "no": 127,
+   "ticker": "AMD",
+   "entry": "2026-02-20",
+   "exit": "2026-03-19",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 2715,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-02-26",
+    "trig": "Bear-FS",
+    "tf": "2",
+    "days_after_entry": 6,
+    "days_before_your_exit": 21
+   }
+  },
+  {
+   "no": 128,
+   "ticker": "RDDT",
+   "entry": "2026-02-20",
+   "exit": "2026-04-06",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 4765,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-10",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-13",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-02-18",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-20",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-02-23",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 3,
+    "days_before_your_exit": 42
+   }
+  },
+  {
+   "no": 129,
+   "ticker": "SPXW",
+   "entry": "2026-02-24",
+   "exit": "2026-06-08",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": null,
+   "cost": 20634.9,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null,
+   "no_data": true
+  },
+  {
+   "no": 130,
+   "ticker": "NFLX",
+   "entry": "2026-02-26",
+   "exit": "2026-06-08",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 0.5",
+   "pl": null,
+   "cost": 5460,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-24",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-24",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-02-26",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-12",
+    "trig": "DC1",
+    "tf": "2",
+    "days_after_entry": 14,
+    "days_before_your_exit": 88
+   }
+  },
+  {
+   "no": 131,
+   "ticker": "UNH",
+   "entry": "2026-03-02",
+   "exit": "2026-04-07",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 5856.8,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-03-02",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-26",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-18",
+    "trig": "Bear-FS",
+    "tf": "2",
+    "days_after_entry": 16,
+    "days_before_your_exit": 20
+   }
+  },
+  {
+   "no": 132,
+   "ticker": "NVDA",
+   "entry": "2026-03-04",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 1.15 / Thinkorswim",
+   "pl": -1061.34,
+   "cost": 4491,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-25",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-26",
+     "trig": "S1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-26",
+     "trig": "DC2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-26",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "UR2",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 2,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 133,
+   "ticker": "HOOD",
+   "entry": "2026-03-05",
+   "exit": "2026-04-07",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 8181.88,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-24",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-02-24",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-02-26",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-10",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 28
+   }
+  },
+  {
+   "no": 134,
+   "ticker": "AMD",
+   "entry": "2026-03-06",
+   "exit": "2026-03-25",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 3561,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-02-24",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-26",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "S1s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-03-10",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 15
+   }
+  },
+  {
+   "no": 135,
+   "ticker": "NKE",
+   "entry": "2026-03-06",
+   "exit": "2026-04-01",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / 0.5",
+   "pl": null,
+   "cost": 3536,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-03-02",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-02-25",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "S1s",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "UR1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "S1s",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-25",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 19,
+    "days_before_your_exit": 7
+   }
+  },
+  {
+   "no": 136,
+   "ticker": "WMT",
+   "entry": "2026-03-10",
+   "exit": "2026-07-10",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / using Calls",
+   "pl": -1655.21,
+   "cost": 5987.1,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-03-02",
+     "trig": "Bear-FS",
+     "tf": "1",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 137,
+   "ticker": "CELH",
+   "entry": "2026-03-10",
+   "exit": "2026-05-11",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 1.15 / Thinkorswim",
+   "pl": null,
+   "cost": 1460.7,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-03-09",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-03-02",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-02",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-03",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-06",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-06",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-16",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 6,
+    "days_before_your_exit": 56
+   }
+  },
+  {
+   "no": 138,
+   "ticker": "GLW",
+   "entry": "2026-03-11",
+   "exit": "2026-04-14",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / 1.1 / Thinkorswim",
+   "pl": null,
+   "cost": 5774,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-03-09",
+     "trig": "UC1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 139,
+   "ticker": "GLD",
+   "entry": "2026-03-13",
+   "exit": "2026-03-20",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / 2.86 / Thinkorswim",
+   "pl": null,
+   "cost": 6078,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-03-05",
+     "trig": "UR2",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-03-12",
+     "trig": "Bear-FS",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 140,
+   "ticker": "RDDT",
+   "entry": "2026-03-19",
+   "exit": "2026-04-21",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 4008,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-03-16",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-16",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-03-10",
+     "trig": "DC1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-03-26",
+    "trig": "S2s",
+    "tf": "1",
+    "days_after_entry": 7,
+    "days_before_your_exit": 26
+   }
+  },
+  {
+   "no": 141,
+   "ticker": "NVDA",
+   "entry": "2026-03-20",
+   "exit": "2026-04-21",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": null,
+   "cost": 7015,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-03-13",
+     "trig": "DC1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-03-16",
+     "trig": "UR1",
+     "tf": "W",
+     "dir": "short"
+    },
+    {
+     "date": "2026-03-18",
+     "trig": "UR1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-03-20",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 142,
+   "ticker": "PG",
+   "entry": "2026-03-23",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / Thinkorswim",
+   "pl": -836,
+   "cost": 1796,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-03-16",
+     "trig": "DC2",
+     "tf": "W"
+    },
+    {
+     "date": "2026-03-20",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 143,
+   "ticker": "W",
+   "entry": "2026-03-25",
+   "exit": "2026-05-05",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 11415,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-03-16",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-25",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-03-18",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-04-08",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 14,
+    "days_before_your_exit": 27
+   }
+  },
+  {
+   "no": 144,
+   "ticker": "RUTW",
+   "entry": "2026-03-27",
+   "exit": "2026-06-25",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": null,
+   "cost": 16402,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null,
+   "no_data": true
+  },
+  {
+   "no": 145,
+   "ticker": "PL",
+   "entry": "2026-03-27",
+   "exit": "2026-06-25",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": -2638.5,
+   "cost": 7897,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-03-19",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-23",
+     "trig": "UC1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-03-18",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-18",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-03-23",
+     "trig": "UR2",
+     "tf": "W"
+    },
+    {
+     "date": "2026-03-26",
+     "trig": "UR2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-03-26",
+     "trig": "Bear-FS",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "UC1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-03-30",
+    "trig": "UR1",
+    "tf": "2",
+    "days_after_entry": 3,
+    "days_before_your_exit": 87
+   }
+  },
+  {
+   "no": 146,
+   "ticker": "SPXW",
+   "entry": "2026-04-03",
+   "exit": "2026-05-05",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC) / Thinkorswim",
+   "pl": null,
+   "cost": 13129,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null,
+   "no_data": true
+  },
+  {
+   "no": 147,
+   "ticker": "COST",
+   "entry": "2026-04-03",
+   "exit": "2026-05-01",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC)",
+   "pl": null,
+   "cost": 6964,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-04-02",
+     "trig": "S1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 148,
+   "ticker": "GLD",
+   "entry": "2026-04-10",
+   "exit": "2026-06-05",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / 2.42",
+   "pl": null,
+   "cost": 2622,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-04-01",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2026-04-10",
+     "trig": "Bear-FS",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 149,
+   "ticker": "MCD",
+   "entry": "2026-04-10",
+   "exit": "2026-06-22",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / 0.89",
+   "pl": -1819.13,
+   "cost": 4054,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-04-02",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2026-04-06",
+     "trig": "Bull-FS",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2026-04-09",
+     "trig": "DR1",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2026-04-10",
+     "trig": "Bear-FS",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 150,
+   "ticker": "AXON",
+   "entry": "2026-04-13",
+   "exit": "2026-06-03",
+   "side": "long",
+   "strategy": "CSP",
+   "pl": null,
+   "cost": 3645,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-13",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-13",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-04-08",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "W",
+   "exit_signal": {
+    "date": "2026-05-01",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 18,
+    "days_before_your_exit": 33
+   }
+  },
+  {
+   "no": 151,
+   "ticker": "CAVA",
+   "entry": "2026-04-22",
+   "exit": "2026-06-03",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 0.91 / Thinkorswim",
+   "pl": null,
+   "cost": 5303,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-17",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-20",
+     "trig": "S2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-04-23",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 41
+   }
+  },
+  {
+   "no": 152,
+   "ticker": "ASML",
+   "entry": "2026-04-24",
+   "exit": "2026-05-30",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 29838,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-04-16",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-16",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-05-11",
+    "trig": "UR2",
+    "tf": "W",
+    "days_after_entry": 17,
+    "days_before_your_exit": 19
+   }
+  },
+  {
+   "no": 153,
+   "ticker": "TJX",
+   "entry": "2026-04-24",
+   "exit": "2026-05-30",
+   "side": "neutral",
+   "strategy": "IRON / CONDOR / (IC) / Thinkorswim",
+   "pl": null,
+   "cost": 1644,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-04-16",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2026-04-17",
+     "trig": "UC2",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2026-04-20",
+     "trig": "UR1",
+     "tf": "W",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 154,
+   "ticker": "DPZ",
+   "entry": "2026-04-27",
+   "exit": "2026-06-16",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 2910,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-04-27",
+     "trig": "S2s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-04-28",
+    "trig": "S2s",
+    "tf": "2",
+    "days_after_entry": 1,
+    "days_before_your_exit": 49
+   }
+  },
+  {
+   "no": 155,
+   "ticker": "CRWV",
+   "entry": "2026-04-27",
+   "exit": "2026-05-18",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD",
+   "pl": null,
+   "cost": 21151,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-23",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-24",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-04-20",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-27",
+     "trig": "UC1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "UR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-04-29",
+    "trig": "UC1",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 19
+   }
+  },
+  {
+   "no": 156,
+   "ticker": "NEE",
+   "entry": "2026-04-28",
+   "exit": "2026-07-17",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 0.61",
+   "pl": -1236.42,
+   "cost": 7936.1,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-23",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-28",
+     "trig": "UC1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-04-22",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-22",
+     "trig": "UR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-04-24",
+     "trig": "UR2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "UC1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-04-29",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 79
+   }
+  },
+  {
+   "no": 157,
+   "ticker": "TMO",
+   "entry": "2026-04-30",
+   "exit": "2026-07-17",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 2.29 / Thinkorswim",
+   "pl": 3544.29,
+   "cost": 11373,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-28",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-30",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-04-22",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-22",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-04-23",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-24",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-05-01",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 77
+   }
+  },
+  {
+   "no": 158,
+   "ticker": "MA",
+   "entry": "2026-05-01",
+   "exit": "2026-07-16",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / 2.58 / Thinkorswim",
+   "pl": 4395,
+   "cost": 11499,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-29",
+     "trig": "S1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-30",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-05-01",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-05-04",
+    "trig": "DC2",
+    "tf": "W",
+    "days_after_entry": 3,
+    "days_before_your_exit": 73
+   }
+  },
+  {
+   "no": 159,
+   "ticker": "AMAT",
+   "entry": "2026-05-01",
+   "exit": "2026-06-22",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 3 / Thinkorswim",
+   "pl": 5469.8,
+   "cost": 12552,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-04-27",
+     "trig": "Bear-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2026-04-28",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-05-07",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 6,
+    "days_before_your_exit": 46
+   }
+  },
+  {
+   "no": 160,
+   "ticker": "HD",
+   "entry": "2026-05-01",
+   "exit": "2026-05-19",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 1752,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-04-21",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-22",
+     "trig": "DC2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-22",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-04-24",
+     "trig": "DC2",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-05-04",
+    "trig": "S2s",
+    "tf": "1",
+    "days_after_entry": 3,
+    "days_before_your_exit": 15
+   }
+  },
+  {
+   "no": 161,
+   "ticker": "GE",
+   "entry": "2026-05-01",
+   "exit": "2026-07-07",
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / 1.33 / Thinkorswim",
+   "pl": 5855.52,
+   "cost": 6726,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-04-22",
+     "trig": "S2s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-04-22",
+     "trig": "S2s",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2026-04-23",
+     "trig": "DR2",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2026-04-24",
+     "trig": "DR1",
+     "tf": "2",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 162,
+   "ticker": "META",
+   "entry": "2026-05-06",
+   "exit": "2026-05-28",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 5960,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-06",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-05-06",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-05-11",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 5,
+    "days_before_your_exit": 17
+   }
+  },
+  {
+   "no": 163,
+   "ticker": "ADBE",
+   "entry": "2026-04-27",
+   "exit": "2026-06-25",
+   "side": "short",
+   "strategy": "BEAR CALL / SPREAD / Thinkorswim",
+   "pl": null,
+   "cost": 5961,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-04-17",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-21",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-04-27",
+     "trig": "DC1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-04-22",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-04-24",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-04-27",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DC1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-04-29",
+    "trig": "Bull-FS",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 57
+   }
+  },
+  {
+   "no": 164,
+   "ticker": "IREN",
+   "entry": "2026-05-11",
+   "exit": "2026-06-25",
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 0.8",
+   "pl": -3144.31,
+   "cost": 6598,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-04",
+     "trig": "S1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-05-05",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-05-06",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-05-11",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-05-11",
+     "trig": "UR1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 5,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-05-18",
+    "trig": "UR1",
+    "tf": "2",
+    "days_after_entry": 7,
+    "days_before_your_exit": 38
+   }
+  },
+  {
+   "no": 165,
+   "ticker": "MU",
+   "entry": "2026-05-12",
+   "exit": "2026-06-25",
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD",
+   "pl": null,
+   "cost": 15611,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-05-20",
+    "trig": "Bull-FS",
+    "tf": "2",
+    "days_after_entry": 8,
+    "days_before_your_exit": 36
+   }
+  },
+  {
+   "no": 166,
+   "ticker": "NOW",
+   "entry": "2026-05-19",
+   "exit": "2026-06-25",
+   "side": "long",
+   "strategy": "BULL BANG / (BB)",
+   "pl": -297.5,
+   "cost": 3191,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-14",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-05-18",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 1,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-01",
+    "trig": "UR1",
+    "tf": "W",
+    "days_after_entry": 13,
+    "days_before_your_exit": 24
+   }
+  },
+  {
+   "no": 167,
+   "ticker": "AXON",
+   "entry": "2026-05-22",
+   "exit": "2026-06-04",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": null,
+   "cost": 5902.2,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-20",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-05-13",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 2,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 168,
+   "ticker": "XBI",
+   "entry": "2026-05-22",
+   "exit": "2026-07-10",
+   "side": "neutral",
+   "strategy": "DS HAMMER / (DSH) / 0.89 / Thinkorswim",
+   "pl": 1069,
+   "cost": 5428.9,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-05-15",
+     "trig": "UR1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-05-18",
+     "trig": "S1s",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-05-18",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    },
+    {
+     "date": "2026-05-20",
+     "trig": "UC1",
+     "tf": "1",
+     "dir": "long"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 169,
+   "ticker": "MS",
+   "entry": "2026-05-26",
+   "exit": "2026-06-03",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": 405,
+   "cost": 3485,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-05-19",
+     "trig": "UR2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 170,
+   "ticker": "PLD",
+   "entry": "2026-05-26",
+   "exit": "2026-07-23",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": -420,
+   "cost": 4084,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-22",
+     "trig": "S2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-05-25",
+     "trig": "UR1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 4,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-02",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 7,
+    "days_before_your_exit": 51
+   }
+  },
+  {
+   "no": 171,
+   "ticker": "MMM",
+   "entry": "2026-05-28",
+   "exit": "2026-07-23",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S1",
+   "pl": 3272,
+   "cost": 5851,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-21",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-05-19",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-05-27",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-17",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 20,
+    "days_before_your_exit": 36
+   }
+  },
+  {
+   "no": 172,
+   "ticker": "ADP",
+   "entry": "2026-05-29",
+   "exit": "2026-06-18",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S1",
+   "pl": 3310,
+   "cost": 5730,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-29",
+     "trig": "Bull-FS",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-05-26",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-05-27",
+     "trig": "DC1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-06-04",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 6,
+    "days_before_your_exit": 14
+   }
+  },
+  {
+   "no": 172,
+   "ticker": "UPS",
+   "entry": "2026-06-04",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / TT S2 / 2.29 / Thinkorswim",
+   "pl": -1680.63,
+   "cost": 4713.9,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-05-25",
+     "trig": "UC2",
+     "tf": "W"
+    },
+    {
+     "date": "2026-06-02",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-02",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-03",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 2,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 173,
+   "ticker": "NFLX",
+   "entry": "2026-06-09",
+   "exit": "2026-06-22",
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD / Thinkorswim",
+   "pl": 2057.5,
+   "cost": 1820,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-01",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-02",
+     "trig": "S2s",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-08",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 7,
+   "entry_trigger": "S2s",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-15",
+    "trig": "DR1",
+    "tf": "1",
+    "days_after_entry": 6,
+    "days_before_your_exit": 7
+   }
+  },
+  {
+   "no": 174,
+   "ticker": "NVDA",
+   "entry": "2026-06-09",
+   "exit": "2026-07-09",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": 220,
+   "cost": 1324,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-09",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-05",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-16",
+    "trig": "Bear-FS",
+    "tf": "2",
+    "days_after_entry": 7,
+    "days_before_your_exit": 23
+   }
+  },
+  {
+   "no": 175,
+   "ticker": "DIS",
+   "entry": "2026-06-10",
+   "exit": "2026-07-08",
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD",
+   "pl": 542.5,
+   "cost": 3540.1,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-03",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-10",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-01",
+     "trig": "UC1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "S1s",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-06-11",
+    "trig": "DR1",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 27
+   }
+  },
+  {
+   "no": 176,
+   "ticker": "MDLZ",
+   "entry": "2026-06-10",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": -459.9,
+   "cost": 2070,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-01",
+     "trig": "S1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-06-05",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-08",
+     "trig": "S2",
+     "tf": "2"
+    },
+    {
+     "date": "2026-06-10",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-01",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-08",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 177,
+   "ticker": "CRWV",
+   "entry": "2026-06-12",
+   "exit": "2026-06-16",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": 492,
+   "cost": 2184,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-08",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-06-11",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-09",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-10",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 178,
+   "ticker": "META",
+   "entry": "2026-06-12",
+   "exit": "2026-06-15",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": 414,
+   "cost": 4654,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-03",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-02",
+     "trig": "DC2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-05",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-08",
+     "trig": "S1s",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 9,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 179,
+   "ticker": "IBKR",
+   "entry": "2026-06-15",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": -1172,
+   "cost": 2100,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-12",
+     "trig": "S2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-10",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-12",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 180,
+   "ticker": "AVGO",
+   "entry": "2026-06-15",
+   "exit": "2026-07-10",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": 470,
+   "cost": 5260,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-15",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-08",
+     "trig": "UR1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-06-10",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-16",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 1,
+    "days_before_your_exit": 24
+   }
+  },
+  {
+   "no": 181,
+   "ticker": "COCO",
+   "entry": "2026-06-18",
+   "exit": "2026-07-02",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2",
+   "pl": -2335,
+   "cost": 5124,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-09",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-11",
+     "trig": "S2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 7,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-22",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 10
+   }
+  },
+  {
+   "no": 182,
+   "ticker": "BLDR",
+   "entry": "2026-06-18",
+   "exit": "2026-07-02",
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": -1086,
+   "cost": 4608,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-09",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-15",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-15",
+     "trig": "DC1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-16",
+     "trig": "DC2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-17",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-06-22",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 4,
+    "days_before_your_exit": 10
+   }
+  },
+  {
+   "no": 183,
+   "ticker": "TGT",
+   "entry": "2026-06-24",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": 545,
+   "cost": 5168,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-24",
+     "trig": "S2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-15",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-15",
+     "trig": "UR1",
+     "tf": "W"
+    }
+   ],
+   "entry_lag_days": 0,
+   "entry_trigger": "S2",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 184,
+   "ticker": "KTOS",
+   "entry": "2026-06-25",
+   "exit": "2026-07-23",
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD / Thinkorswim",
+   "pl": -740,
+   "cost": 1775,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-22",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-23",
+     "trig": "S2s",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "S2s",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-06-29",
+    "trig": "DR1",
+    "tf": "W",
+    "days_after_entry": 4,
+    "days_before_your_exit": 24
+   }
+  },
+  {
+   "no": 185,
+   "ticker": "ARM",
+   "entry": "2026-06-25",
+   "exit": "2026-07-23",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": -1980,
+   "cost": 19164,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-15",
+     "trig": "UC2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-16",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-22",
+     "trig": "UR2",
+     "tf": "W"
+    },
+    {
+     "date": "2026-06-23",
+     "trig": "UR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-23",
+     "trig": "UR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 10,
+   "entry_trigger": "UC2",
+   "entry_trigger_tf": "1",
+   "exit_signal": {
+    "date": "2026-07-07",
+    "trig": "S1s",
+    "tf": "1",
+    "days_after_entry": 12,
+    "days_before_your_exit": 16
+   }
+  },
+  {
+   "no": 186,
+   "ticker": "DELL",
+   "entry": "2026-06-25",
+   "exit": "2026-07-22",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 1177.5,
+   "cost": 18170,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-07-10",
+    "trig": "UR1",
+    "tf": "1",
+    "days_after_entry": 15,
+    "days_before_your_exit": 12
+   }
+  },
+  {
+   "no": 187,
+   "ticker": "COST",
+   "entry": "2026-06-27",
+   "exit": "2026-07-10",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD",
+   "pl": 1770,
+   "cost": 5892,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-06-17",
+     "trig": "DC2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-23",
+     "trig": "DC1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-06-29",
+    "trig": "DC1",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 11
+   }
+  },
+  {
+   "no": 188,
+   "ticker": "BE",
+   "entry": "2026-06-29",
+   "exit": "2026-07-17",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max 8730 / Thinkorswim",
+   "pl": -1880,
+   "cost": 18226,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-06-22",
+     "trig": "UR1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-06-26",
+     "trig": "DC2",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-07-01",
+    "trig": "Bear-FS",
+    "tf": "1",
+    "days_after_entry": 2,
+    "days_before_your_exit": 16
+   }
+  },
+  {
+   "no": 189,
+   "ticker": "AXON",
+   "entry": "2026-06-30",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max9120 / Thinkorswim",
+   "pl": -520,
+   "cost": 20580,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-23",
+     "trig": "DR1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-06-29",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-29",
+     "trig": "S1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-06-29",
+     "trig": "S1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 1,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "W",
+   "exit_signal": null
+  },
+  {
+   "no": 190,
+   "ticker": "DASH",
+   "entry": "2026-07-02",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max5760",
+   "pl": 420,
+   "cost": 8778,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-29",
+     "trig": "S1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-06-29",
+     "trig": "S1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 3,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "W",
+   "exit_signal": null
+  },
+  {
+   "no": 191,
+   "ticker": "IONQ",
+   "entry": "2026-07-02",
+   "exit": "2026-07-31",
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": -5870.48,
+   "cost": 1720,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-29",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-29",
+     "trig": "UC2",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-24",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "UC2",
+   "entry_trigger_tf": "2",
+   "exit_signal": {
+    "date": "2026-07-08",
+    "trig": "S1s",
+    "tf": "2",
+    "days_after_entry": 6,
+    "days_before_your_exit": 23
+   }
+  },
+  {
+   "no": 192,
+   "ticker": "PEP",
+   "entry": "2026-07-06",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max965 / Thinkorswim",
+   "pl": -431.5,
+   "cost": 583,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-29",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-06-29",
+     "trig": "S2s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 5,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 193,
+   "ticker": "ENB",
+   "entry": "2026-07-06",
+   "exit": "2026-07-17",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max4000 / Thinkorswim",
+   "pl": 271.68,
+   "cost": 1320,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-06-29",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-06-29",
+     "trig": "Bear-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "S1s",
+     "tf": "2"
+    },
+    {
+     "date": "2026-07-06",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 194,
+   "ticker": "VEEV",
+   "entry": "2026-07-07",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max8790 / Thinkorswim",
+   "pl": 975,
+   "cost": 12212,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-01",
+     "trig": "S1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-06",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 1,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 195,
+   "ticker": "QCOM",
+   "entry": "2026-07-08",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / COLLAR / (BBC) / 1.12 / Thinkorswim",
+   "pl": -4507.74,
+   "cost": 14760.01,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 196,
+   "ticker": "SE",
+   "entry": "2026-07-09",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / TT S2 / Thinkorswim",
+   "pl": -645.99,
+   "cost": 6996,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-06-29",
+     "trig": "DR2",
+     "tf": "W"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "S1",
+     "tf": "2"
+    },
+    {
+     "date": "2026-07-06",
+     "trig": "DR1",
+     "tf": "W"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "W",
+   "exit_signal": null
+  },
+  {
+   "no": 197,
+   "ticker": "WMT",
+   "entry": "2026-07-10",
+   "exit": null,
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD / max 4370 / 0.45",
+   "pl": -325,
+   "cost": 3590,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-01",
+     "trig": "S2s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "S2s",
+     "tf": "2"
+    },
+    {
+     "date": "2026-07-07",
+     "trig": "Bear-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-02",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-06",
+     "trig": "DR1",
+     "tf": "W"
+    },
+    {
+     "date": "2026-07-10",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "Bear-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 198,
+   "ticker": "ARKK",
+   "entry": "2026-07-10",
+   "exit": null,
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / Thinkorswim / 2.11",
+   "pl": -2207.58,
+   "cost": 4260,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-07-01",
+     "trig": "S2",
+     "tf": "1",
+     "dir": "long"
+    },
+    {
+     "date": "2026-07-01",
+     "trig": "S2",
+     "tf": "2",
+     "dir": "long"
+    },
+    {
+     "date": "2026-07-07",
+     "trig": "UR1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-07-08",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 199,
+   "ticker": "GLW",
+   "entry": "2026-07-10",
+   "exit": null,
+   "side": "neutral",
+   "strategy": "CALENDAR / SPREAD / Thinkorswim",
+   "pl": -3001.5,
+   "cost": 4247,
+   "verdict": "neutral_structure",
+   "aligned": [],
+   "opposing": [],
+   "context": [
+    {
+     "date": "2026-07-01",
+     "trig": "UR2",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-07-02",
+     "trig": "UR1",
+     "tf": "1",
+     "dir": "short"
+    },
+    {
+     "date": "2026-07-06",
+     "trig": "UR1",
+     "tf": "2",
+     "dir": "short"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 200,
+   "ticker": "LRCX",
+   "entry": "2026-07-13",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": -660,
+   "cost": 21711,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-10",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-06",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 201,
+   "ticker": "SHOP",
+   "entry": "2026-07-13",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max5560 / Thinkorswim",
+   "pl": -812,
+   "cost": 6896,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-08",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-08",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-07",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-10",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 5,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 202,
+   "ticker": "HPE",
+   "entry": "2026-07-13",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": 200,
+   "cost": 3470,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-06",
+     "trig": "Bull-FS",
+     "tf": "2"
+    },
+    {
+     "date": "2026-07-06",
+     "trig": "Bull-FS",
+     "tf": "W"
+    },
+    {
+     "date": "2026-07-08",
+     "trig": "UC2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-10",
+     "trig": "S1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-10",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 3,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 203,
+   "ticker": "CSX",
+   "entry": "2026-07-13",
+   "exit": "2026-07-24",
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max3650 / Thinkorswim",
+   "pl": -50,
+   "cost": 1950,
+   "verdict": "no_signal",
+   "aligned": [],
+   "opposing": [],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": {
+    "date": "2026-07-20",
+    "trig": "UR2",
+    "tf": "1",
+    "days_after_entry": 7,
+    "days_before_your_exit": 4
+   }
+  },
+  {
+   "no": 204,
+   "ticker": "TJX",
+   "entry": "2026-07-17",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max3105 / Thinkorswim",
+   "pl": 172.5,
+   "cost": 2193,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-15",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-16",
+     "trig": "DR1",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-16",
+     "trig": "DR1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-13",
+     "trig": "Bear-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-17",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 205,
+   "ticker": "MU",
+   "entry": "2026-07-17",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max6710 / Thinkorswim",
+   "pl": -227.5,
+   "cost": 24920,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-07-15",
+     "trig": "S1s",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 206,
+   "ticker": "ABT",
+   "entry": "2026-07-20",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max2934",
+   "pl": 114,
+   "cost": 1858,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-16",
+     "trig": "S2",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-16",
+     "trig": "S1",
+     "tf": "2"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 4,
+   "entry_trigger": "S1",
+   "entry_trigger_tf": "2",
+   "exit_signal": null
+  },
+  {
+   "no": 207,
+   "ticker": "TDG",
+   "entry": "2026-07-20",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL PUT / SPREAD / Thinkorswim",
+   "pl": 210,
+   "cost": 16284,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-15",
+     "trig": "Bull-FS",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-14",
+     "trig": "DC2",
+     "tf": "2"
+    },
+    {
+     "date": "2026-07-15",
+     "trig": "S1s",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-20",
+     "trig": "DC1",
+     "tf": "2"
+    }
+   ],
+   "entry_lag_days": 5,
+   "entry_trigger": "Bull-FS",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 208,
+   "ticker": "NFLX",
+   "entry": "2026-07-23",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / Thinkorswim",
+   "pl": 528,
+   "cost": 2820,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-21",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 2,
+   "entry_trigger": "DR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 209,
+   "ticker": "NOW",
+   "entry": "2026-07-27",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL CALL / SPREAD / max7010 / Thinkorswim",
+   "pl": 2072.5,
+   "cost": 8358,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-20",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-24",
+     "trig": "Bull-FS",
+     "tf": "1"
+    },
+    {
+     "date": "2026-07-27",
+     "trig": "UC2",
+     "tf": "1"
+    }
+   ],
+   "opposing": [],
+   "entry_lag_days": 0,
+   "entry_trigger": "UC2",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  },
+  {
+   "no": 210,
+   "ticker": "INTU",
+   "entry": "2026-07-28",
+   "exit": null,
+   "side": "long",
+   "strategy": "BULL BANG / (BB) / Thinkorswim",
+   "pl": 375,
+   "cost": 5023,
+   "verdict": "against_signal",
+   "aligned": [],
+   "opposing": [
+    {
+     "date": "2026-07-22",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": null,
+   "entry_trigger": null,
+   "entry_trigger_tf": null,
+   "exit_signal": null
+  },
+  {
+   "no": 211,
+   "ticker": "MCD",
+   "entry": "2026-07-29",
+   "exit": null,
+   "side": "short",
+   "strategy": "BEAR PUT / SPREAD / max2922",
+   "pl": 69,
+   "cost": 1658,
+   "verdict": "supported",
+   "aligned": [
+    {
+     "date": "2026-07-28",
+     "trig": "UR1",
+     "tf": "1"
+    }
+   ],
+   "opposing": [
+    {
+     "date": "2026-07-27",
+     "trig": "DR1",
+     "tf": "1"
+    }
+   ],
+   "entry_lag_days": 1,
+   "entry_trigger": "UR1",
+   "entry_trigger_tf": "1",
+   "exit_signal": null
+  }
+ ]
+}
