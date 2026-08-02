@@ -1,0 +1,52 @@
+name: PAM trade audit
+
+# Manual only. This is a one-off study, not a nightly job — run it again
+# whenever you add trades to trade_list.json.
+on:
+  workflow_dispatch:
+    inputs:
+      lookback:
+        description: 'Calendar days before entry a trigger still counts'
+        required: false
+        default: '10'
+      timeframes:
+        description: 'Timeframes to replay (comma separated: 1,2,W)'
+        required: false
+        default: '1,2,W'
+      warmup_days:
+        description: 'Extra calendar days of bars before the earliest entry'
+        required: false
+        default: '420'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Replay the engine over every trade
+        env:
+          ALPACA_KEY:    ${{ secrets.ALPACA_KEY }}
+          ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
+          PAM_HTML:       pam_analyzer.html
+          TA_LIST:        trade_list.json
+          TA_LOOKBACK:    ${{ github.event.inputs.lookback }}
+          TA_TFS:         ${{ github.event.inputs.timeframes }}
+          TA_WARMUP_DAYS: ${{ github.event.inputs.warmup_days }}
+        run: node trade_audit.js
+
+      - name: Commit the results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add trade_audit.json trade_audit.csv
+          git diff --staged --quiet || git commit -m "trade audit $(date -u +%Y-%m-%d) [skip ci]"
+          git push
