@@ -1,44 +1,32 @@
 PAM options data probe
-run at: 2026-08-02 10:33 UTC
-commit: ad0474212a490beeafc89fe3ccc5d01c6cef2e2e
+run at: 2026-08-02 10:39 UTC
+commit: 06eae40ad3e93e257231f4b0bd79cedcd4567ffe
 ----------------------------------------
-Alpaca historical options probe (v2 — constructed OCC ladders, no enumeration)
-Key type: paper  ·  trade API: https://paper-api.alpaca.markets
-Probe v1 showed expired contracts are not listed by /v2/options/contracts, so this
-version builds OCC symbols directly and asks for the whole ladder in one request.
+Alpaca options route map (v3 — real symbols from the live snapshot)
+feed=indicative  ·  key type: paper
 
-### CONTROL: does options quote data work at all, on a live expiry? ###
-  SPY: spot lookup failed: HTTP 403 {"message":"subscription does not permit querying recent SIP data"}
+### 0. LIVE SNAPSHOT — the route the nightly scanner runs on ###
+  GET /options/snapshots/SPY         ok                   200 live contracts returned
+  of those, two-sided                199                  contracts with bid AND ask > 0
+  test symbols: SPY260828P00590000, SPY260828C00756000, SPY260828C00730000, SPY260828C00720000, SPY260828C00855000
 
-  AAPL: spot lookup failed: HTTP 403 {"message":"subscription does not permit querying recent SIP data"}
+### 1. HISTORICAL routes, asked for those exact real symbols ###
+  GET /options/bars (30d back)       ok                   5/5 contracts have daily bars
+  GET /options/trades (30d back)     ok                   1/5 contracts have trades
+  GET /options/quotes (30d back)     HTTP 404             {"message":"Not Found"} 
+  GET /options/quotes/latest         ok                   5/5 quoted now
 
-
---- SPY @ 3mo back (2026-05-02, expiry 2026-06-19, 48 DTE) ---
-  spot          ok    SPY closed 720.65
-  A ladder      ok    29 constructed calls, 650-790 (5 wide), e.g. SPY260619C00650000
-  B quotes:opra       FAIL  HTTP 404 {"message":"Not Found"}
-
-  B quotes:indicative FAIL  HTTP 404 {"message":"Not Found"}
-
-  C bars        FAIL  no strike traded in the window
-
---- AAPL @ 3mo back (2026-05-02, expiry 2026-06-19, 48 DTE) ---
-  spot          ok    AAPL closed 280.14
-  A ladder      ok    11 constructed calls, 255-305 (5 wide), e.g. AAPL260619C00255000
-  B quotes:opra       FAIL  HTTP 404 {"message":"Not Found"}
-
-  B quotes:indicative FAIL  HTTP 404 {"message":"Not Found"}
-
-  C bars        FAIL  no strike traded in the window
-
-Both symbols failed at 3 months back — stopping the walk here.
+### 2. Historical bars work. Do they reach an EXPIRED contract? ###
+  2026-06-19  SPY260619C00740000     empty      {"bars":{},"next_page_token":null}
+  2026-03-20  SPY260320C00690000     ok         29 daily bars
+  2025-12-19  SPY251219C00670000     ok         29 daily bars
+  2025-06-20  SPY250620C00565000     ok         28 daily bars
 
 ================ VERDICT ================
-No historical option quotes at any depth tested.
-Read the CONTROL line above to tell which problem this is:
-  control WORKS  -> live data is fine, history is the wall. Backtest must
-                    move to marketdata.app historical chains (~15 tickers,
-                    scoped to the 100-credit daily budget).
-  control FAILS  -> the account has no options quote entitlement at all;
-                    the nightly scanner is running on snapshots only.
+Historical BARS work; historical QUOTES do not (no bid/ask history).
+That is a real constraint, not a blocker: spreads would have to be priced from
+trade closes rather than the mid, which is less accurate for illiquid strikes
+and cannot reproduce the liquidity flag. Section 2 above shows how far back
+bars reach. Worth doing as a rough first pass; marketdata.app stays the
+accurate option.
 =========================================
