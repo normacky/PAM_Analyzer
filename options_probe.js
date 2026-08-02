@@ -107,92 +107,128 @@ async function spotOn(sym, dateISO) {
   return { spot: bars[bars.length - 1].c, why: '' };
 }
 
-/* STEP A — can we list contracts for an expiry that has already passed?
-   Expired contracts are hidden by default; Alpaca exposes them behind
-   status=inactive, so we ask for both and report which one answered. */
-async function enumerate(sym, expiry, spot) {
-  const lo = (spot * 0.85).toFixed(2), hi = (spot * 1.15).toFixed(2);
-  for (const status of ['inactive', 'active']) {
-    const u = `${TRADE_API}/v2/options/contracts?underlying_symbols=${encodeURIComponent(sym)}` +
-              `&expiration_date=${expiry}&status=${status}` +
-              `&strike_price_gte=${lo}&strike_price_lte=${hi}&limit=200`;
-    const r = await get(u);
-    const list = r.json && r.json.option_contracts;
-    if (r.ok && list && list.length) return { list, status, why: '' };
-    if (!r.ok) return { list: null, status, why: `HTTP ${r.status} ${r.text}` };
+/* STEP A — rebuild the strike ladder WITHOUT the enumeration endpoint.
+   Expired contracts are not listed by /v2/options/contracts (proven by probe v1:
+   HTTP 200 with an empty list), so we construct OCC symbols directly instead.
+   The format is deterministic: root + YYMMDD + C/P + strike x1000, zero-padded
+   to 8 digits — exactly what the scanner's own parseOcc() decodes. We build a
+   grid of plausible strikes around spot; the ones that really existed come back
+   with data, the ones that never existed come back empty. No lookup needed. */
+function occFor(sym, expiry, type, strike) {
+  const d = expiry.slice(2, 4) + expiry.slice(5, 7) + expiry.slice(8, 10);
+  const k = String(Math.round(strike * 1000)).padStart(8, '0');
+  return sym + d + type + k;
+}
+
+// Strikes around spot on the given increment, as a clean multiple of that increment.
+// The band widens automatically until the ladder holds at least `minN` strikes, so a
+// low-priced name doesn't end up with two strikes at a fixed percentage band.
+function strikeLadder(spot, inc, pctBand, minN) {
+  minN = minN || 9;
+  let band = pctBand, out = [];
+  for (let guard = 0; guard < 12; guard++) {
+    const lo = Math.ceil((spot * (1 - band)) / inc) * inc;
+    const hi = Math.floor((spot * (1 + band)) / inc) * inc;
+    out = [];
+    for (let k = lo; k <= hi + 1e-9; k += inc) out.push(+k.toFixed(2));
+    if (out.length >= minN) break;
+    band *= 1.5;
   }
-  return { list: null, status: '-', why: 'empty response on both status=inactive and status=active' };
+  return out;
 }
 
-/* STEP B — historical bid/ask for one contract on the test date.
-   We ask for a one-day window of quotes and only care whether anything comes
-   back with a usable bid AND ask, since the scanner prices legs at the mid. */
-async function quoteOn(occ, dateISO, feed) {
+/* STEP B — historical bid/ask for a whole ladder in ONE request.
+   The quotes endpoint takes a comma-separated symbol list, so an entire chain
+   costs a single call. We only care whether any contract returns a usable
+   bid AND ask, since the scanner prices every leg at the mid. */
+async function quotesFor(occs, dateISO, feed) {
   const next = iso(new Date(new Date(dateISO).getTime() + 86400000));
-  const u = `${DATA_API}/v1beta1/options/quotes?symbols=${encodeURIComponent(occ)}` +
-            `&start=${dateISO}T14:30:00Z&end=${next}T00:00:00Z&feed=${feed}&limit=50`;
+  const u = `${DATA_API}/v1beta1/options/quotes?symbols=${encodeURIComponent(occs.join(','))}` +
+            `&start=${dateISO}T14:30:00Z&end=${next}T00:00:00Z&feed=${feed}&limit=2000`;
   const r = await get(u);
-  const q = r.json && r.json.quotes && r.json.quotes[occ];
-  if (!r.ok) return { got: false, why: `HTTP ${r.status} ${r.text}` };
-  if (!q || !q.length) return { got: false, why: 'empty (no quotes returned)' };
-  const usable = q.find(x => x.bp > 0 && x.ap > 0);
-  if (!usable) return { got: false, why: `${q.length} quotes but none with both bid and ask > 0` };
-  return { got: true, why: `bid ${usable.bp} / ask ${usable.ap}, ${q.length} quotes in the window` };
+  if (!r.ok) return { got: 0, why: `HTTP ${r.status} ${r.text}` };
+  const q = (r.json && r.json.quotes) || {};
+  const keys = Object.keys(q);
+  if (!keys.length) return { got: 0, why: 'HTTP 200 but no quotes for any strike' };
+  let usable = 0, sample = '';
+  for (const k of keys) {
+    const hit = (q[k] || []).find(x => x.bp > 0 && x.ap > 0);
+    if (hit) { usable++; if (!sample) sample = `${k} bid ${hit.bp} / ask ${hit.ap}`; }
+  }
+  return { got: usable,
+           why: usable ? `${usable}/${occs.length} strikes priced — e.g. ${sample}`
+                       : `${keys.length} strikes returned rows but none with both bid and ask > 0` };
 }
 
-/* STEP C — daily trade bars for the same contract. Not sufficient on its own
-   (illiquid strikes never trade) but a useful second signal about reach. */
-async function barOn(occ, dateISO) {
+/* STEP C — daily trade bars for the same ladder. Not sufficient on its own
+   (illiquid strikes never trade) but a second signal about how far back the
+   options history physically goes. */
+async function barsFor(occs, dateISO) {
   const next = iso(new Date(new Date(dateISO).getTime() + 4 * 86400000));
-  const u = `${DATA_API}/v1beta1/options/bars?symbols=${encodeURIComponent(occ)}` +
-            `&timeframe=1Day&start=${dateISO}&end=${next}&limit=10`;
+  const u = `${DATA_API}/v1beta1/options/bars?symbols=${encodeURIComponent(occs.join(','))}` +
+            `&timeframe=1Day&start=${dateISO}&end=${next}&limit=2000`;
   const r = await get(u);
-  const b = r.json && r.json.bars && r.json.bars[occ];
-  if (!r.ok) return { got: false, why: `HTTP ${r.status} ${r.text}` };
-  if (!b || !b.length) return { got: false, why: 'empty (contract never traded in the window)' };
-  return { got: true, why: `close ${b[0].c}, volume ${b[0].v}` };
+  if (!r.ok) return { got: 0, why: `HTTP ${r.status} ${r.text}` };
+  const b = (r.json && r.json.bars) || {};
+  const n = Object.keys(b).length;
+  return { got: n, why: n ? `${n}/${occs.length} strikes traded` : 'no strike traded in the window' };
+}
+
+/* CONTROL — the same test on a LIVE, near-future expiry. This separates two very
+   different failures: if the control works and the historical test does not, the
+   wall is data DEPTH. If the control fails too, the account simply lacks options
+   data entitlement and no depth is available at all. */
+async function control(sym) {
+  const today = iso(new Date());
+  const expiry = expiryFor(today);
+  const s = await spotOn(sym, today);
+  if (s.spot == null) return `spot lookup failed: ${s.why}`;
+  const inc = s.spot > 100 ? 5 : 1;
+  const occs = strikeLadder(s.spot, inc, 0.06).map(k => occFor(sym, expiry, 'C', k));
+  for (const feed of FEEDS) {
+    const q = await quotesFor(occs, iso(new Date(Date.now() - 3 * 86400000)), feed);
+    if (q.got) return `WORKS on feed=${feed} — ${q.why}`;
+  }
+  return 'no quotes even on a live expiry';
 }
 
 async function probeOne(sym, months) {
   const date   = monthsAgo(months);
   const expiry = expiryFor(date);
   const dte    = Math.round((new Date(expiry) - new Date(date)) / 86400000);
-  const tag    = `${sym} @ ${months}mo back (${date}, expiry ${expiry}, ${dte} DTE)`;
-  console.log(`\n--- ${tag} ---`);
+  console.log(`\n--- ${sym} @ ${months}mo back (${date}, expiry ${expiry}, ${dte} DTE) ---`);
 
   const s = await spotOn(sym, date);
   if (s.spot == null) { console.log(`  spot          FAIL  ${s.why}`); return { sym, months, ok: false }; }
   console.log(`  spot          ok    ${sym} closed ${s.spot.toFixed(2)}`);
 
-  const e = await enumerate(sym, expiry, s.spot);
-  if (!e.list) { console.log(`  A enumerate   FAIL  ${e.why}`); return { sym, months, ok: false }; }
-  console.log(`  A enumerate   ok    ${e.list.length} contracts via status=${e.status}`);
+  const inc  = s.spot > 100 ? 5 : 1;                 // $5 ladder on big names, $1 on small
+  const ks   = strikeLadder(s.spot, inc, 0.10);      // +/-10% around spot
+  const occs = ks.map(k => occFor(sym, expiry, 'C', k));
+  console.log(`  A ladder      ok    ${occs.length} constructed calls, ${ks[0]}-${ks[ks.length-1]} (${inc} wide), e.g. ${occs[0]}`);
 
-  // Nearest-to-the-money call, which is what the ATM IV read is anchored on.
-  const calls = e.list.filter(c => c.type === 'call')
-                      .sort((a, b) => Math.abs(a.strike_price - s.spot) - Math.abs(b.strike_price - s.spot));
-  if (!calls.length) { console.log('  A enumerate   FAIL  contracts returned but no calls among them'); return { sym, months, ok: false }; }
-  const occ = calls[0].symbol;
-  console.log(`  test contract       ${occ} (strike ${calls[0].strike_price})`);
-
-  let quoteOk = false;
+  let quoteOk = false, feedUsed = '';
   for (const feed of FEEDS) {
-    const q = await quoteOn(occ, date, feed);
+    const q = await quotesFor(occs, date, feed);
     console.log(`  B quotes:${feed.padEnd(10)} ${q.got ? 'ok   ' : 'FAIL '} ${q.why}`);
-    if (q.got) { quoteOk = true; break; }          // one working feed is enough
+    if (q.got) { quoteOk = true; feedUsed = feed; break; }
     await sleep(400);
   }
 
-  const bar = await barOn(occ, date);
-  console.log(`  C bars        ${bar.got ? 'ok   ' : 'FAIL '} ${bar.why}`);
+  const bars = await barsFor(occs, date);
+  console.log(`  C bars        ${bars.got ? 'ok   ' : 'FAIL '} ${bars.why}`);
 
-  return { sym, months, date, ok: quoteOk, barOk: bar.got };
+  return { sym, months, date, ok: quoteOk, feed: feedUsed, barOk: !!bars.got };
 }
 
 (async () => {
-  console.log('Alpaca historical options probe');
+  console.log('Alpaca historical options probe (v2 — constructed OCC ladders, no enumeration)');
   console.log('Key type: ' + (KEY.startsWith('PK') ? 'paper' : 'live') + '  ·  trade API: ' + TRADE_API);
-  console.log('Testing whether a past option chain can be rebuilt with bid/ask, and how far back it reaches.');
+  console.log('Probe v1 showed expired contracts are not listed by /v2/options/contracts, so this');
+  console.log('version builds OCC symbols directly and asks for the whole ladder in one request.');
+
+  console.log('\n### CONTROL: does options quote data work at all, on a live expiry? ###');
+  for (const sym of SYMS) console.log(`  ${sym}: ${await control(sym)}`);
 
   const results = [];
   for (const months of MONTHS_BACK) {
@@ -201,7 +237,7 @@ async function probeOne(sym, months) {
       const r = await probeOne(sym, months);
       results.push(r);
       anyOk = anyOk || r.ok;
-      await sleep(600);                             // stay polite; this is a tiny number of calls
+      await sleep(600);
     }
     if (!anyOk) { console.log(`\nBoth symbols failed at ${months} months back — stopping the walk here.`); break; }
   }
@@ -209,17 +245,21 @@ async function probeOne(sym, months) {
   const good = results.filter(r => r.ok);
   console.log('\n================ VERDICT ================');
   if (!good.length) {
-    console.log('No historical option quotes available on this key, at any depth tested.');
-    console.log('→ The options backtest cannot run on Alpaca. Next option is marketdata.app');
-    console.log('  historical chains, scoped to ~15 tickers to fit the 100-credit daily budget.');
+    console.log('No historical option quotes at any depth tested.');
+    console.log('Read the CONTROL line above to tell which problem this is:');
+    console.log('  control WORKS  -> live data is fine, history is the wall. Backtest must');
+    console.log('                    move to marketdata.app historical chains (~15 tickers,');
+    console.log('                    scoped to the 100-credit daily budget).');
+    console.log('  control FAILS  -> the account has no options quote entitlement at all;');
+    console.log('                    the nightly scanner is running on snapshots only.');
   } else {
     const deepest = Math.max(...good.map(r => r.months));
-    console.log(`Historical quotes WORK. Deepest confirmed reach: ${deepest} months back.`);
-    console.log(`→ The options backtest can run entirely in GitHub Actions on the existing`);
-    console.log(`  Alpaca secrets, over roughly the last ${deepest} months, with no credit budget.`);
-    if (deepest < Math.max(...MONTHS_BACK)) {
-      console.log(`  (The walk stopped at ${deepest}mo, so that is the wall — or close to it.)`);
-    }
+    const feed = good.find(r => r.months === deepest).feed;
+    console.log(`Historical quotes WORK via constructed OCC ladders on feed=${feed}.`);
+    console.log(`Deepest confirmed reach: ${deepest} months back.`);
+    console.log(`-> The options backtest can run entirely in GitHub Actions on the existing`);
+    console.log(`   Alpaca secrets, over roughly the last ${deepest} months, with no credit budget.`);
+    console.log(`   Chain rebuild costs ONE quotes call per (symbol, trigger date).`);
   }
   console.log('=========================================');
 })();
