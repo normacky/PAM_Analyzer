@@ -1,13 +1,14 @@
-# Read-only probe: asks Alpaca whether past option chains can be rebuilt with
-# bid/ask, and how far back that reaches. Writes nothing and commits nothing —
-# the answer is printed in the run log. Manual trigger only, no schedule.
+# Probe: asks Alpaca whether past option chains can be rebuilt with bid/ask, and
+# how far back that reaches. The findings are printed in the run log AND saved to
+# probe_result.txt in the repo root, so they can be read without digging through
+# the Actions UI. Manual trigger only, no schedule.
 name: Options data probe
 
 on:
   workflow_dispatch:          # run it yourself from the Actions tab
 
 permissions:
-  contents: read              # read-only: this job has no ability to commit
+  contents: write             # needed only to commit probe_result.txt
 
 jobs:
   probe:
@@ -15,6 +16,8 @@ jobs:
     steps:
       - name: Get the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # full history so the rebase-before-push below works
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -25,4 +28,27 @@ jobs:
         env:
           ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
           ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
-        run: node options_probe.js
+        run: |
+          # tee sends the output to BOTH the log and the file, so a failed probe
+          # still leaves its evidence in the file instead of throwing it away.
+          {
+            echo "PAM options data probe"
+            echo "run at: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo "commit: ${GITHUB_SHA}"
+            echo "----------------------------------------"
+          } > probe_result.txt
+          node options_probe.js 2>&1 | tee -a probe_result.txt || true
+
+      - name: Commit the findings
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add probe_result.txt
+          # --quiet exits non-zero when there is nothing staged; skip the commit then.
+          if git diff --cached --quiet; then
+            echo "probe_result.txt unchanged - nothing to commit."
+          else
+            git commit -m "Options data probe results"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push
+          fi
