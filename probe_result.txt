@@ -1,0 +1,23 @@
+PAM options data probe
+run at: 2026-08-02 10:28 UTC
+commit: e367d0b642a9266568d5d5e38b59df41622794f9
+----------------------------------------
+Alpaca historical options probe
+Key type: paper  ·  trade API: https://paper-api.alpaca.markets
+Testing whether a past option chain can be rebuilt with bid/ask, and how far back it reaches.
+
+--- SPY @ 3mo back (2026-05-02, expiry 2026-06-19, 48 DTE) ---
+  spot          ok    SPY closed 720.65
+  A enumerate   FAIL  empty response on both status=inactive and status=active
+
+--- AAPL @ 3mo back (2026-05-02, expiry 2026-06-19, 48 DTE) ---
+  spot          ok    AAPL closed 280.14
+  A enumerate   FAIL  empty response on both status=inactive and status=active
+
+Both symbols failed at 3 months back — stopping the walk here.
+
+================ VERDICT ================
+No historical option quotes available on this key, at any depth tested.
+→ The options backtest cannot run on Alpaca. Next option is marketdata.app
+  historical chains, scoped to ~15 tickers to fit the 100-credit daily budget.
+=========================================
