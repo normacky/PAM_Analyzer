@@ -1,0 +1,28 @@
+# Read-only probe: asks Alpaca whether past option chains can be rebuilt with
+# bid/ask, and how far back that reaches. Writes nothing and commits nothing —
+# the answer is printed in the run log. Manual trigger only, no schedule.
+name: Options data probe
+
+on:
+  workflow_dispatch:          # run it yourself from the Actions tab
+
+permissions:
+  contents: read              # read-only: this job has no ability to commit
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Probe Alpaca options history
+        env:
+          ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
+          ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
+        run: node options_probe.js
