@@ -762,6 +762,7 @@
         <div class="lead" style="margin-top:2px">persistent, members-only &mdash; paste text or screenshots of trade ideas, everyone sees the full history</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="chatRenameBtn" type="button" style="display:none" title="Change the name shown on your chat messages">✏️ Name</button>
         <button class="btn alertsbtn" id="chatAlertsBtn" type="button" title="Get a sound + notification when someone posts (while this tab is open)">🔔 Alerts off</button>
         <span id="chatStatus" style="font-family:var(--mono);font-size:11px;color:var(--mut)"></span>
       </div>
@@ -2812,7 +2813,7 @@ async function handleSession(session){
   if(uid===sessionUid){ if(session)try{sb.realtime.setAuth(session.access_token);}catch(e){} return; }
   sessionUid=uid;
   if(!uid){
-    ME=null;ALLOWED=false;acct('Not signed in');
+    ME=null;ALLOWED=false;acct('Not signed in');setRenameBtn();
     q('sbSignOut').style.display='none';q('chatAuthBox').style.display='block';q('chatMain').style.display='none';
     if(chan){try{sb.removeChannel(chan);}catch(e){} chan=null;}
     if(pollT){clearInterval(pollT);pollT=null;}
@@ -2827,11 +2828,13 @@ async function handleSession(session){
   if(!ALLOWED){
     q('chatAuthBox').style.display='block';q('chatMain').style.display='none';
     cStatus('Signed in, but this email is not on the member list \u2014 ask the owner to add you','err');
+    setRenameBtn();
     return;
   }
   q('chatAuthBox').style.display='none';q('chatMain').style.display='flex';
   cStatus('');
   await ensureProfile();
+  setRenameBtn();
   await loadRecent();
   subscribe();
   if(!pollT)pollT=setInterval(pollNew,25000);
@@ -2848,6 +2851,34 @@ async function ensureProfile(){
     await sb.from('profiles').upsert({user_id:ME.id,display_name:nm});
     MYNAME=nm;
   }catch(e){MYNAME=ME.email.split('@')[0];}
+}
+
+/* Show the rename button only to a signed-in member, and label it with the name they currently post under. */
+function setRenameBtn(){
+  const b=q('chatRenameBtn'); if(!b)return;
+  if(!(ME&&ALLOWED)){ b.style.display='none'; return; }
+  const nm=MYNAME||ME.email.split('@')[0];
+  b.style.display='inline-block';
+  b.textContent='\u270F\uFE0F '+(nm.length>14?nm.slice(0,13)+'\u2026':nm);
+  b.title='You post as \u201C'+nm+'\u201D \u2014 tap to change the name shown on your chat messages';
+}
+/* Change the display name. Only affects messages sent from here on: each message row
+   stores a copy of the name at send time, so older posts keep the old one. */
+async function renameMe(){
+  if(!ME||!ALLOWED){cStatus('sign in as a member first','err');return;}
+  const cur=MYNAME||ME.email.split('@')[0];
+  const raw=window.prompt('Name shown on your chat messages:',cur);
+  if(raw===null)return;                                   /* cancelled */
+  const nm=raw.trim().slice(0,40);
+  if(!nm){cStatus('A name cannot be blank \u2014 nothing changed.','err');return;}
+  if(nm===cur){cStatus('');return;}
+  try{
+    const {error}=await sb.from('profiles').upsert({user_id:ME.id,display_name:nm});
+    if(error)throw error;
+    MYNAME=nm;
+    setRenameBtn();
+    cStatus('Now posting as \u201C'+nm+'\u201D. Messages you already sent keep the old name.','ok');
+  }catch(e){cStatus('Could not save the name: '+(e.message||e),'err');}
 }
 
 /* ---------------- cross-device sync (same merge rules as the old Drive sync) ---------------- */
@@ -3245,6 +3276,7 @@ q('chatSendLink').onclick=sendLink;
 q('chatEmail').addEventListener('keydown',e=>{if(e.key==='Enter')sendLink();});
 q('sbSignOut').onclick=signOut;
 q('chatSend').onclick=sendMsg;
+q('chatRenameBtn').onclick=renameMe;
 q('chatAttach').onclick=()=>{if(editTarget){cStatus('finish editing first \u2014 images cannot be changed by an edit','err');return;}q('chatFile').click();};
 q('chatFile').addEventListener('change',e=>takeImage(e.target.files&&e.target.files[0]));
 q('chatPreviewX').onclick=clearPending;
