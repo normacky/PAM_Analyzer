@@ -714,8 +714,8 @@
       <details>
         <summary>What the labels mean</summary>
         <div class="glo">
-          <div><b>UC1 / UC2</b> — Up Continuation (long, Lesson 16/17). Up flow above the 50sma; a <i>minority</i> pullback (no majority flush) forces an LP; bullish EXE closes back at/above it within 5 bars. Deck gates enforced: no flush-<i>up</i> bar in the 3 bars into the pullback's origin, structure near/testing the 20/50 SMA, EXE still below the pullback's interior high. "2" = the deeper two-leg (A-B-C-D) variant.</div>
-          <div><b>DC1 / DC2</b> — Down Continuation (short). Exact mirror: down flow, minority bounce into an LP, no flush-down into the origin, near/testing 20/50 SMA, bearish EXE rejects it within 5 bars while still above the interior low.</div>
+          <div><b>UC1 / UC2</b> — Up Continuation (long, Lessons 16/17). Up flow above the 50sma. v0.21 walks the deck structure back from the EXE bar: <i>first peak → LP line → second peak</i>. Gates: no flush-<i>up</i> bar in the 3 bars into the <i>first peak</i>, structure near/testing the 20/50 SMA, bullish EXE reclaims the LP line within 5 bars and still closes below the second peak. The tier is the deck's only real discriminator — <b>UC2</b> when the second peak finishes <i>above</i> the first, <b>UC1</b> when it falls short. Ties inside 0.10 ATR default to UC1. Both tiers trade identically; only the label differs.</div>
+          <div><b>DC1 / DC2</b> — Down Continuation (short). Exact mirror of UC: down flow, structure walked back as <i>first trough → LP line → second trough</i>, no flush-<i>down</i> bar into the first trough, near/testing the 20/50 SMA, bearish EXE rejects the LP within 5 bars and still closes above the second trough. <b>DC2</b> when the second trough finishes <i>below</i> the first, <b>DC1</b> when it falls short.</div>
           <div><b>UR1 / UR2</b> — Reversal shorts (Lesson 9/19). <b>UR1</b> is the general case: a force top at a live LP swing-high with a bearish EXE closing back at/below it within 5 bars, in <i>either</i> flow. <b>UR2</b> is the refined <i>subset</i>: up flow, plus a <i>majority flush-up MOVE</i> into the LP — steep (≥1.5×ATR per bar) and starting at/beyond the 50% line of X (the LP) to Y (the lowest point right of X) — plus a retracement bigger than the prior one. A UR2 is the one the deck says usually marks a real trend change.</div>
           <div><b>DR1 / DR2</b> — Reversal longs. Exact mirror: <b>DR1</b> = force bottom at a live LP swing-low, bullish EXE recovers it within 5 bars, either flow. <b>DR2</b> = the subset: down flow + a majority flush-<i>down</i> move into the LP (leg from at/beyond the 50% X–Y line) + a bigger retracement than the prior one. A slow grind into the LP is a wave, not a flush — that is still a DR1, just not a DR2.</div>
           <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Then a single <i>Force Strike bar</i> — a same-direction EXE (PIN / Ice Cream / Mark Up-Down) — pierces the mother's extreme intrabar and closes back inside on that same bar, occurring within 3 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
@@ -1021,8 +1021,8 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.20';
-function findForce(bars,i,FW=5){
+const ENGINE_VERSION='v0.21';
+function findForce(bars,i,FW=5,prefer=null){
   // Force detection, v0.15 rules (v0.18: also returns j — the LP entry's own bar index,
   // which is point X for the majority-flush geometry):
   //  - LP levels come from the FULL loaded history (weekly 3Y window scans 3Y back, 2-Day 1Y
@@ -1035,9 +1035,24 @@ function findForce(bars,i,FW=5){
   let pHi=-1e9,pLo=1e9;for(let t=w0;t<=i;t++){pHi=Math.max(pHi,bars[t].high);pLo=Math.min(pLo,bars[t].low);}
   const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=w0);   // formed ≥3 bars back, not close-breached earlier
   const top=(bars.lpHighs||[]).filter(e=>alive(e)&&e.lv<pHi&&e.lv>=b.close);
-  if(top.length){const e=top.reduce((a,c)=>c.lv>a.lv?c:a);return{f:'top',lv:e.lv,j:e.j};}
   const bot=(bars.lpLows||[]).filter(e=>alive(e)&&e.lv>pLo&&e.lv<=b.close);
-  if(bot.length){const e=bot.reduce((a,c)=>c.lv<a.lv?c:a);return{f:'bottom',lv:e.lv,j:e.j};}
+  const bT=top.length?top.reduce((a,c)=>c.lv>a.lv?c:a):null;
+  const bB=bot.length?bot.reduce((a,c)=>c.lv<a.lv?c:a):null;
+  // v0.21 — PRECEDENCE FIX. Until v0.20 the top list was tested first and returned
+  // unconditionally, so any live overhead LP within the force window suppressed a genuine
+  // force BOTTOM on the same bar. The bias was directional: it could only ever silence the
+  // bullish family (UC / DR), never DC / UR. Measured on CRWD + FBNC (daily and 2-Day):
+  // both sides were live on ~7% of scanned bars, the top won every single time, and five of
+  // those bars carried a valid bullish EXE that was discarded unseen.
+  // Now: honour the caller's preferred side when that side has a candidate — scan() passes
+  // the EXE bar's own direction — otherwise fall back to whichever level sits closer to the
+  // close, which is the level the bar is actually reacting to.
+  if(prefer==='top'&&bT)return{f:'top',lv:bT.lv,j:bT.j};
+  if(prefer==='bottom'&&bB)return{f:'bottom',lv:bB.lv,j:bB.j};
+  if(bT&&bB)return (bT.lv-b.close)<=(b.close-bB.lv)
+      ?{f:'top',lv:bT.lv,j:bT.j}:{f:'bottom',lv:bB.lv,j:bB.j};
+  if(bT)return{f:'top',lv:bT.lv,j:bT.j};
+  if(bB)return{f:'bottom',lv:bB.lv,j:bB.j};
   return{f:null,lv:null,j:null};
 }
 function majorityFlush(bars,i,f){
@@ -1107,32 +1122,86 @@ function nearSMA(bars,i){
   for(const s of [b.sma20,b.sma50])if(s!=null&&Math.abs(b.close-s)<=atr)return true;
   return false;
 }
-function contGates(bars,i,dir){
-  // v0.18 — the UC/DC deck gates (Lessons 16/17):
-  //  (1) origin A/B = the trend-side extreme over the 12 bars before the pierce; NO
-  //      flush bar in the TREND direction among the 3 bars ending at the origin
-  //      ("no flush up bar within 3 preceding bars leading to point A/B") — flush bar
-  //      per the framework: a Mark Up/Down bar ≥ 2× the trailing-10-bar average range.
-  //  (2) near/test 20 or 50 SMA (nearSMA above).
-  //  (3) EXE below point C / above point D: the EXE close must sit on the early side of
-  //      the deepest interior bounce between origin and now; falls back to the origin
-  //      extreme when the pullback is monotone. Judgment call, documented.
-  const LEG=12,b=bars[i];
-  if(dir==='up'){
-    let pj=i,pLo=1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].low<pLo){pLo=bars[t].low;pj=t;}
-    let A=Math.max(0,pj-LEG),hi=-1e9;
-    for(let t=Math.max(0,pj-LEG);t<pj;t++)if(bars[t].high>hi){hi=bars[t].high;A=t;}
-    let noFlush=true;for(let t=Math.max(0,A-2);t<=A;t++)if(bars[t].cls.type==='FLUSH-UP')noFlush=false;
-    let C=-1e9;for(let t=A+1;t<i;t++)C=Math.max(C,bars[t].high);if(C<-1e8)C=hi;
-    return{ok:noFlush&&nearSMA(bars,i)&&b.close<C,noFlush,near:nearSMA(bars,i),early:b.close<C};
-  }
-  let pj=i,pHi=-1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].high>pHi){pHi=bars[t].high;pj=t;}
-  let A=Math.max(0,pj-LEG),lo=1e9;
-  for(let t=Math.max(0,pj-LEG);t<pj;t++)if(bars[t].low<lo){lo=bars[t].low;A=t;}
-  let noFlush=true;for(let t=Math.max(0,A-2);t<=A;t++)if(bars[t].cls.type==='FLUSH-DOWN')noFlush=false;
-  let D=1e9;for(let t=A+1;t<i;t++)D=Math.min(D,bars[t].low);if(D>1e8)D=lo;
-  return{ok:noFlush&&nearSMA(bars,i)&&b.close>D,noFlush,near:nearSMA(bars,i),early:b.close>D};
+function contWalk(bars,i,dir){
+  // v0.21 — the deck's A-B-C(-D) structure, WALKED BACKWARDS from the EXE bar, replacing
+  // v0.18-v0.20's "trend-side extreme over the last 12 bars" origin.
+  //
+  // WHY THIS HAD TO CHANGE. UC1 (Lesson 16) and UC2 (Lesson 17) carry IDENTICAL rule text;
+  // every letter is simply shifted one place. UC1's A / B / C are UC2's B / C / D:
+  //      first peak (no flush into it)   A (UC1)   B (UC2)
+  //      the LP line the EXE reclaims    B (UC1)   C (UC2)
+  //      the EXE must close beyond       C (UC1)   D (UC2)
+  // The slides differ in exactly one way: in UC2 the SECOND peak exceeds the first (HON,
+  // AJG, LYV, MS all draw D above B); in UC1 it fails short of it (BA, LMT, APPS, EC all
+  // draw C below A). Mirrored on the down side — GE and VALE put D below B for DC2, OXY and
+  // DHI put C above A for DC1.
+  // A max-high origin cannot express that: whenever the second peak is the higher one, the
+  // max IS the second peak and the first peak never enters the calculation at all.
+  // Real case that exposed it — CRWD 2-Day, Jul 2026: the origin was read as 217.50 on
+  // 07-16, which is point D. The real point B is 209.50 on 07-06, so the "no flush bar into
+  // B" gate was being tested against the wrong three bars and killed a valid UC2.
+  //
+  // Up case:  p2 = most recent swingH before i     (deck C in UC1 / D in UC2)
+  //           lp = most recent swingL before p2    (deck B in UC1 / C in UC2)  <- THE LP LINE
+  //           p1 = most recent swingH before lp    (deck A in UC1 / B in UC2)
+  // Down case is the exact mirror; verified by reflecting real CRWD/FBNC bars and confirming
+  // the down path reproduces the up path bar-for-bar (19/19 candidates, matching tiers).
+  //
+  // Returns null when fewer than three pivots exist. A continuation with no identifiable
+  // first peak is not a continuation, so the scan stays SILENT rather than guessing
+  // (owner call, 08 Aug 2026). Measured at 0.6% of bars on the validation sample.
+  const up=dir==='up',A=up?'swingH':'swingL',B=up?'swingL':'swingH';
+  let p2=-1;for(let t=i-1;t>=0;t--)if(bars[t][A]){p2=t;break;}   if(p2<0)return null;
+  let lp=-1;for(let t=p2-1;t>=0;t--)if(bars[t][B]){lp=t;break;}  if(lp<0)return null;
+  let p1=-1;for(let t=lp-1;t>=0;t--)if(bars[t][A]){p1=t;break;}  if(p1<0)return null;
+  return{p1,lp,p2,first:up?bars[p1].high:bars[p1].low,
+                  line: up?bars[lp].low :bars[lp].high,
+                  second:up?bars[p2].high:bars[p2].low};
 }
+function contTier(bars,i,w,dir){
+  // v0.21 — UC1 vs UC2 (DC1 vs DC2). The decks give NO mechanical rule; the rule text is the
+  // same for both lessons. The only discriminator the slides actually show is whether the
+  // second peak exceeds the first. Owner-ratified, 08 Aug 2026. This REPLACES v0.18-v0.20's
+  // legsInPullback() pivot count, which was not a deck rule and ran backwards: on a textbook
+  // A-B-C-D the most recent swing high IS point D, so C never got counted and the shape the
+  // deck draws as UC2 came out as UC1, while the shape that scored "2" was a shallow double
+  // dip whose intervening bounce was too small to register as a swing high at all.
+  //
+  // TIE BAND: 0.10 x ATR(14), defaulting to the "1" label. Deliberately narrow. The
+  // reference UC2 (FBNC 2-Day, Aug 2026) separates its two peaks by only 0.21 ATR, so a
+  // wider band would swallow the very case this rule exists to catch.
+  // KNOWN LIMITATION: on a 19-candidate validation sample the 1/2 verdict flipped for ~10%
+  // of setups when the pivot definition was varied (both flips sat at 0.30 ATR separation,
+  // i.e. above any band narrow enough to preserve FBNC). Accepted as cosmetic: the tier is
+  // descriptive only — direction, LP line, entry and stop are identical for "1" and "2".
+  const band=0.10*(bars[i].atr||0),d=w.second-w.first;
+  if(Math.abs(d)<=band)return{tier:1,tie:true};
+  return{tier:((dir==='up')?d>0:d<0)?2:1,tie:false};
+}
+function contGates(bars,i,dir){
+  // v0.21 — the UC/DC deck gates (Lessons 16/17), now measured against contWalk()'s
+  // structural points instead of a windowed extreme:
+  //  (1) no flush bar in the TREND direction among the 3 bars ending at the FIRST peak
+  //      ("no flush up bar within 3 preceding bars leading to point A/B").
+  //  (2) near/test the 20 or 50 SMA (nearSMA above).
+  //  (3) the EXE closes beyond the SECOND peak (deck "bullish EXE below point C/D").
+  //  (4) NEW HERE: deck entry rule 1 — the LP line was pierced within the last 5 bars and
+  //      the EXE closes back on the correct side of it. Checking this against the walk's own
+  //      line means the UC/DC path no longer depends on findForce's global level search.
+  //      Validated: on every UC candidate in the sample the walk's line and findForce's level
+  //      were identical (14/14, zero disagreements).
+  const b=bars[i],up=dir==='up',w=contWalk(bars,i,dir);
+  if(!w)return{ok:false,noFlush:false,near:false,early:false,reclaim:false,w:null};
+  const bad=up?'FLUSH-UP':'FLUSH-DOWN';
+  let noFlush=true;for(let t=Math.max(0,w.p1-2);t<=w.p1;t++)if(bars[t].cls.type===bad)noFlush=false;
+  let pierced=false;for(let t=Math.max(0,i-4);t<=i;t++)
+    if(up?bars[t].low<w.line:bars[t].high>w.line)pierced=true;
+  const reclaim=pierced&&(up?b.close>=w.line:b.close<=w.line);
+  const near=nearSMA(bars,i),early=up?b.close<w.second:b.close>w.second;
+  return{ok:noFlush&&near&&early&&reclaim,noFlush,near,early,reclaim,w};
+}
+// RETIRED in v0.21 — superseded by contTier(). Kept only so any external replay harness that
+// imported it does not break; nothing in the engine calls it any more.
 function legsInPullback(bars,i,dir,win=14){
   if(dir==='up'){let th=Math.max(0,i-win);for(let j=Math.max(0,i-win);j<i;j++)if(bars[j].swingH)th=j;
     let n=0;for(let j=th;j<i;j++)if(bars[j].swingL)n++;return n;}
@@ -1196,7 +1265,10 @@ function scan(bars){
   for(let i=50;i<bars.length;i++){
     const b=bars[i],cls=b.cls;
     const flow=b.close>b.sma50?'up':'down';
-    const fRes=findForce(bars,i);const {f:force,lv}=fRes;
+    // v0.21 — ask findForce for the side that matches this bar's own EXE direction, so a
+    // live overhead LP can no longer bury a force bottom under a bullish EXE (and vice versa).
+    const fRes=findForce(bars,i,5,cls.dir==='bull'?'bottom':cls.dir==='bear'?'top':null);
+    const {f:force,lv}=fRes;
     const eB=cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral';
     const eS=cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral';
     let label=null,dir=null,why=null,level=lv;
@@ -1224,11 +1296,25 @@ function scan(bars){
       // EVERYTHING ELSE that is a genuine force bottom with a bullish EXE at a live LP is at least
       // a DR1. DR2 is then the refined subset: down flow + majority flush MOVE + bigger retracement.
       // EXE window remains 5 bars for both families (owner override of the reversal decks' 4).
+      // v0.21 ROUTING CHANGE. Until v0.20 majorityFlush() decided the family, and a "majority
+      // flush" verdict sent the bar to the reversal branch BEFORE the deck gates were even
+      // consulted. That test has no basis in the UC/DC lessons — their only flush rule is
+      // "no flush BAR in the 3 bars into the first peak", which contGates already enforces.
+      // Worse, it was a knife edge: on a textbook UC1 structure, moving the approach bar's
+      // high by 40 cents flipped the label from UC1 to DR1 with nothing else changed, because
+      // the leg-speed test sits right inside the normal range of a healthy retest.
+      // (Real case: FBNC 2-Day 03 Aug 2026 — valid bullish ice-cream EXE, all three deck
+      //  gates passing, routed to DR1 purely on leg speed 4.16 vs threshold 3.45.)
+      // Now the deck gates take precedence: if the structure IS a continuation, label it one.
+      // majorityFlush survives only where the decks actually use it — refining DR1 into DR2.
+      // The v0.20 silence is preserved for up flow with no majority flush and failing gates:
+      // with no majority down move there is still nothing for a reversal to reverse.
       const mf=majorityFlush(bars,i,fRes);
-      if(flow==='up'&&!mf.ok){                       // continuation family (UC) — the only contested case
-        const g=contGates(bars,i,'up');
-        if(g.ok){label=legsInPullback(bars,i,'up')>=2?'UC2':'UC1';dir='long';
-          why=`up flow · minority pullback forced ${fmt(lv)} · no flush-up into the origin · near/testing 20/50 SMA · bullish EXE reclaimed it early`;}
+      const g=flow==='up'?contGates(bars,i,'up'):null;
+      if(g&&g.ok){                                   // continuation family (UC)
+        const t=contTier(bars,i,g.w,'up');label='UC'+t.tier;dir='long';level=g.w.line;
+        why=`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA · bullish EXE reclaimed the LP and closed below the second peak · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}`;
+      }else if(flow==='up'&&!mf.ok){                 // v0.20 behaviour preserved — stay silent
       }else{                                         // reversal family (DR) — DR2 if it qualifies, else DR1
         const br=(mf.ok&&flow==='down')?biggerRetracement(bars,i,fRes,mf.yExt):null;
         if(br&&br.ok){label='DR2';dir='long';
@@ -1247,11 +1333,13 @@ function scan(bars){
       // v0.19 — exact mirror of the force-bottom tree above. UR1 is the superset (deck: flow
       // "above &/or below 50 SMA"); UR2 is the subset needing up flow + majority flush + bigger
       // retracement. A force top in UP flow with no majority flush was silent in v0.18; it is a UR1.
+      // v0.21 — exact mirror of the UC routing change above. See that comment block.
       const mf=majorityFlush(bars,i,fRes);
-      if(flow==='down'&&!mf.ok){                     // continuation family (DC) — the only contested case
-        const g=contGates(bars,i,'down');
-        if(g.ok){label=legsInPullback(bars,i,'down')>=2?'DC2':'DC1';dir='short';
-          why=`down flow · minority bounce forced ${fmt(lv)} · no flush-down into the origin · near/testing 20/50 SMA · bearish EXE rejected it early`;}
+      const g=flow==='down'?contGates(bars,i,'down'):null;
+      if(g&&g.ok){                                   // continuation family (DC)
+        const t=contTier(bars,i,g.w,'down');label='DC'+t.tier;dir='short';level=g.w.line;
+        why=`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA · bearish EXE rejected the LP and closed above the second trough · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}`;
+      }else if(flow==='down'&&!mf.ok){               // v0.20 behaviour preserved — stay silent
       }else{                                         // reversal family (UR) — UR2 if it qualifies, else UR1
         const br=(mf.ok&&flow==='up')?biggerRetracement(bars,i,fRes,mf.yExt):null;
         if(br&&br.ok){label='UR2';dir='short';
