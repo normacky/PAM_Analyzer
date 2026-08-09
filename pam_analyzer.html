@@ -1021,7 +1021,7 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.23';
+const ENGINE_VERSION='v0.24';
 function findForce(bars,i,FW=5,prefer=null){
   // v0.23 note — the lessons count the EXE window from the FIRST bar that crossed the LP
   // (L9 Pt1 @04:19 "the first bar closing above the LP ... as number one"); this
@@ -1125,12 +1125,19 @@ function biggerRetracement(bars,i,f,yExt){
   const prev=bars[b2].high-bars[a].low;
   return{ok:cur>prev,unmeasurable:false,cur,prev};
 }
-function nearSMA(bars,i){
+function nearSMA(bars,i,from){
   // v0.18 — UC/DC entry rule 2: "structure forms near or test 20/50 SMA".
-  // Tested = any of the last 5 bars straddles the 20 or 50 SMA; near = current close
+  // v0.24 SCOPE FIX (item 2). Until v0.23 this looked at a fixed 5-bar window ending at the
+  // EXE bar, so a structure whose only SMA contact happened back at point B or C — the
+  // normal case, since the retracement is what reaches the average — failed the gate and the
+  // scan went silent. The deck is explicit that the whole shape counts: L16 @11:59 "as long
+  // as the entire ABCD structure, ANY PARTS of the ABCD structure touch or is near to the
+  // 20 or 50 SMA is good to go". `from` is the structure's leftmost pivot (contWalk p0, or
+  // p1 when p0 is unavailable). Callers passing no `from` keep the old 5-bar behaviour.
+  // Tested = any bar in the structure straddles the 20 or 50 SMA; near = current close
   // within 1 ATR of either (owner-ratified tolerance).
-  const b=bars[i],atr=b.atr||0;
-  for(let t=Math.max(0,i-4);t<=i;t++){const x=bars[t];
+  const b=bars[i],atr=b.atr||0,s0=(from==null)?Math.max(0,i-4):Math.max(0,from);
+  for(let t=s0;t<=i;t++){const x=bars[t];
     for(const s of [x.sma20,x.sma50])if(s!=null&&x.low<=s&&x.high>=s)return true;}
   for(const s of [b.sma20,b.sma50])if(s!=null&&Math.abs(b.close-s)<=atr)return true;
   return false;
@@ -1167,9 +1174,16 @@ function contWalk(bars,i,dir){
   let p2=-1;for(let t=i-1;t>=0;t--)if(bars[t][A]){p2=t;break;}   if(p2<0)return null;
   let lp=-1;for(let t=p2-1;t>=0;t--)if(bars[t][B]){lp=t;break;}  if(lp<0)return null;
   let p1=-1;for(let t=lp-1;t>=0;t--)if(bars[t][A]){p1=t;break;}  if(p1<0)return null;
-  return{p1,lp,p2,first:up?bars[p1].high:bars[p1].low,
+  // v0.24 — walk back ONE further pivot, to the deck's point A in the UC2/DC2 lettering
+  // (the swing that precedes the first peak). Two uses: it anchors the left edge of the
+  // structure for the SMA-proximity and divergence scans, and it supplies the stand-in LP
+  // line for the UC2/DC2 overshoot case. -1 when history runs out; both features simply
+  // fall back to p1 / become unavailable, never throw.
+  let p0=-1;for(let t=p1-1;t>=0;t--)if(bars[t][B]){p0=t;break;}
+  return{p0,p1,lp,p2,first:up?bars[p1].high:bars[p1].low,
                   line: up?bars[lp].low :bars[lp].high,
-                  second:up?bars[p2].high:bars[p2].low};
+                  second:up?bars[p2].high:bars[p2].low,
+                  aLine: p0<0?null:(up?bars[p0].low:bars[p0].high)};
 }
 function contTier(bars,i,w,dir){
   // v0.21 — UC1 vs UC2 (DC1 vs DC2). The decks give NO mechanical rule; the rule text is the
@@ -1191,6 +1205,62 @@ function contTier(bars,i,w,dir){
   if(Math.abs(d)<=band)return{tier:1,tie:true};
   return{tier:((dir==='up')?d>0:d<0)?2:1,tie:false};
 }
+function reclaimAt(bars,i,up,line){
+  // v0.24 (item 8) — deck bar counting at the LP line. Bar 1 is the FIRST bar that crosses
+  // or breaches the line, whether or not it closes through: L16 @08:11 "even if it never
+  // closes below, but it crosses, I still count it as number one". By bar 5 an EXE must
+  // close back at or above (UC) / at or below (DC) the line.
+  // v0.23 used a rolling "did any of the last 5 bars pierce" test, which is equivalent for a
+  // short false break but lets a break that drags on for 8+ bars still fire on a late
+  // reclaim — the deck expires that setup. Episode start = the run of piercing bars ending
+  // at, or immediately before, bar i.
+  // Known leniency, documented: a mid-episode bar sitting entirely clear of the line ends
+  // the run, so the count restarts from the next pierce. That is more permissive than the
+  // deck (the trainer counts his dojis straight through), never stricter, so it cannot cause
+  // a valid setup to be dropped. Lookback capped at 10 bars.
+  const pierce=t=>up?bars[t].low<line:bars[t].high>line;
+  if(!(up?bars[i].close>=line:bars[i].close<=line))return{ok:false,j:-1};
+  const back=Math.max(0,i-9);
+  let s=i;
+  for(let t=i-1;t>=back;t--){if(pierce(t))s=t;else break;}
+  if(!pierce(s)){                       // bar i never pierced — find the run just before it
+    let e=-1;for(let t=i-1;t>=back;t--)if(pierce(t)){e=t;break;}
+    if(e<0)return{ok:false,j:-1};
+    s=e;for(let t=e-1;t>=back;t--){if(pierce(t))s=t;else break;}
+  }
+  return{ok:(i-s)<=4,j:s};
+}
+function divergence(bars,i,dir,w){
+  // v0.24 (item 1) — Lesson 18, "Divergence for Continuation Structures". Applies to UC/DC
+  // ONLY, never to UR/DR (@03:39 "divergence is only for UCDC structures ... your URDR does
+  // not need to check").
+  // A structure is DIVERGENT when a prior swing on the LEFT of it sits at a price level
+  // strictly inside the band spanned by the structure's two peaks. The deck states this as
+  // "between A and C" for UC1/DC1 and "between B and D" for UC2/DC2 (@19:52, @20:12) — which
+  // are the same two points in both cases, because the UC1 and UC2 letterings are the same
+  // structure shifted one place. They are exactly contWalk's `first` and `second`, so one
+  // test covers all four labels.
+  // Direction: for UC the offending swing is a swing HIGH (slide 2: "double top forced UC1
+  // or UC2 divergence"); for DC it is a swing LOW ("double bottom forced DC1 and DC2").
+  // Reasoning per the trainer: a false top immediately followed by a false bottom is a
+  // conflict in market-maker positioning, so the structure is less clean.
+  // STRICTLY inside: the SQ (@14:21) and BAM (@15:27) examples both turn on a swing high
+  // sitting BELOW point C and are ruled convergent.
+  // No-man's-land needs no special case (@09:15) — with no price action on the left there is
+  // no swing to find, so the scan returns false naturally.
+  // FLAG, NOT FILTER: the trainer treats this as his own preference, not a rule ("if you
+  // still want to take on is your choice", @06:45). This function must never change which
+  // bars carry a label; it only annotates them.
+  const up=dir==='up',K=up?'swingH':'swingL';
+  const lo=Math.min(w.first,w.second),hi=Math.max(w.first,w.second);
+  const start=((w.p0!=null&&w.p0>=0)?w.p0:w.p1)-1;
+  for(let t=start;t>=0;t--){
+    if(!bars[t][K])continue;
+    const lv=up?bars[t].high:bars[t].low;
+    if(lv>lo&&lv<hi)return{div:true,lv};
+  }
+  return{div:false,lv:null};
+}
 function contGates(bars,i,dir){
   // v0.21 — the UC/DC deck gates (Lessons 16/17), now measured against contWalk()'s
   // structural points instead of a windowed extreme:
@@ -1204,14 +1274,34 @@ function contGates(bars,i,dir){
   //      Validated: on every UC candidate in the sample the walk's line and findForce's level
   //      were identical (14/14, zero disagreements).
   const b=bars[i],up=dir==='up',w=contWalk(bars,i,dir);
-  if(!w)return{ok:false,noFlush:false,near:false,early:false,reclaim:false,w:null};
+  if(!w)return{ok:false,noFlush:false,near:false,early:false,reclaim:false,w:null,
+               lineUsed:null,aSub:false,div:false,divLv:null};
   const bad=up?'FLUSH-UP':'FLUSH-DOWN';
-  let noFlush=true;for(let t=Math.max(0,w.p1-2);t<=w.p1;t++)if(bars[t].cls.type===bad)noFlush=false;
-  let pierced=false;for(let t=Math.max(0,i-4);t<=i;t++)
-    if(up?bars[t].low<w.line:bars[t].high>w.line)pierced=true;
-  const reclaim=pierced&&(up?b.close>=w.line:b.close<=w.line);
-  const near=nearSMA(bars,i),early=up?b.close<w.second:b.close>w.second;
-  return{ok:noFlush&&near&&early&&reclaim,noFlush,near,early,reclaim,w};
+  // v0.24 (item 7) — the deck says "3 preceding bars LEADING TO point A", and the DC1
+  // walkthrough counts them explicitly as the three bars BEFORE the pivot (L16 Pt1 @15:36
+  // "three bars before point A"). v0.23 checked p1-2..p1 inclusive, i.e. the pivot bar
+  // itself plus two. Now p1-3..p1-1: the three bars strictly before it.
+  let noFlush=true;for(let t=Math.max(0,w.p1-3);t<w.p1;t++)if(bars[t].cls.type===bad)noFlush=false;
+  // v0.24 (items 8 + 3) — deck bar counting at the LP line, with the UC2/DC2 overshoot
+  // fallback. When the pullback runs straight past the C line and only turns at the A line,
+  // the trainer re-anchors the setup to A: L17 @20:19 (DC2, GE) "sometimes price may go
+  // beyond the C line and go to the A point — you use the A point as the reference, it
+  // becomes the C line", and again @22:29 for the UC2 case. Two of his six worked examples
+  // are this shape, so it is not a corner case. Restricted to the "2" tier, which is where
+  // he demonstrates it and the only lettering in which a point A sits beyond the LP.
+  const rc=reclaimAt(bars,i,up,w.line);
+  let reclaim=rc.ok,lineUsed=w.line,aSub=false;
+  if(!reclaim&&w.aLine!=null&&contTier(bars,i,w,dir).tier===2){
+    const ra=reclaimAt(bars,i,up,w.aLine);
+    if(ra.ok){reclaim=true;lineUsed=w.aLine;aSub=true;}
+  }
+  // v0.24 (item 2) — SMA proximity now measured across the whole structure, not the last
+  // 5 bars. See nearSMA.
+  const near=nearSMA(bars,i,(w.p0!=null&&w.p0>=0)?w.p0:w.p1);
+  const early=up?b.close<w.second:b.close>w.second;
+  const dv=divergence(bars,i,dir,w);   // v0.24 (item 1) — annotation only, never gates `ok`
+  return{ok:noFlush&&near&&early&&reclaim,noFlush,near,early,reclaim,w,
+         lineUsed,aSub,div:dv.div,divLv:dv.lv};
 }
 // RETIRED in v0.21 — superseded by contTier(). Kept only so any external replay harness that
 // imported it does not break; nothing in the engine calls it any more.
@@ -1284,7 +1374,7 @@ function scan(bars){
     const {f:force,lv}=fRes;
     const eB=cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral';
     const eS=cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral';
-    let label=null,dir=null,why=null,level=lv;
+    let label=null,dir=null,why=null,level=lv,divFlag=null,aSubFlag=null;
     const fs=forceStrike(bars,i);
     if(fs.d==='bull'){label='Bull-FS';dir='long';level=fs.lp!=null?fs.lp:fs.lv;
       why=fs.lp!=null
@@ -1325,8 +1415,8 @@ function scan(bars){
       const mf=majorityFlush(bars,i,fRes);
       const g=flow==='up'?contGates(bars,i,'up'):null;
       if(g&&g.ok){                                   // continuation family (UC)
-        const t=contTier(bars,i,g.w,'up');label='UC'+t.tier;dir='long';level=g.w.line;
-        why=`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA · bullish EXE reclaimed the LP and closed below the second peak · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}`;
+        const t=contTier(bars,i,g.w,'up');label='UC'+t.tier;dir='long';level=g.lineUsed;divFlag=g.div;aSubFlag=g.aSub;
+        why=`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA across the structure · bullish EXE reclaimed the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} and closed below the second peak · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}${g.div?` · <b>DIVERGENCE</b> — prior swing high ${fmt(g.divLv)} sits between the two peaks; the course prefers to skip these (flag only, not a filter)`:' · convergent (no prior swing high between the two peaks)'}`;
       }else if(flow==='up'&&!mf.ok){                 // v0.20 behaviour preserved — stay silent
       }else if(mf.ok){                               // reversal family (DR)
         // v0.23 — routing realigned to the LESSON TRANSCRIPTS, which disambiguate the slides:
@@ -1365,8 +1455,8 @@ function scan(bars){
       const mf=majorityFlush(bars,i,fRes);
       const g=flow==='down'?contGates(bars,i,'down'):null;
       if(g&&g.ok){                                   // continuation family (DC)
-        const t=contTier(bars,i,g.w,'down');label='DC'+t.tier;dir='short';level=g.w.line;
-        why=`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA · bearish EXE rejected the LP and closed above the second trough · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}`;
+        const t=contTier(bars,i,g.w,'down');label='DC'+t.tier;dir='short';level=g.lineUsed;divFlag=g.div;aSubFlag=g.aSub;
+        why=`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA across the structure · bearish EXE rejected the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} and closed above the second trough · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}${g.div?` · <b>DIVERGENCE</b> — prior swing low ${fmt(g.divLv)} sits between the two troughs; the course prefers to skip these (flag only, not a filter)`:' · convergent (no prior swing low between the two troughs)'}`;
       }else if(flow==='down'&&!mf.ok){               // v0.20 behaviour preserved — stay silent
       }else if(mf.ok){                               // reversal family (UR)
         // v0.23 — exact mirror of the DR routing above; see that comment block for the
@@ -1382,7 +1472,10 @@ function scan(bars){
     if(label){
       const last=out[out.length-1];
       if(last&&last.label===label&&(i-last.i)<=3)continue;   // dedupe adjacent repeats
-      out.push({i,date:b.date,label,dir,why,price:b.close,level,exe:cls.type});
+      // v0.24 — `div` and `aSub` are carried as machine-readable fields as well as being
+      // written into `why`, so the nightly scanner can surface the divergence flag in the
+      // Scan tab without another engine change. Both are null on non-UC/DC labels.
+      out.push({i,date:b.date,label,dir,why,price:b.close,level,exe:cls.type,div:divFlag,aSub:aSubFlag});
     }
   }
   return out;
