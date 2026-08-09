@@ -716,8 +716,8 @@
         <div class="glo">
           <div><b>UC1 / UC2</b> — Up Continuation (long, Lessons 16/17). Up flow above the 50sma. v0.21 walks the deck structure back from the EXE bar: <i>first peak → LP line → second peak</i>. Gates: no flush-<i>up</i> bar in the 3 bars into the <i>first peak</i>, structure near/testing the 20/50 SMA, bullish EXE reclaims the LP line within 5 bars and still closes below the second peak. The tier is the deck's only real discriminator — <b>UC2</b> when the second peak finishes <i>above</i> the first, <b>UC1</b> when it falls short. Ties inside 0.10 ATR default to UC1. Both tiers trade identically; only the label differs.</div>
           <div><b>DC1 / DC2</b> — Down Continuation (short). Exact mirror of UC: down flow, structure walked back as <i>first trough → LP line → second trough</i>, no flush-<i>down</i> bar into the first trough, near/testing the 20/50 SMA, bearish EXE rejects the LP within 5 bars and still closes above the second trough. <b>DC2</b> when the second trough finishes <i>below</i> the first, <b>DC1</b> when it falls short.</div>
-          <div><b>UR1 / UR2</b> — Reversal shorts (Lessons 9/19). <b>Both require a majority flush-up MOVE</b> into the LP — starting at/beyond the 50% line of X (the LP swing-high) to Y (the lowest point right of X), and steep at ≥1.5×ATR per bar. Without that flush there is no reversal label at all; a slow grind into an LP is a wave, and v0.22 stays silent on it. They are <i>siblings</i>, split by context: <b>UR1</b> = <i>sideways</i> price action (50 SMA flat inside 0.5 ATR over 20 bars, price closing both sides of it). <b>UR2</b> = <i>up flow</i> above the 50 SMA plus a retracement bigger than the prior one. Bearish EXE closes at/below the LP within 5 bars.</div>
-          <div><b>DR1 / DR2</b> — Reversal longs. Exact mirror: both require a majority flush-<i>down</i> move into the LP swing-low. <b>DR1</b> = sideways price action + that flush; <b>DR2</b> = down flow below the 50 SMA + a bigger retracement than the prior one + that flush. Bullish EXE recovers the LP within 5 bars. A slow grind into the LP is a wave, not a flush, and now produces no label rather than a default DR1.</div>
+          <div><b>UR1 / UR2</b> — Reversal shorts (Lessons 9/19). <b>Both require a majority flush-up MOVE</b> into the LP swing-high — steep price-movement angle (a series of bars or a gap qualifies; ≥1.5×ATR per bar here) starting at/beyond the 50% line of X (the LP) to Y (the lowest point right of X). Without that flush there is no reversal label at all. <b>UR1</b> is the general case and is valid <i>anywhere</i> on the chart — no SMA reference (per the lesson video). <b>UR2</b> is the <i>subset</i> at the end of an uptrend: up flow above the 50 SMA plus a retracement bigger than the last completed prior one; if the prior can't be measured, the bar stays UR1. Bearish EXE closes at/below the LP within 5 bars.</div>
+          <div><b>DR1 / DR2</b> — Reversal longs. Exact mirror: both require a majority flush-<i>down</i> move into the LP swing-low. <b>DR1</b> = the general case, valid anywhere in any flow. <b>DR2</b> = the subset at the end of a downtrend: down flow below the 50 SMA plus a verified bigger retracement than the prior one (unverifiable → stays DR1). Bullish EXE recovers the LP within 5 bars. A slow grind into the LP is a wave, not a flush, and produces no label.</div>
           <div><b>Bull-FS / Bear-FS</b> — Force Strike (course Lesson 8). Mother/baby inside-bar pair is <i>mandatory and consecutive</i>: a mother bar, then the single baby bar immediately after it inside the mother's range. Then a single <i>Force Strike bar</i> — a same-direction EXE (PIN / Ice Cream / Mark Up-Down) — pierces the mother's extreme intrabar and closes back inside on that same bar, occurring within 3 bars of the baby. Any flow, above or below the 50sma. If the pierce also dipped through a live LP and the EXE closed back at/on the correct side of it, that's the <i>force bottom/top scenario</i> — the standalone-tradeable case; without an LP it's a formation flag only. There is no FS without the inside pair.</div>
           <div><b>Force top / bottom</b> — price pierces an un-breached swing high/low (LP) then closes back on the correct side of it: a failed break = a trap. LPs come from the full loaded history; the pierce may be any of the last 5 bars. A swing level needs <b>3 higher/lower bars to its LEFT and 1 to its right</b> (v0.19: left precedence, plus one bar of confirmation) and dies once any bar <i>closes</i> through it.</div>
           <div><b>EXE bar</b> — the candle traded off: PIN, Ice Cream or Mark up/down. Flush bars are exits, not entries.</div>
@@ -1021,8 +1021,14 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.22';
+const ENGINE_VERSION='v0.23';
 function findForce(bars,i,FW=5,prefer=null){
+  // v0.23 note — the lessons count the EXE window from the FIRST bar that crossed the LP
+  // (L9 Pt1 @04:19 "the first bar closing above the LP ... as number one"); this
+  // implementation uses a rolling FW-bar pierce window instead. Equivalent in the normal
+  // case; diverges only when a false break drags on past the window. Documented deviation.
+  // FW=5 is the owner's override of the decks' 4, explicitly sanctioned by the trainer
+  // (L9 Pt1 @11:46 "If you find that 5 bars work better for you, then go ahead").
   // Force detection, v0.15 rules (v0.18: also returns j — the LP entry's own bar index,
   // which is point X for the majority-flush geometry):
   //  - LP levels come from the FULL loaded history (weekly 3Y window scans 3Y back, 2-Day 1Y
@@ -1055,29 +1061,6 @@ function findForce(bars,i,FW=5,prefer=null){
   if(bB)return{f:'bottom',lv:bB.lv,j:bB.j};
   return{f:null,lv:null,j:null};
 }
-function sideways(bars,i,win=20){
-  // v0.22 — the deck characteristic for UR1 / DR1 (Lesson 9): "Sideways price action
-  // movement". Until v0.21 this was not implemented at all: DR1/UR1 fired in ANY flow,
-  // because v0.19 had turned them into the catch-all bucket for every force reclaim that
-  // didn't qualify as a "2". Measured on CRWD+FBNC, 40 of 52 "1"-tier triggers were firing
-  // with the 50 SMA drifting more than a full ATR over 20 bars — i.e. in trends, which is
-  // the one context the deck's characteristic rules out.
-  //
-  // The deck gives a phrase, not a rule, so this is operationalised two ways, both required:
-  //   (a) the 50 SMA is FLAT — its drift over the trailing `win` bars is < 0.5 x ATR(14);
-  //   (b) price CLOSED on both sides of the 50 SMA inside that window — a range chops across
-  //       its mean, a trend stays on one side of it.
-  // The 0.5 ATR threshold is a documented judgment call (owner-ratified, 09 Aug 2026). It is
-  // deliberately tight: on the validation sample only 6 of 52 previously-labelled "1"-tier
-  // bars clear it. That is the intended effect — UR1/DR1 should be uncommon.
-  const b=bars[i],a=b.atr||0,s0=(bars[i-win]||{}).sma50;
-  if(s0==null||b.sma50==null||!a)return false;
-  if(Math.abs(b.sma50-s0)>=0.5*a)return false;
-  let above=false,below=false;
-  for(let t=Math.max(0,i-win);t<=i;t++){const x=bars[t];if(x.sma50==null)continue;
-    if(x.close>x.sma50)above=true;if(x.close<x.sma50)below=true;}
-  return above&&below;
-}
 function majorityFlush(bars,i,f){
   // v0.18 — the decks' "majority flush" MOVE test (Lessons 9/19), two parts:
   //  GEOMETRY (deck-exact): X = the LP's own level (entry bar j); Y = the opposite
@@ -1096,6 +1079,13 @@ function majorityFlush(bars,i,f){
   // test asks "does there exist a start point at/beyond the midpoint from which the
   // move into the pierce averaged ≥ 1.5×ATR per bar?" Anchoring the origin to the
   // absolute extreme instead would dilute a fast strike across any plateau before it.
+  // v0.23 — the steepness requirement is now confirmed by the LESSON TRANSCRIPTS, not just
+  // the framework: L9 Pt2 @01:45 "as long as the price movement angle is steep we consider
+  // this a majority flush down" — a series of ordinary bars qualifies, no single flush BAR
+  // needed — and @16:43 "a gap up is considered a flush up": gaps count, which the per-bar
+  // traverse speed below handles naturally (a gap inflates the traverse). @23:21 accepts a
+  // "marginal" 50% start, matching the >= boundary here. The 1.5x ATR threshold remains our
+  // operationalisation of "steep"; the transcripts give the requirement, not a number.
   const LEG=12,atr=bars[i].atr||1e-9,TH=1.5*atr;
   if(f.f==='bottom'){
     let yHi=-1e9;for(let t=f.j+1;t<=i;t++)yHi=Math.max(yHi,bars[t].high);
@@ -1339,30 +1329,32 @@ function scan(bars){
         why=`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA · bullish EXE reclaimed the LP and closed below the second peak · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}`;
       }else if(flow==='up'&&!mf.ok){                 // v0.20 behaviour preserved — stay silent
       }else if(mf.ok){                               // reversal family (DR)
-        // v0.22 — MAJORITY FLUSH IS NOW MANDATORY. Lesson 9 states it in bold on the DR1
-        // slide: "Note: Requires Majority Flush Down". v0.19 had made it optional and turned
-        // DR1 into a bare `else` catch-all for any force bottom with a bullish EXE; measured
-        // on CRWD+FBNC, 63% of DR1/UR1 triggers were firing with no majority flush at all.
-        // A force bottom reclaimed without a majority flush is simply not a reversal in this
-        // framework — the scan now stays silent rather than inventing a DR1 for it. This
-        // reverses the v0.19 DXYZ fix, which was the wrong remedy for a real gap.
-        //
-        // DR1 and DR2 are SIBLINGS, not superset and subset (v0.19 assumed the latter). The
-        // decks separate them by context, not by strength:
-        //   DR1 (Lesson 9)  — SIDEWAYS price action + majority flush.
-        //   DR2 (Lesson 19) — DOWN flow below the 50 SMA + a BIGGER retracement than the
-        //                     prior one + majority flush.
-        // DR2 is tested first because it is the more specific pattern; in the rare case a bar
-        // satisfies both, the order resolves it.
+        // v0.23 — routing realigned to the LESSON TRANSCRIPTS, which disambiguate the slides:
+        //  · Majority flush stays MANDATORY for every reversal label (v0.22's correction,
+        //    confirmed verbatim: L9 Pt1 @02:27 "all reversal structures, whether UR1 or DR1,
+        //    require you to check ... the majority flush").
+        //  · DR2 IS A SUBSET OF DR1 — L19 @00:29 "UR2 and DR2 is a subset of UR1 and DR1",
+        //    restated @03:41 and @09:39. v0.19's subset architecture was right all along;
+        //    only its optional-flush catch-all was wrong. v0.22's one-day "siblings"
+        //    restructure (DR1 gated on a flat 50 SMA) is REVERTED: L9 Pt2 @20:11-20:33 says
+        //    UR1/DR1 needs no SMA reference and "can happen anywhere in the chart", and the
+        //    Pt2 examples sit at downtrend bottoms and inside uptrends. The slide phrase
+        //    "sideways price action movement" describes the local false-break formation at
+        //    the LP, not a market regime — a regime reading would also make the stated
+        //    subset relation impossible (a sideways-only DR1 could not contain a
+        //    downtrend-only DR2).
+        //  · Promotion to DR2 needs down flow below the 50 SMA AND a VERIFIED bigger
+        //    retracement (current X->Y vs the last completed prior swing pair). When the
+        //    prior retracement is unmeasurable the bar stays DR1 — L19 @02:08 "You only know
+        //    that there is a bigger retracement when there is a smaller retracement before" —
+        //    replacing the old "DR2 UNVERIFIED" caveat label.
+        //  · The video also allows a force-strike formation as the reversal EXE (L19
+        //    @05:32); this engine still requires a single-bar EXE here. Known, deferred.
         const br=(flow==='down')?biggerRetracement(bars,i,fRes,mf.yExt):null;
         if(br&&br.ok){label='DR2';dir='long';
           why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bullish EXE recovered the LP`;}
-        else if(br&&br.unmeasurable){label='DR2';dir='long';
-          why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bullish EXE recovered the LP`;}
-        else if(sideways(bars,i)){label='DR1';dir='long';
-          why=`sideways price action (50 SMA flat inside 0.5 ATR over 20 bars, price closing both sides of it) · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · bullish EXE recovered the LP`;}
-        // else: majority flush present but neither the DR2 trend context nor the DR1 sideways
-        // characteristic holds — no deck label fits, so stay silent.
+        else{label='DR1';dir='long';
+          why=`majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · bullish EXE recovered the LP · ${br?(br.unmeasurable?'prior retracement unmeasurable — the "2" promotion cannot be verified, stays DR1':'retracement '+fmt(br.cur)+' not bigger than prior '+fmt(br.prev)+' — DR1, not DR2'):flow+' flow — DR1 is valid anywhere on the chart (L9 Pt2 @20:11)'}`;}
       }
     }
     else if(force==='top'&&eS){
@@ -1377,17 +1369,14 @@ function scan(bars){
         why=`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA · bearish EXE rejected the LP and closed above the second trough · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}`;
       }else if(flow==='down'&&!mf.ok){               // v0.20 behaviour preserved — stay silent
       }else if(mf.ok){                               // reversal family (UR)
-        // v0.22 — exact mirror of the DR change above. Lesson 9: "Note: Requires Majority
-        // Flush Up". UR1 = sideways + majority flush; UR2 = up flow above the 50 SMA + a
-        // bigger retracement + majority flush. Siblings, not superset and subset.
+        // v0.23 — exact mirror of the DR routing above; see that comment block for the
+        // transcript citations. UR2 = UR1 + up flow above the 50 SMA + verified bigger
+        // retracement; everything else with a majority flush is UR1, in any flow.
         const br=(flow==='up')?biggerRetracement(bars,i,fRes,mf.yExt):null;
         if(br&&br.ok){label='UR2';dir='short';
           why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bearish EXE rejected the LP`;}
-        else if(br&&br.unmeasurable){label='UR2';dir='short';
-          why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · prior retracement unmeasurable, bigger-retracement rule UNVERIFIED · bearish EXE rejected the LP`;}
-        else if(sideways(bars,i)){label='UR1';dir='short';
-          why=`sideways price action (50 SMA flat inside 0.5 ATR over 20 bars, price closing both sides of it) · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · bearish EXE rejected the LP`;}
-        // else: no deck label fits — stay silent.
+        else{label='UR1';dir='short';
+          why=`majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · bearish EXE rejected the LP · ${br?(br.unmeasurable?'prior retracement unmeasurable — the "2" promotion cannot be verified, stays UR1':'retracement '+fmt(br.cur)+' not bigger than prior '+fmt(br.prev)+' — UR1, not UR2'):flow+' flow — UR1 is valid anywhere on the chart (L9 Pt2 @20:11)'}`;}
       }
     }
     if(label){
