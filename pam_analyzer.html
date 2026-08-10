@@ -63,6 +63,7 @@
   .layers button[data-ly="turtle"].on{color:#7fc7ff;border-color:#2d5a7a}
   .layers button[data-ly="reverse"].on{color:#ff9d7a;border-color:#7a4030}
   .layers button[data-ly="channels"].on{color:#b9a3e8;border-color:#4a3d70}
+  .layers button[data-ly="volume"].on{color:#9aa7bd;border-color:#3c4759}
   .ctl-label{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
   .btn{font-family:var(--mono);font-size:12px;background:var(--btnbg);color:var(--txt);border:1px solid var(--line);
     border-radius:9px;padding:7px 13px;cursor:pointer}
@@ -540,6 +541,7 @@
       <button data-ly="channels">Donchian 55/20/10</button>
       <button data-ly="turtle">Turtle S1/S2</button>
       <button data-ly="reverse">Reverse S1s/S2s</button>
+      <button data-ly="volume" class="on">Volume</button>
     </div>
     <span class="ctl-label" style="margin-left:8px">Declutter</span>
     <div class="seg" id="segRecent"><button data-r="0" class="on">All</button><button data-r="1">Recent</button></div>
@@ -1511,7 +1513,7 @@ function analyse(bars){
    STATE + RENDER
    ============================================================ */
 const S={src:'NVDA',tf:'2',lens:1,ticker:PAM_DATA.ticker,name:(PAM_DATA.name||''),effMonths:36,
-  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false}, recentOnly:false,
+  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false,volume:true}, recentOnly:false,
   ind:{stoch:false,rsi:false,macd:false,atr:false}, span:null, start:null};
 const THEMES={dark:{grid:'#1b232c',chipBg:'#10161d',zero:'#2a3550'},light:{grid:'#e7e1d4',chipBg:'#fffdf9',zero:'#ded7ca'}};
 let THEME='dark'; try{THEME=localStorage.getItem('pam_theme')||'dark';}catch(e){}
@@ -1775,6 +1777,30 @@ function drawCore(){
     ctx.strokeStyle=TH.grid;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke();
     ctx.fillStyle='#5b667e';ctx.textAlign='left';ctx.fillText(p.toFixed(p<30?1:0),W-padR+6,yy);}
 
+  /* ----- VOLUME OVERLAY -----
+     Raw per-bar volume as short bars along the bottom of the PRICE panel, on its
+     own hidden scale, drawn BEFORE the LP lines and candles so it always sits
+     behind them. Deliberately NOT an indicator sub-panel: sub-panels are switched
+     off entirely below 981px (see narrowCV above), so the price panel is the only
+     placement that also shows on a phone.
+     b.vol comes straight out of aggregate() — for the 2-Day and Weekly grids it is
+     already the SUM of the constituent daily volumes, which is what we want.
+     The scale is rebuilt from the VISIBLE window each draw, so zooming into a
+     quiet stretch still gives readable bars instead of flat slivers.
+     Pasted data with no 5th column has vol=0 throughout -> vmax=0 -> draws nothing. */
+  if(S.layers.volume){
+    let vmax=0; view.forEach(b=>{ if(b.vol>vmax) vmax=b.vol; });
+    if(vmax>0){
+      const vBot=priceBot-1, vTop=priceBot-priceH*0.18;      // bottom 18% of the price panel
+      view.forEach(b=>{
+        if(!b.vol)return;
+        const xc=x(b.i-i0), vh=(b.vol/vmax)*(vBot-vTop);
+        ctx.fillStyle = b.close>=b.open ? 'rgba(95,184,158,0.22)' : 'rgba(207,122,100,0.22)';
+        ctx.fillRect(xc-cw/2, vBot-vh, cw, Math.max(0.6,vh));
+      });
+    }
+  }
+
   if(S.lens&&S.layers.pam){ // LP + force levels
     [A.lpAbove,A.lpBelow].forEach(lv=>{if(lv==null||lv>hi||lv<lo)return;
       ctx.strokeStyle='#d4a85c';ctx.globalAlpha=.45;ctx.setLineDash([2,4]);ctx.lineWidth=1;
@@ -1946,9 +1972,12 @@ function showTip(b,mx,my,rWidth,isTouch){   // rich OHLC card (shared by mouse +
   if(S.ind.macd&&b.macd!=null)ib.push('MACD '+b.macd.toFixed(2));
   if(S.ind.atr&&b.atrW!=null)ib.push('ATR '+b.atrW.toFixed(2));
   const indLine=ib.length?`<div class="cls" style="color:#8895ad">${ib.join(' · ')}</div>`:'';
+  /* compact volume for the hover card: 12.3M / 1.24B, matching how the overlay is read */
+  const vShort=v=>v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':String(Math.round(v));
+  const volRow=(b.vol>0)?`<div class="row"><span>Vol</span><b>${vShort(b.vol)}</b></div>`:'';
   tip.innerHTML=`<div class="d">${b.date}</div>
     <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
-    <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>
+    <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>${volRow}
     <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
   tip.style.opacity=1;                                          // show first so offsetWidth/offsetHeight read its real size
   const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
