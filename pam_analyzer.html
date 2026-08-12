@@ -2315,10 +2315,19 @@ function groupStatus(m,kind){const e=$('#groupStatus');if(e){e.textContent=m;e.s
 async function groupPost(action,extra){
   if(!GROUP.url||GROUP.url.indexOf('PASTE_')===0)throw new Error('group URL not set');
   if(!GROUP.token)throw new Error('no token');
-  const body=JSON.stringify(Object.assign({token:GROUP.token,action:action},extra||{}));
+  const payload=Object.assign({token:GROUP.token,action:action},extra||{});
+  const body=JSON.stringify(payload);
+  /* Apps Script answers /exec with a 302. Browsers turn a POST into a GET when
+     following a 302, and if that GET lands back on /exec the body is gone —
+     doGet then replies with no data. So send the payload in the QUERY STRING
+     too: whichever way the request arrives, the server has what it needs. */
+  const qs=Object.keys(payload).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(payload[k])).join('&');
+  const url=GROUP.url+(GROUP.url.indexOf('?')>=0?'&':'?')+qs;
   /* text/plain avoids a CORS preflight that Apps Script cannot answer */
-  const r=await fetch(GROUP.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
-  const j=await r.json();
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body});
+  const txt=await r.text();
+  let j; try{ j=JSON.parse(txt); }
+  catch(e){ throw new Error('server sent a page, not data (HTTP '+r.status+')'); }
   if(!j.ok)throw new Error(j.error||'group error');
   return j;
 }
