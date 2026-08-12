@@ -2150,19 +2150,42 @@ async function tdQuoteFetch(symbol,key){
   try{ const j=await groupPost('td',{endpoint:'quote',symbol:symbol}); const p=j.data; if(p&&p.name&&!p.code) return String(p.name); }catch(e){}
   return '';
 }
+let FETCH_BUSY=false;                                       /* proxy calls must never overlap */
+/* Retry a proxy call. Apps Script answers with a 302 to a result URL; when the
+   script is slow that result can 404 on first look. One retry clears it. */
+async function withRetry(fn,tries,waitMs){
+  tries=tries||2; waitMs=waitMs||800;
+  let last;
+  for(let i=0;i<tries;i++){
+    try{ return await fn(); }
+    catch(e){ last=e; if(i<tries-1) await new Promise(r=>setTimeout(r,waitMs)); }
+  }
+  throw last;
+}
 async function fetchSymbol(ticker){
   ticker=(ticker||'').trim().toUpperCase();
   const key=($('#keyInput').value||'').trim();
   const canProxy=!!GROUP.token && !!GROUP.url && GROUP.url.indexOf('PASTE_')!==0;   /* in a group -> can use the shared key */
   if(!ticker){setStatus('Enter a symbol first.','err');return;}
   if(!key && !canProxy){setStatus('Paste your free Twelve Data API key first (free key ↗).','err');return;}
-  $('#fetchBtn').disabled=true; setStatus('Fetching '+ticker+' daily + weekly…');
+  $('#fetchBtn').disabled=true; FETCH_BUSY=true; setStatus('Fetching '+ticker+' daily + weekly…');
   try{
-    const [daily,weekly,coName]=await Promise.all([
-      tdSeriesFetch(ticker,'1day',1300,key),                  // ~5y daily — one call feeds both the chart and the effectiveness panel
-      tdSeriesFetch(ticker,'1week',300,key).catch(()=>null),  // weekly optional -> 2-Day fallback
-      tdQuoteFetch(ticker,key)                               // company name (non-fatal)
-    ]);
+    let daily,weekly=null,coName='';
+    if(key){
+      /* own key -> straight to Twelve Data, parallel is fine */
+      [daily,weekly,coName]=await Promise.all([
+        tdSeriesFetch(ticker,'1day',1300,key),                  // ~5y daily — one call feeds both the chart and the effectiveness panel
+        tdSeriesFetch(ticker,'1week',300,key).catch(()=>null),  // weekly optional -> 2-Day fallback
+        tdQuoteFetch(ticker,key)                               // company name (non-fatal)
+      ]);
+    }else{
+      /* shared key via Apps Script -> ONE AT A TIME. Three simultaneous calls
+         made the script slow enough that its stored result 404'd on collection. */
+      daily=await withRetry(()=>tdSeriesFetch(ticker,'1day',1300,key));
+      setStatus('Fetching '+ticker+' weekly…');
+      try{ weekly=await withRetry(()=>tdSeriesFetch(ticker,'1week',300,key)); }catch(e){ weekly=null; }
+      try{ coName=await tdQuoteFetch(ticker,key); }catch(e){ coName=''; }
+    }
     if(!daily || daily.close.length<55) throw new Error('only '+(daily?daily.close.length:0)+' daily bars — need >=55');
     NVDA_DAILY=daily; NVDA_WEEKLY=weekly; PAM_DATA.ticker=ticker;
     S.src='NVDA'; S.ticker=ticker; S.name=coName||''; PAM_DATA.name=S.name;
@@ -2173,7 +2196,7 @@ async function fetchSymbol(ticker){
     S.lastSym=ticker; if(typeof logCheck==='function'){logCheck(ticker,S.name);}else if(typeof saveLocal==='function'){saveLocal();}
   }catch(err){
     setStatus('Couldn’t load '+ticker+': '+err.message+'. Check the symbol/key, or use “Paste data…”.','err');
-  }finally{ $('#fetchBtn').disabled=false; }
+  }finally{ $('#fetchBtn').disabled=false; FETCH_BUSY=false; }
 }
 $('#fetchBtn').onclick=()=>fetchSymbol($('#tkInput').value);
 $('#tkInput').addEventListener('keydown',e=>{if(e.key==='Enter')fetchSymbol($('#tkInput').value);});
@@ -2362,7 +2385,7 @@ function groupInit(){
   const tg=$('#grpToggle');if(tg)tg.onclick=()=>{const p=$('#groupPanel');p.style.display=p.style.display==='none'?'block':'none';};
   if(GROUP.token){groupPull();}
   clearInterval(GROUP.timer);
-  GROUP.timer=setInterval(()=>{if(GROUP.token&&!document.hidden)groupPull();},45000);  /* auto-refresh the feed */
+  GROUP.timer=setInterval(()=>{if(GROUP.token&&!document.hidden&&!FETCH_BUSY)groupPull();},45000);  /* auto-refresh the feed */
 }
 /* ---- Scan by trigger — reads scan_results.json (the whole-market precompute) ---- */
 const SCAN = { data:null, sel:null, meta:{}, filt:{ capMin:null, capMax:null, pxMin:null, pxMax:null, ind:'', units:[] }, sort:{ by:'fresh', dir:1 } };
