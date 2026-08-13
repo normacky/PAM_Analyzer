@@ -1023,7 +1023,7 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.24';
+const ENGINE_VERSION='v0.25';
 function findForce(bars,i,FW=5,prefer=null){
   // v0.23 note — the lessons count the EXE window from the FIRST bar that crossed the LP
   // (L9 Pt1 @04:19 "the first bar closing above the LP ... as number one"); this
@@ -1044,8 +1044,22 @@ function findForce(bars,i,FW=5,prefer=null){
   const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=w0);   // formed ≥3 bars back, not close-breached earlier
   const top=(bars.lpHighs||[]).filter(e=>alive(e)&&e.lv<pHi&&e.lv>=b.close);
   const bot=(bars.lpLows||[]).filter(e=>alive(e)&&e.lv>pLo&&e.lv<=b.close);
-  const bT=top.length?top.reduce((a,c)=>c.lv>a.lv?c:a):null;
-  const bB=bot.length?bot.reduce((a,c)=>c.lv<a.lv?c:a):null;
+  // v0.25 — ANCHOR TO THE NEAREST LP (owner ruling, 13 Aug 2026). Until v0.24 each side
+  // anchored to the FARTHEST pierced level (lowest LP low / highest LP high), so a violent
+  // false break through several stacked LPs handed the anchor to the deepest — often oldest —
+  // level, and majorityFlush's X/Y geometry then stretched across that level's whole lifetime
+  // and failed. (Real case: LHX 2-Day, Aug 2026 — the 30 Jul crash low 262.68 kept the
+  // Sep-2025 LP 268.60 "pierced", burying the live 270.32 line the chart itself draws; the
+  // DR2 could only fire on 12 Aug, once the crash bar aged out of the 5-bar window.)
+  // The anchor is now the level NEAREST the EXE bar's close — the line the bar is actually
+  // reacting to, the same closeness rule the cross-side tie-break below has always used.
+  // "Nearest" is operationalised as price-nearest to bar i's close (judgment call: the
+  // owner's word was "nearest LP"; nearest-in-TIME, i.e. most recently formed, would be a
+  // one-line change in these two reduces and WOULD alter outcomes — on LHX it fires the DR2
+  // two bars earlier). The 5-bar pierce window is unchanged: per the same ruling it is only
+  // a freshness cap — no pierce within 5 bars means the setup is stale, never an anchor rule.
+  const bT=top.length?top.reduce((a,c)=>c.lv<a.lv?c:a):null;
+  const bB=bot.length?bot.reduce((a,c)=>c.lv>a.lv?c:a):null;
   // v0.21 — PRECEDENCE FIX. Until v0.20 the top list was tested first and returned
   // unconditionally, so any live overhead LP within the force window suppressed a genuine
   // force BOTTOM on the same bar. The bias was directional: it could only ever silence the
@@ -1323,12 +1337,15 @@ function fsAtLP(bars,i,dir,pierceExtreme){
   // is part of the trap, but a close-breach BEFORE it kills the level.
   const b=bars[i];
   const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=Math.max(0,i-4));
+  // v0.25 — nearest-LP anchoring here too, mirroring findForce (same owner ruling): of the
+  // pierced-and-reclaimed levels, report the one nearest the strike bar's close, not the
+  // farthest. Only the reported/entry level can change; whether an FS fires does not.
   if(dir==='bull'){
     const c=(bars.lpLows||[]).filter(e=>alive(e)&&pierceExtreme<e.lv&&b.close>=e.lv).map(e=>e.lv);
-    return c.length?Math.min(...c):null;
+    return c.length?Math.max(...c):null;
   }
   const c=(bars.lpHighs||[]).filter(e=>alive(e)&&pierceExtreme>e.lv&&b.close<=e.lv).map(e=>e.lv);
-  return c.length?Math.max(...c):null;
+  return c.length?Math.min(...c):null;
 }
 function forceStrike(bars,i){
   // Force Strike, v0.17 — realigned to the course deck (Lesson 8, Alson Chew), per the
