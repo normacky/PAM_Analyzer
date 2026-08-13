@@ -458,6 +458,7 @@
 
   <div class="controls" id="statusBar" style="margin-top:-8px">
     <span id="fetchStatus" style="font-family:var(--mono);font-size:11.5px;color:var(--mut)">Showing NVDA sample · open ⚙ Settings to add your free key and fetch any symbol</span>
+    <span id="verBadge" style="font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-left:auto"></span>
   </div>
 
   <div class="drawer" id="indPanel" style="display:none">
@@ -1023,7 +1024,7 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.25';
+const ENGINE_VERSION='v0.26';
 function findForce(bars,i,FW=5,prefer=null){
   // v0.23 note — the lessons count the EXE window from the FIRST bar that crossed the LP
   // (L9 Pt1 @04:19 "the first bar closing above the LP ... as number one"); this
@@ -1054,12 +1055,22 @@ function findForce(bars,i,FW=5,prefer=null){
   // The anchor is now the level NEAREST the EXE bar's close — the line the bar is actually
   // reacting to, the same closeness rule the cross-side tie-break below has always used.
   // "Nearest" is operationalised as price-nearest to bar i's close (judgment call: the
-  // owner's word was "nearest LP"; nearest-in-TIME, i.e. most recently formed, would be a
-  // one-line change in these two reduces and WOULD alter outcomes — on LHX it fires the DR2
-  // two bars earlier). The 5-bar pierce window is unchanged: per the same ruling it is only
-  // a freshness cap — no pierce within 5 bars means the setup is stale, never an anchor rule.
-  const bT=top.length?top.reduce((a,c)=>c.lv<a.lv?c:a):null;
-  const bB=bot.length?bot.reduce((a,c)=>c.lv>a.lv?c:a):null;
+  // owner's word was "nearest LP".) v0.26 resolves the remaining ambiguity via the owner's
+  // DR1 slide + chart reading (13 Aug 2026): the candidate SET was wrong, not the metric.
+  // A level price has CLOSED through during the episode is a broken shelf — the chart even
+  // stops drawing it — not "the" LP being falsely broken, so long as a clean level remains.
+  // Nearest is therefore taken over CLEAN candidates first (pierced intrabar, no
+  // close-through up to bar i); episode-close-breached levels stay eligible only as a
+  // FALLBACK when no clean candidate exists. The fallback preserves the decks' own
+  // multi-bar trap, where the trap bar and its dojis close through THE level and the EXE
+  // reclaims it. breach>i counts as clean: breach is precomputed over the full series, so a
+  // future close-through must not disqualify a level today (no lookahead).
+  // (LHX 2-Day, Aug 2026: the crash CLOSED through 273.04 / 272.14 — dead shelves — leaving
+  // 270.32 as the nearest clean LP: the line the chart draws and the slide's point X.)
+  const cleanAt=e=>e.breach===null||e.breach>i;
+  const pick=(arr,better)=>{const cl=arr.filter(cleanAt);return (cl.length?cl:arr).reduce(better);};
+  const bT=top.length?pick(top,(a,c)=>c.lv<a.lv?c:a):null;
+  const bB=bot.length?pick(bot,(a,c)=>c.lv>a.lv?c:a):null;
   // v0.21 — PRECEDENCE FIX. Until v0.20 the top list was tested first and returned
   // unconditionally, so any live overhead LP within the force window suppressed a genuine
   // force BOTTOM on the same bar. The bias was directional: it could only ever silence the
@@ -1337,15 +1348,18 @@ function fsAtLP(bars,i,dir,pierceExtreme){
   // is part of the trap, but a close-breach BEFORE it kills the level.
   const b=bars[i];
   const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=Math.max(0,i-4));
-  // v0.25 — nearest-LP anchoring here too, mirroring findForce (same owner ruling): of the
-  // pierced-and-reclaimed levels, report the one nearest the strike bar's close, not the
-  // farthest. Only the reported/entry level can change; whether an FS fires does not.
+  // v0.25 — nearest-LP anchoring here too, mirroring findForce (same owner ruling).
+  // v0.26 — and the same clean-first candidate tiering: levels close-breached during the
+  // episode count only when no clean level remains. Only the reported/entry level can
+  // change; whether an FS fires does not.
+  const cleanAt=e=>e.breach===null||e.breach>i;
+  const pick=(arr,better)=>{const cl=arr.filter(cleanAt);return (cl.length?cl:arr).reduce(better).lv;};
   if(dir==='bull'){
-    const c=(bars.lpLows||[]).filter(e=>alive(e)&&pierceExtreme<e.lv&&b.close>=e.lv).map(e=>e.lv);
-    return c.length?Math.max(...c):null;
+    const c=(bars.lpLows||[]).filter(e=>alive(e)&&pierceExtreme<e.lv&&b.close>=e.lv);
+    return c.length?pick(c,(a,x)=>x.lv>a.lv?x:a):null;
   }
-  const c=(bars.lpHighs||[]).filter(e=>alive(e)&&pierceExtreme>e.lv&&b.close<=e.lv).map(e=>e.lv);
-  return c.length?Math.min(...c):null;
+  const c=(bars.lpHighs||[]).filter(e=>alive(e)&&pierceExtreme>e.lv&&b.close<=e.lv);
+  return c.length?pick(c,(a,x)=>x.lv<a.lv?x:a):null;
 }
 function forceStrike(bars,i){
   // Force Strike, v0.17 — realigned to the course deck (Lesson 8, Alson Chew), per the
@@ -1437,7 +1451,13 @@ function scan(bars){
         const t=contTier(bars,i,g.w,'up');label='UC'+t.tier;dir='long';level=g.lineUsed;divFlag=g.div;aSubFlag=g.aSub;
         why=`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA across the structure · bullish EXE reclaimed the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} and closed below the second peak · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}${g.div?` · <b>DIVERGENCE</b> — prior swing high ${fmt(g.divLv)} sits between the two peaks; the course prefers to skip these (flag only, not a filter)`:' · convergent (no prior swing high between the two peaks)'}`;
       }else if(flow==='up'&&!mf.ok){                 // v0.20 behaviour preserved — stay silent
-      }else if(mf.ok){                               // reversal family (DR)
+      }else if(mf.ok&&reclaimAt(bars,i,true,lv).ok){ // reversal family (DR)
+        // v0.26 — deck-exact freshness gate (owner, 13 Aug 2026): the flush forces the LP
+        // and price must RECOVER (close back at/above point X's level) within 5 bars,
+        // bar 1 = the first bar that forces the LP. findForce's rolling window only
+        // NOMINATES the level; this gate expires late reclaims the deck rules stale.
+        // (LHX 2-Day: force 30 Jul = bar 1, ice-cream recovery 03 Aug = bar 2 -> fires;
+        // 12 Aug = bar 6 -> stale, which the old rolling test wrongly let through.)
         // v0.23 — routing realigned to the LESSON TRANSCRIPTS, which disambiguate the slides:
         //  · Majority flush stays MANDATORY for every reversal label (v0.22's correction,
         //    confirmed verbatim: L9 Pt1 @02:27 "all reversal structures, whether UR1 or DR1,
@@ -1477,7 +1497,8 @@ function scan(bars){
         const t=contTier(bars,i,g.w,'down');label='DC'+t.tier;dir='short';level=g.lineUsed;divFlag=g.div;aSubFlag=g.aSub;
         why=`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA across the structure · bearish EXE rejected the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} and closed above the second trough · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}${g.div?` · <b>DIVERGENCE</b> — prior swing low ${fmt(g.divLv)} sits between the two troughs; the course prefers to skip these (flag only, not a filter)`:' · convergent (no prior swing low between the two troughs)'}`;
       }else if(flow==='down'&&!mf.ok){               // v0.20 behaviour preserved — stay silent
-      }else if(mf.ok){                               // reversal family (UR)
+      }else if(mf.ok&&reclaimAt(bars,i,false,lv).ok){ // reversal family (UR)
+        // v0.26 — exact mirror of the DR freshness gate above.
         // v0.23 — exact mirror of the DR routing above; see that comment block for the
         // transcript citations. UR2 = UR1 + up flow above the 50 SMA + verified bigger
         // retracement; everything else with a majority flush is UR1, in any flow.
@@ -1529,6 +1550,7 @@ function analyse(bars){
 /* ============================================================
    STATE + RENDER
    ============================================================ */
+document.getElementById('verBadge').textContent='engine '+ENGINE_VERSION;
 const S={src:'NVDA',tf:'2',lens:1,ticker:PAM_DATA.ticker,name:(PAM_DATA.name||''),effMonths:36,
   layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false,volume:true}, recentOnly:false,
   ind:{stoch:false,rsi:false,macd:false,atr:false}, span:null, start:null};
