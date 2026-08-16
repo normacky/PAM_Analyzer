@@ -18,6 +18,7 @@
     --hair:#1c242d; --line:#232c36; --ink2:var(--panel-in);
     --txt:#e6e9ee; --mut:#8a93a0; --faint:#5b6470;
     --long:#5fb89e; --short:#cf7a64; --force:#d4a85c; --neutral:#7c8597;
+    --pnlRg:#2f8f74; --pnlRr:#a83c26; --pnlUg:#7fd0b6; --pnlUr:#e8a596;
     --disp:'Space Grotesk',system-ui,sans-serif;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
     --body:'Inter',system-ui,sans-serif;
@@ -27,6 +28,7 @@
     --hair:#ece7dd; --line:#e2ddd3; --ink2:#f6f3ec;
     --txt:#23282d; --mut:#6f6a61; --faint:#9a948a;
     --long:#2f8268; --short:#bf6953; --force:#a8802f; --neutral:#7a756c;
+    --pnlRg:#1f6b53; --pnlRr:#9c3520; --pnlUg:#8fcdb8; --pnlUr:#eaa898;
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--ink);color:var(--txt);font-family:var(--body);
@@ -71,13 +73,21 @@
   .posPill.warn{color:#e8c46a;border-color:#6e5a24}
   .posPill.bad{color:var(--short);border-color:#7a4030}
   .posLegs{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px;line-height:1.6}
+  .plg{margin-top:8px;font-family:var(--mono);border:1px solid var(--hair);border-radius:8px;overflow:hidden}
+  .plgH,.plgR{display:grid;grid-template-columns:38px 24px 1fr 1fr 30px 1fr 34px;gap:6px;padding:5px 9px;align-items:center}
+  .plgH{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);background:var(--panel-in);border-bottom:1px solid var(--hair)}
+  .plgR{font-size:11.5px;color:var(--txt);border-top:1px solid var(--hair)}
+  .plgR:first-of-type{border-top:0}
+  .plgH .num,.plgR .num{text-align:right}
+  .plgR .sSell{color:var(--short)}.plgR .sBuy{color:var(--long)}
   /* ===== P&L runway bar (design 1a) ===== */
-  .pnlbar{position:relative;height:12px;background:var(--panel-in);border:1px solid var(--hair);border-radius:6px;margin:27px 2px 25px}
+  .pnlbar{position:relative;height:12px;background:var(--panel-in);border:1px solid var(--hair);border-radius:6px;margin:27px 2px 40px}
   .pnlbar.inf{border-right:0;border-radius:6px 0 0 6px}
   .pnlbar.inf::after{content:"";position:absolute;right:-1px;top:-1px;bottom:-1px;width:52px;background:linear-gradient(90deg,transparent,var(--panel));pointer-events:none}
-  .pnlfill{position:absolute;top:1px;height:8px;border-radius:2px}
-  .pnlfill.g{background:var(--long)}.pnlfill.r{background:var(--short)}
-  .pnlfill.u{opacity:.42}
+  .pnlfill{position:absolute;top:1px;height:8px;border-radius:2px;z-index:1}
+  .pnlfill.g{background:var(--pnlRg)}.pnlfill.r{background:var(--pnlRr)}
+  .pnlfill.u{z-index:0;opacity:1}
+  .pnlfill.u.g{background:var(--pnlUg)}.pnlfill.u.r{background:var(--pnlUr)}
   .pnlline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dotted;z-index:1}
   .pnlline.tp{border-color:var(--long)}.pnlline.sl{border-color:var(--short)}
   .pnlline.be{border-left:2px solid var(--faint);top:-3px;bottom:-3px}
@@ -85,6 +95,7 @@
   .pnlcur.g{background:var(--long)}.pnlcur.r{background:var(--short)}
   .pnllab{position:absolute;font-family:var(--mono);font-size:9.5px;white-space:nowrap;transform:translateX(-50%);z-index:3}
   .pnllab.t{top:-20px}.pnllab.b{bottom:-18px}
+  .pnllab.cur.b{bottom:-32px}
   .pnllab.tp{color:var(--long)}.pnllab.sl{color:var(--short)}.pnllab.be{color:var(--faint)}
   .pnllab.cur{font-weight:600}
   .pnllab.cur.g{color:var(--long)}.pnllab.cur.r{color:var(--short)}
@@ -101,12 +112,14 @@
   .peL2 .peI,.peC .peI{width:100%;box-sizing:border-box;min-width:0}
   .peHint{font-size:9px;color:var(--faint);min-height:11px}
   .peLegs{margin-top:12px;border:1px solid var(--hair);border-radius:9px;padding:2px 10px 4px;overflow-x:auto;container-type:inline-size}
-  .peLegs .peLeg{min-width:288px}
+  .peLegs .peLeg{min-width:270px}
   .peLegsHead{display:none}
-  @container (min-width:660px){
-    .peLegsHead{display:grid;grid-template-columns:46px 36px 56px minmax(82px,1fr) 34px 58px 50px minmax(82px,1fr) 50px minmax(82px,1fr) 50px;gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);padding:7px 0 5px;border-bottom:1px solid var(--hair)}
-    .peCard .peLegs .peLeg{display:grid;grid-template-columns:46px 36px 56px minmax(82px,1fr) 34px 58px 50px minmax(82px,1fr) 50px minmax(82px,1fr) 50px;gap:4px;align-items:center}
+  @container (min-width:500px){
+    .peLegsHead{display:grid;grid-template-columns:minmax(40px,46px) minmax(28px,36px) minmax(42px,56px) minmax(0,1fr) minmax(26px,34px) minmax(40px,58px) minmax(44px,54px) minmax(0,1fr) minmax(40px,50px) minmax(0,1fr) minmax(40px,50px);gap:4px;font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);padding:7px 0 5px;border-bottom:1px solid var(--hair)}
+    .peCard .peLegs .peLeg{display:grid;grid-template-columns:minmax(40px,46px) minmax(28px,36px) minmax(42px,56px) minmax(0,1fr) minmax(26px,34px) minmax(40px,58px) minmax(44px,54px) minmax(0,1fr) minmax(40px,50px) minmax(0,1fr) minmax(40px,50px);gap:4px;align-items:center}
     .peCard .peLegs .peRow1,.peCard .peLegs .peRow2{display:contents}
+    .peCard .peLegs .peLeg .peI{font-size:10.5px;padding:4px 3px;text-align:center}
+    .peCard .peLegs .peLeg{padding:6px 0}
     .peLegs .peLeg .peC b{display:none}
     .peLegs .peRow1 .peC:nth-child(1){order:1}.peLegs .peRow1 .peC:nth-child(2){order:2}.peLegs .peRow1 .peC:nth-child(3){order:3}
     .peLegs .peRow1 .peC:nth-child(4){order:4}.peLegs .peRow1 .peC:nth-child(5){order:5}.peLegs .peRow1 .peC:nth-child(6){order:11}
@@ -4237,6 +4250,19 @@ async function loadPositions(){
  mdLoadCached();
  if(!POSD.mdAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.mdAuto=1;setTimeout(()=>{try{mdFetchMarks(false);}catch(e){}},3500);}
 }
+function posLegsTable(t){
+ const o=t.legs.filter(l=>l.status==='open'),show=o.length?o:t.legs;
+ const hid=t.legs.length-show.length;
+ const d=x=>String(x||'').slice(2).split('-').reverse().join('/');
+ const rows=show.map(l=>'<div class="plgR">'
+  +'<span class="'+(l.side==='sell'?'sSell':'sBuy')+'">'+(l.side==='sell'?'sell':'buy')+'</span>'
+  +'<span>'+l.cp+'</span><span class="num">'+f2(+l.strike)+'</span><span class="num">'+d(l.expiry)+'</span>'
+  +'<span class="num">'+(l.qty||1)+'</span><span class="num">'+(l.open_price!=null?f2(+l.open_price):'-')+'</span>'
+  +'<span class="num">'+(l.expiry?dteOf(String(l.expiry)):'-')+'</span></div>').join('');
+ return '<div class="plg"><div class="plgH"><span>side</span><span>c/p</span><span class="num">strike</span><span class="num">expiry</span><span class="num">qty</span><span class="num">open px</span><span class="num">dte</span></div>'
+  +rows+'</div>'
+  +(hid>0?'<div class="posLegs" style="color:var(--faint);margin-top:4px">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</div>':'');
+}
 function legLine(l){return (l.side==='sell'?'-':'+')+(l.qty||1)+' '+f2(+l.strike)+l.cp+' '+String(l.expiry||'').slice(2)+(l.open_price!=null?(' @'+f2(+l.open_price)):'');}
 function pill(txt,cls){return '<span class="posPill '+(cls||'')+'">'+txt+'</span>';}
 function rulesHTML(t){
@@ -4426,7 +4452,7 @@ function renderPositions(){
    return '<div class="posCard" data-tid="'+t.row.id+'">'
     +'<div class="posHead"><div><b>'+esc(t.row.underlying)+'</b> <span style="color:var(--mut)">'+esc(t.strat.name)+'</span></div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dteTxt!=null?pill(dteTxt+' DTE',dcls):'')+'</div></div>'
-    +'<div class="posLegs">'+(function(){const o=t.legs.filter(l=>l.status==='open');const shown=(o.length?o:t.legs).map(legLine).join('<br>');const hid=t.legs.length-(o.length||t.legs.length);return shown+(hid>0?'<br><span style="color:var(--faint)">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</span>':'');})()+'</div>'
+    +posLegsTable(t)
     +posBarHTML(t)
     +'<div class="posTrig"><details class="posRules"><summary>&#9656; rules &amp; alerts ('+tRules(t).length+')</summary>'+rulesHTML(t)+'</details></div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
@@ -4723,11 +4749,9 @@ function targetsHTML(t){
 /* ===== design 1a: P&L runway bar (max loss <-> max profit axis, dotted SL/TP, BE at $0, solid realized + lighter unrealized) ===== */
 function oldPartsLine(t){
  if(!POSD.markTs)return'';
- const R=+t.row.realized_pnl||0;
- const parts=mkParts(t.net,R,t.strat.kind,t.legs,POSD.marks);
+ const parts=mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
  if(!parts.ok)return '<div class="posLegs" style="color:var(--faint)">marks missing for '+parts.miss.length+' leg(s) - Mark now to refresh</div>';
- const cU=parts.unrl>=0?'var(--long)':'var(--short)',cT=parts.total>=0?'var(--long)':'var(--short)';
- return '<div class="posLegs">realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';
+ return '';
 }
 function posBarHTML(t){
  try{
@@ -4755,17 +4779,18 @@ function posBarHTML(t){
  const lab=(x,cls,pos,txt,tx)=>'<span class="pnllab '+cls+' '+pos+'" style="left:'+x.toFixed(2)+'%'+(tx?';transform:translateX('+tx+')':'')+'">'+txt+'</span>';
  const line=(v,cls,txt)=>{const x=X(v);const tx=x>90?'-100%':(x<8?'0':null);
   return '<i class="pnlline '+cls+'" style="left:'+x.toFixed(2)+'%"></i>'+lab(x,cls,'t',txt,tx);};
- let marks='<i class="pnlline be" style="left:'+x0.toFixed(2)+'%"></i>';
- if(!hasCur||Math.abs(x0-xT)>7)marks+=lab(x0,'be','b','BE $0',null);
+ // No collision thresholds: each label class owns its own row. Ends + SL/TP keep the rows they
+ // had; the current-P&L label drops to a row of its own, so nothing can ever overlap it.
+ // The BE text is dropped (it always read "BE $0") - the solid tick carries it, titled for hover.
+ let marks='<i class="pnlline be" style="left:'+x0.toFixed(2)+'%" title="breakeven - $0 P&amp;L"></i>';
  if(T.sl)marks+=line(T.sl.usd,'sl','SL &minus;'+money0(T.sl.usd));
  if(T.tp)marks+=line(T.tp.usd,'tp','TP +'+money0(T.tp.usd));
  let cur='';
- if(hasCur){const right=total>=0;
+ if(hasCur){const labLeft=xT>82||(xT>=18&&total<0);
   cur='<i class="pnlcur '+(total>=0?'g':'r')+'" style="left:'+xT.toFixed(2)+'%"></i>'
-   +lab(xT,'cur '+(total>=0?'g':'r'),'b','&#9650; '+money(total),right?'4px':'calc(-100% - 4px)');}
- const hideL=hasCur&&total<0&&xT<30,hideR=hasCur&&total>=0&&xT>68;
- const endL=hideL?'':'<span class="pnlend l">max &minus;'+money0(ml)+'</span>';
- const endR=hideR?'':'<span class="pnlend r">'+(inf?'&infin; &rarr;':'max +'+money0(edge))+'</span>';
+   +lab(xT,'cur '+(total>=0?'g':'r'),'b','&#9650; '+money(total),labLeft?'calc(-100% - 4px)':'4px');}
+ const endL='<span class="pnlend l">max &minus;'+money0(ml)+'</span>';
+ const endR='<span class="pnlend r">'+(inf?'&infin; &rarr;':'max +'+money0(edge))+'</span>';
  let px='';
  if(POSD.markTs&&(T.tp||T.sl)){
   const und=t.row.underlying,bits=[];
@@ -4774,7 +4799,8 @@ function posBarHTML(t){
   if(T.sl)bits.push('<span style="color:var(--short)" title="'+esc(T.sl.lbl)+'">SL '+money(T.sl.usd)+f(T.sl)+'</span>');
   px='<div class="pnlx">'+bits.join(' &nbsp;&middot;&nbsp; ')+'</div>';
  }
- return oldPartsLine(t)+'<div class="pnlbar'+(inf?' inf':'')+'">'+fills+marks+cur+endL+endR+'</div>'+px;
+ const tip=ok?('realized '+money(R0)+' | unrealized '+money(unrl)+' | total '+money(total)):'';
+ return oldPartsLine(t)+'<div class="pnlbar'+(inf?' inf':'')+'" title="'+esc(tip)+'">'+fills+marks+cur+endL+endR+'</div>'+px;
  }catch(e){return oldPartsLine(t)+targetsHTML(t);}
 }
 function markCheck(){
