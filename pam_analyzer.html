@@ -840,7 +840,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.44</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.46</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -888,6 +888,12 @@
       </div>
 
       <h2 style="margin-top:18px">Open</h2>
+      <div id="posSortBar" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 8px">
+        <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">sort</span>
+        <button class="btn posSort" data-sort="dte" style="padding:3px 9px;font-size:10.5px">DTE</button>
+        <button class="btn posSort" data-sort="pnl" style="padding:3px 9px;font-size:10.5px">P&amp;L</button>
+        <button class="btn posSort" data-sort="sym" style="padding:3px 9px;font-size:10.5px">Symbol</button>
+      </div>
       <div id="posOpen"><div style="font-family:var(--mono);font-size:11px;color:var(--faint)">nothing yet</div></div>
 
       <h2 style="margin-top:22px">Closed</h2>
@@ -3805,7 +3811,7 @@ setInterval(()=>{
    (bank_fills / eod_marks are written by the feed script and used
    by the importer next session). Engine block untouched.
    ============================================================ */
-const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},spot:{},markTs:null,mdBusy:false};
+const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},spot:{},markTs:null,mdBusy:false,sortKey:(localStorage.getItem('pam_pos_sort')||'dte'),sortDir:(localStorage.getItem('pam_pos_dir')||'asc')};
 const f2=v=>(Math.round(v*100)/100).toFixed(2);
 const money=v=>(v<0?'-$':'$')+f2(Math.abs(v));
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
@@ -4230,7 +4236,7 @@ function tTargetLevels(t){
  });
  const be=tPrices(t,0);
  if(be&&be.today!=null&&isFinite(be.today))out.push({price:be.today,color:'#d4a85c',noAlert:true,
-  label:'Breakeven today',
+  label:'BE $0 today',
   why:'Closing here TODAY returns the position to zero P&L on the live structure (realized P&L not included), repriced at the current DTE with IV held fixed. Unlike an expiry breakeven, this level moves as time and IV change.'});
  return out;}
 function tRules(t){try{return t.ok?(t.strat.rules(t)||[]):[R('info','Legs could not be matched to the '+t.strat.name+' template','Check leg sides/strikes, or relabel the strategy.')];}catch(e){return[];}}
@@ -4438,8 +4444,37 @@ async function posEditSave(tid,card){
  if(dels.length){const {error:e}=await sb.from('trade_legs').delete().in('id',dels);if(e){err.textContent=e.message;return;}}
  POSD.editId=null;posStatusMsg('Updated '+t.row.underlying+'.','ok');loadPositions();
 }
+function tTotalPnl(t){
+ const R=+t.row.realized_pnl||0;
+ if(!POSD.markTs||t.strat.custom)return R;
+ const p=mkParts(t.net,R,t.strat.kind,t.legs,POSD.marks);
+ return p.ok?p.total:R;}
+function tNearDte(t){
+ const d=t.legs.filter(l=>l.status==='open'&&l.expiry).map(l=>dteOf(String(l.expiry)));
+ return d.length?Math.min.apply(null,d):(t.minDte!=null?t.minDte:1e9);}
+function sortOpen(list){
+ const k=POSD.sortKey,dir=POSD.sortDir==='desc'?-1:1;
+ const val=t=>k==='pnl'?tTotalPnl(t):k==='sym'?String(t.row.underlying||''):tNearDte(t);
+ return list.slice().sort((a,b)=>{
+  const x=val(a),y=val(b);
+  if(typeof x==='string')return dir*x.localeCompare(String(y));
+  return dir*((x==null?1e9:x)-(y==null?1e9:y));});}
+function renderSortBar(){
+ const bar=q('posSortBar');if(!bar)return;
+ bar.querySelectorAll('.posSort').forEach(b=>{
+  const on=b.dataset.sort===POSD.sortKey;
+  b.style.borderColor=on?'var(--accent)':'';b.style.color=on?'var(--accent)':'';
+  const base=b.dataset.sort==='dte'?'DTE':b.dataset.sort==='pnl'?'P&L':'Symbol';
+  b.innerHTML=base+(on?(POSD.sortDir==='asc'?' \u2191':' \u2193'):'');
+  b.onclick=()=>{
+   if(POSD.sortKey===b.dataset.sort)POSD.sortDir=(POSD.sortDir==='asc'?'desc':'asc');
+   else{POSD.sortKey=b.dataset.sort;POSD.sortDir=(b.dataset.sort==='pnl')?'desc':'asc';}
+   localStorage.setItem('pam_pos_sort',POSD.sortKey);localStorage.setItem('pam_pos_dir',POSD.sortDir);
+   renderPositions();};
+ });}
 function renderPositions(){
- const open=POSD.list.filter(t=>t.row.status==='open'),closed=POSD.list.filter(t=>t.row.status==='closed');
+ const open=sortOpen(POSD.list.filter(t=>t.row.status==='open')),closed=POSD.list.filter(t=>t.row.status==='closed');
+ renderSortBar();
  const oEl=q('posOpen');
  if(!ME){oEl.innerHTML='';q('posAuthNote').style.display='block';q('posUid').textContent='sign in to see it';}
  else{
