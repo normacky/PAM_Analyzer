@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.33</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.34</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -4116,7 +4116,7 @@ function renderPositions(){
     +'<div class="posHead"><div><b>'+esc(t.row.underlying)+'</b> <span style="color:var(--mut)">'+esc(t.strat.name)+'</span></div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dteTxt!=null?pill(dteTxt+' DTE',dcls):'')+pill('net '+money(t.net))
     +(t.strat.uncapped?pill('uncapped'):isFinite(t.d.maxLoss)?pill('max loss '+money(t.d.maxLoss)):'')+'</div></div>'
-    +'<div class="posLegs">'+(function(){const o=t.legs.filter(l=>l.status==='open');const shown=(o.length?o:t.legs).map(legLine).join(' &middot; ');const hid=t.legs.length-(o.length||t.legs.length);return shown+(hid>0?' &middot; <span style="color:var(--faint)">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</span>':'');})()+'</div>'
+    +'<div class="posLegs">'+(function(){const o=t.legs.filter(l=>l.status==='open');const shown=(o.length?o:t.legs).map(legLine).join('<br>');const hid=t.legs.length-(o.length||t.legs.length);return shown+(hid>0?'<br><span style="color:var(--faint)">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</span>':'');})()+'</div>'
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
     +'<button class="btn" data-act="edit" style="padding:4px 10px;font-size:11px">Edit</button>'
@@ -4156,10 +4156,11 @@ async function closeTrade(t){
  posStatusMsg('Closed '+t.row.underlying+' - realized '+money(realized),'ok');loadPositions();
 }
 async function delTrade(t){
- if(!confirm('Delete '+t.row.underlying+' '+t.strat.name+' and its legs? This cannot be undone.'))return;
+ if(!confirm('Delete '+t.row.underlying+' '+t.strat.name+' and its legs? Any imported fills go back to the inbox as unmatched. This cannot be undone.'))return;
+ await sb.from('bank_fills').update({status:'unmatched',trade_id:null,leg_id:null}).eq('trade_id',t.row.id);
  const {error}=await sb.from('trades').delete().eq('id',t.row.id);
  if(error){posStatusMsg('Delete failed: '+error.message,'err');return;}
- posStatusMsg('Deleted.','');loadPositions();
+ posStatusMsg('Deleted - its fills are back in the inbox.','');loadPositions();refreshInboxCount();
 }
 
 
