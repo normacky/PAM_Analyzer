@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.42</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.44</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -1882,6 +1882,13 @@ function drawCore(){
   const chartBot=cur, H=chartBot+axisH;
   cv.style.height=H+'px'; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   let hi=-1e9,lo=1e9;view.forEach(b=>{hi=Math.max(hi,b.high);lo=Math.min(lo,b.low);});
+  if(S.layers.positions&&window.POS){                       // make room for TP / SL / breakeven lines
+   try{const sym=((S&&S.ticker)||PAM_DATA.ticker||'').toUpperCase();
+    const span=(hi-lo)||1;
+    POS.levelsFor(sym).forEach(p=>{                         // ignore absurd outliers (a far OTM solve)
+     if(p>hi&&p-hi>span*3)return;if(p<lo&&lo-p>span*3)return;
+     hi=Math.max(hi,p);lo=Math.min(lo,p);});
+   }catch(e){}}
   const pad=(hi-lo)*0.06;hi+=pad;lo-=pad;
   const x=i=>padL+(n<=1?plotW/2:i/(n-1)*plotW), y=p=>priceTop+(hi-p)/(hi-lo)*priceH;
   const cw=Math.max(2,Math.min(11,plotW/n*0.6));
@@ -4127,7 +4134,7 @@ function buildTradeObj(row,legs){
 }
 function tLevels(t){
  let base=[];
- try{base=t.ok?(t.strat.levels(t)||[]).filter(L=>isFinite(L.price)):[];}catch(e){base=[];}
+ /* v0.43: only today-levels are drawn (TP / SL / breakeven) - see tTargetLevels */
  try{base=base.concat(tTargetLevels(t));}catch(e){}
  return base;}
 function tTargetLevels(t){
@@ -4140,6 +4147,10 @@ function tTargetLevels(t){
    label:k+' '+money0(o.usd)+' today',
    why:k+' target '+money(o.usd)+' - '+o.lbl+'. This is where you would exit TODAY to realise it, repriced at the current DTE with IV held fixed. It drifts as time passes and as IV moves.'});
  });
+ const be=tPrices(t,0);
+ if(be&&be.today!=null&&isFinite(be.today))out.push({price:be.today,color:'#d4a85c',noAlert:true,
+  label:'Breakeven today',
+  why:'Closing here TODAY returns the position to zero P&L on the live structure (realized P&L not included), repriced at the current DTE with IV held fixed. Unlike an expiry breakeven, this level moves as time and IV change.'});
  return out;}
 function tRules(t){try{return t.ok?(t.strat.rules(t)||[]):[R('info','Legs could not be matched to the '+t.strat.name+' template','Check leg sides/strikes, or relabel the strategy.')];}catch(e){return[];}}
 
@@ -4733,6 +4744,12 @@ async function pfSave(){
 
 /* ---------------- chart layer + alerts ---------------- */
 window.POS={
+ levelsFor(sym){
+  sym=(sym||'').toUpperCase();const out=[];
+  POSD.list.filter(t=>t.row.status==='open'&&t.row.underlying===sym).forEach(t=>{
+   tLevels(t).forEach(L=>{if(isFinite(L.price)&&L.price>0)out.push(+L.price);});});
+  return out;
+ },
  drawOn(env){
   const sym=((S&&S.ticker)||PAM_DATA.ticker||'').toUpperCase();if(!sym)return;
   GEO.posLv=[];const ctx2=env.ctx;
