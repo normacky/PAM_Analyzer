@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.36</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.37</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -3717,7 +3717,7 @@ setInterval(()=>{
    (bank_fills / eod_marks are written by the feed script and used
    by the importer next session). Engine block untouched.
    ============================================================ */
-const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},markTs:null,mdBusy:false};
+const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},spot:{},markTs:null,mdBusy:false};
 const f2=v=>(Math.round(v*100)/100).toFixed(2);
 const money=v=>(v<0?'-$':'$')+f2(Math.abs(v));
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
@@ -3745,6 +3745,75 @@ function earnRule(t){
 }
 
 /* ---- v0.28 importer engine: fills -> campaigns -> proposed trades (pure, testable) ---- */
+/* ---- v0.37 dollar targets + price solver (pure) ---- */
+function nrm(x){return 0.5*(1+erf1(x/Math.SQRT2));}
+function erf1(x){const s=x<0?-1:1;x=Math.abs(x);
+ const a1=.254829592,a2=-.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=.3275911;
+ const t=1/(1+p*x),y=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);return s*y;}
+function bsPrice(cp,S,K,T,sig,r){
+ r=(r==null?0.04:r);
+ if(!(T>0)||!(sig>0))return Math.max(0,cp==='C'?S-K:K-S);
+ const d1=(Math.log(S/K)+(r+sig*sig/2)*T)/(sig*Math.sqrt(T)),d2=d1-sig*Math.sqrt(T);
+ return cp==='C'?S*nrm(d1)-K*Math.exp(-r*T)*nrm(d2):K*Math.exp(-r*T)*nrm(-d2)-S*nrm(-d1);}
+function bsIV(px,cp,S,K,T,r){
+ if(!(px>0)||!(T>0))return null;
+ let lo=0.01,hi=4;
+ for(let i=0;i<60;i++){const m=(lo+hi)/2;(bsPrice(cp,S,K,T,m,r)>px)?hi=m:lo=m;}
+ const v=(lo+hi)/2;return v>0.011&&v<3.99?v:null;}
+function legMeta(l,marks,spot,todayISO){
+ const m=marks[l.occ_symbol]||{};
+ const T=Math.max(1,(new Date(l.expiry)-new Date(todayISO))/864e5)/365;
+ let sig=m.iv>0?m.iv:null;
+ if(!sig&&m.mid>0&&spot>0)sig=bsIV(m.mid,l.cp,spot,+l.strike,T,0.04);
+ return{cp:l.cp,K:+l.strike,T,sig:sig||0.35,sgn:(l.side==='sell'?-1:1),q:(+l.qty||1),expiry:String(l.expiry)};}
+function unrlAt(net,metas,S,mode){
+ let v=0;
+ metas.forEach(g=>{const px=(mode==='expiry')?Math.max(0,g.cp==='C'?S-g.K:g.K-S):bsPrice(g.cp,S,g.K,g.T,g.sig,0.04);
+  v+=g.sgn*px*100*g.q;});
+ return net+v;}
+function solvePrice(net,metas,S0,target,mode){
+ if(!(S0>0)||!metas.length)return[];
+ const lo=Math.max(0.01,S0*0.2),hi=S0*3,N=600,xs=[],ys=[];
+ for(let i=0;i<=N;i++){const S=lo+(hi-lo)*i/N;xs.push(S);ys.push(unrlAt(net,metas,S,mode)-target);}
+ const hits=[];
+ for(let i=1;i<=N;i++){
+  if(ys[i-1]===0){hits.push(xs[i-1]);continue;}
+  if((ys[i-1]<0)!==(ys[i]<0)){
+   let a=xs[i-1],b=xs[i];
+   for(let k=0;k<40;k++){const m=(a+b)/2;((unrlAt(net,metas,m,mode)-target)<0)===(ys[i-1]<0)?a=m:b=m;}
+   hits.push((a+b)/2);}
+ }
+ return hits.map(h=>Math.round(h*100)/100);}
+function spreadQty(legs){return legs.filter(l=>l.status==='open').reduce((a,l)=>Math.min(a,+l.qty||1),1e9);}
+function widthOf(legs){const K=legs.filter(l=>l.status==='open').map(l=>+l.strike).sort((a,b)=>a-b);
+ return K.length>1?K[K.length-1]-K[0]:0;}
+/* dollar targets per the agreed TP/SL tables; values are UNREALIZED-P&L targets for the live structure */
+function tpslTargets(strategy,net,user,legs){
+ const u=user||{},open=legs.filter(l=>l.status==='open'),q=spreadQty(open),w=widthOf(open);
+ const cr=net>0?net:0,db=net<0?-net:0,r2=v=>Math.round(v*100)/100;
+ const T={tp:null,sl:null};
+ const pct=(+u.tp_pct>0&&+u.tp_pct<=100)?+u.tp_pct/100:null;
+ if(['bull_put_spread','bear_call_spread'].includes(strategy)&&cr>0){
+  const f=pct||0.90;
+  T.tp={usd:r2(f*cr),lbl:Math.round(f*100)+'% of the '+money0(cr)+' credit captured'};
+  T.sl={usd:r2(-1.5*cr),lbl:'loss 1.5x credit'};
+ } else if(['bull_call_spread','bear_put_spread'].includes(strategy)&&db>0){
+  const mp=w*100*q-db,f=pct||0.80;
+  if(mp>0)T.tp={usd:r2(f*mp),lbl:Math.round(f*100)+'% of max profit '+money0(mp)};
+  T.sl={usd:r2(-0.5*db),lbl:'50% of max loss '+money0(db)};
+ } else if(['long_call','long_put'].includes(strategy)&&db>0){
+  T.tp={usd:r2(db),lbl:'2x premium'};T.sl={usd:r2(-0.5*db),lbl:'50% of premium'};
+ } else if(['short_put','short_call'].includes(strategy)&&cr>0){
+  const f=pct||0.70;
+  T.tp={usd:r2(f*cr),lbl:Math.round(f*100)+'% of the '+money0(cr)+' credit decayed'};
+ } else if(strategy==='diagonal_call'&&db>0){
+  T.sl={usd:r2(-0.5*db),lbl:'mark-loss guard, 50% of debit'};
+ }
+ if(+u.tp)T.tp={usd:r2(+u.tp),lbl:'your campaign target',user:true};
+ if(+u.sl)T.sl={usd:r2(-Math.abs(+u.sl)),lbl:'your campaign stop',user:true};
+ return T;}
+function money0(v){return '$'+Math.round(Math.abs(v)).toLocaleString();}
+function decayDriven(strategy){return ['bull_put_spread','bear_call_spread','short_put','short_call','diagonal_call'].includes(strategy);}
 /* ---- v0.35 marking core: P&L math, mark-based triggers, attach planning (pure) ---- */
 function mkLiq(legs,marks){let liq=0;const miss=[];
  legs.forEach(l=>{if(l.status!=='open')return;const m=marks[l.occ_symbol];
@@ -3760,20 +3829,14 @@ function mkParts(net,realized,kind,legs,marks){
 function mkDecay(l,marks){const m=marks[l.occ_symbol];
  if(!m||!(m.mid>=0)||!(+l.open_price>0))return null;return m.mid/(+l.open_price);}
 function mkTriggers(strategy,net,user,legs,parts,marks){
- const out=[];if(!parts.ok)return out;const u=user||{},tp=+u.tp||0,sl=+u.sl||0;
+ const out=[];if(!parts.ok)return out;const u=user||{};
  const P=(k,m)=>out.push({key:k,msg:m});const r2=v=>Math.round(v*100)/100;
- if(tp&&parts.total>=tp)P('mk_tp_user','your target hit - total P&L '+r2(parts.total));
- if(sl&&parts.total<=-sl)P('mk_sl_user','your stop hit - total P&L '+r2(parts.total));
+ const T=tpslTargets(strategy,net,u,legs);
+ if(T.tp){const v=T.tp.user?parts.total:parts.unrl;
+  if(v>=T.tp.usd)P('mk_tp','TP hit - '+T.tp.lbl+' ('+money(T.tp.usd)+', now '+money(v)+')');}
+ if(T.sl){const v=T.sl.user?parts.total:parts.unrl;
+  if(v<=T.sl.usd)P('mk_sl','SL hit - '+T.sl.lbl+' ('+money(T.sl.usd)+', now '+money(v)+')');}
  const shorts=legs.filter(l=>l.status==='open'&&l.side==='sell');
- if(['bull_put_spread','bear_call_spread','short_put','short_call'].includes(strategy)&&net>0){
-  const cost=-parts.liq;
-  if(cost<=0.3*net)P('mk_tp70','~70% of credit decayed (buyback '+r2(cost)+' vs credit '+r2(net)+') - close per ruleset');
-  if(parts.unrl<=-1.5*net)P('mk_sl15','loss ~1.5x credit (unrl '+r2(parts.unrl)+') - cut per ruleset');}
- if(['bull_call_spread','bear_put_spread'].includes(strategy)){
-  const d=-net;if(d>0&&!sl&&parts.unrl<=-0.5*d)P('mk_guard50','marked loss ~50% of debit - guard per ruleset');}
- if(['long_call','long_put'].includes(strategy)){
-  const d=-net;if(d>0){if(!tp&&parts.unrl>=d)P('mk_tp2x','~2x premium reached - default TP');
-   if(!sl&&parts.unrl<=-0.5*d)P('mk_sl50','~50% of premium lost - default stop');}}
  if(['diagonal_call','bb_collar','short_call','short_put'].includes(strategy))
   shorts.forEach(l=>{const d=mkDecay(l,marks);
    if(d!=null&&d<=0.30)P('mk_decay_'+l.occ_symbol,'short '+l.occ_symbol.slice(-9)+' ~'+Math.round((1-d)*100)+'% decayed - harvest/roll');});
@@ -3882,7 +3945,7 @@ function proposeStrat(c){
 }
 /* ---- the strategy registry: data + tiny formulas, engine is generic ---- */
 const POS_STRATS={
- bull_put_spread:{name:'Bull put spread',kind:'credit',earn:true,
+ bull_put_spread:{name:'Bull put spread',kind:'credit',earn:true,inputs:[{id:'tp_pct',lbl:'TP % of credit (default 90; card offers 80 to free buying power)'},{id:'sl',lbl:'Campaign stop $ (optional, overrides 1.5x credit)'}],
   legs:[{id:'sp',lbl:'Sell put (higher K)',cp:'P',side:'sell'},{id:'lp',lbl:'Buy put (lower K)',cp:'P',side:'buy'}],
   derived:t=>{const w=width$(t,'sp','lp');return{credit:t.net,maxLoss:w-t.net,maxProfit:t.net,be:K(t,'sp')-t.net/(100*legQty(t,'sp'))};},
   levels:t=>[
@@ -3894,7 +3957,7 @@ const POS_STRATS={
    R('cut','Cut line: short strike '+f2(K(t,'sp'))+' (on chart, alerts live)','Ruleset: exit if price touches the short-put strike.'),
    R('dte','Close before expiry - alerts at 21 / 7 / 1 / 0 DTE','Ruleset hard rule: expiring below the short strike can cost the full max loss (up to 4x credit). Max loss here: '+money(t.d.maxLoss)+'.'),
    earnRule(t)]},
- bear_call_spread:{name:'Bear call spread',kind:'credit',earn:true,
+ bear_call_spread:{name:'Bear call spread',kind:'credit',earn:true,inputs:[{id:'tp_pct',lbl:'TP % of credit (default 90; card offers 80 to free buying power)'},{id:'sl',lbl:'Campaign stop $ (optional, overrides 1.5x credit)'}],
   legs:[{id:'sc',lbl:'Sell call (lower K)',cp:'C',side:'sell'},{id:'lc',lbl:'Buy call (higher K)',cp:'C',side:'buy'}],
   derived:t=>{const w=width$(t,'sc','lc');return{credit:t.net,maxLoss:w-t.net,maxProfit:t.net,be:K(t,'sc')+t.net/(100*legQty(t,'sc'))};},
   levels:t=>[
@@ -4187,6 +4250,7 @@ function renderPositions(){
       if(!parts.ok)return '<div class="posLegs" style="color:var(--faint)">marks missing for '+parts.miss.length+' leg(s) - Mark now to refresh</div>';
       const R=+t.row.realized_pnl||0,cU=parts.unrl>=0?'var(--long)':'var(--short)',cT=parts.total>=0?'var(--long)':'var(--short)';
       return '<div class="posLegs">mark '+money(parts.liq)+' &middot; realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';})()
+    +targetsHTML(t)
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
     +'<button class="btn" data-act="edit" style="padding:4px 10px;font-size:11px">Edit</button>'
@@ -4385,7 +4449,7 @@ async function mdMeterAdd(n){if(!ME||!n)return;const day=creditDay();
  const el=q('mdMeter');if(el)el.textContent='credits '+used+'/100';}
 async function mdLoadCached(){
  if(!ME)return;const occs=openOccs();if(!occs.length)return;
- const {data,error}=await sb.from('eod_marks').select('occ_symbol,mid,bid,ask,delta,mark_date,updated_at')
+ const {data,error}=await sb.from('eod_marks').select('occ_symbol,mid,bid,ask,delta,iv,spot,mark_date,updated_at')
   .eq('user_id',ME.id).in('occ_symbol',occs)
   .order('mark_date',{ascending:false}).order('updated_at',{ascending:false}).limit(400);
  if(error||!data||!data.length)return;
@@ -4394,7 +4458,8 @@ async function mdLoadCached(){
   if(POSD.marks[r.occ_symbol]&&POSD.marks[r.occ_symbol]._cached!==true)return; // never overwrite a fresh live mark
   if(POSD.marks[r.occ_symbol])return;                                          // first row per occ = latest
   if(!(+r.mid>0))return;
-  POSD.marks[r.occ_symbol]={mid:+r.mid,delta:r.delta!=null?+r.delta:null,bid:r.bid!=null?+r.bid:null,ask:r.ask!=null?+r.ask:null,_cached:true};
+  POSD.marks[r.occ_symbol]={mid:+r.mid,delta:r.delta!=null?+r.delta:null,bid:r.bid!=null?+r.bid:null,ask:r.ask!=null?+r.ask:null,iv:r.iv!=null?+r.iv:null,_cached:true};
+  if(+r.spot>0)POSD.spot[r.occ_symbol.replace(/\d{6}[CP]\d{8}$/,'')]=+r.spot;
   got++;const u=new Date(r.updated_at);if(!newest||u>newest){newest=u;newestDay=String(r.mark_date);}
  });
  if(!got)return;
@@ -4425,9 +4490,11 @@ async function mdFetchMarks(manual){
     const bid=(j.bid&&j.bid[0])||0,ask=(j.ask&&j.ask[0])||0;
     let mid=(j.mid&&j.mid[0])||0;if(!(mid>0)&&bid>0&&ask>0)mid=(bid+ask)/2;
     if(!(mid>0))continue; /* quote-quality guard: no zero/one-sided marks */
-    POSD.marks[occ]={mid:+mid,delta:(j.delta&&j.delta[0]!=null)?+j.delta[0]:null,bid:+bid||null,ask:+ask||null};
+    const und=occ.replace(/\d{6}[CP]\d{8}$/,'');
+    const sp=(j.underlyingPrice&&j.underlyingPrice[0])||null;if(sp>0)POSD.spot[und]=+sp;
+    POSD.marks[occ]={mid:+mid,delta:(j.delta&&j.delta[0]!=null)?+j.delta[0]:null,bid:+bid||null,ask:+ask||null,iv:(j.iv&&j.iv[0]!=null)?+j.iv[0]:null};
     okN++;
-    eod.push({user_id:ME.id,occ_symbol:occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,mid:Math.round(mid*10000)/10000,delta:POSD.marks[occ].delta,source:'marketdata',updated_at:new Date().toISOString()});
+    eod.push({user_id:ME.id,occ_symbol:occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,mid:Math.round(mid*10000)/10000,delta:POSD.marks[occ].delta,iv:POSD.marks[occ].iv,spot:POSD.spot[occ.replace(/\d{6}[CP]\d{8}$/,'')]||null,source:'marketdata',updated_at:new Date().toISOString()});
    }catch(e){}
   }
  }finally{POSD.mdBusy=false;}
@@ -4437,6 +4504,38 @@ async function mdFetchMarks(manual){
  const st=q('mdStamp');if(st)st.textContent=okN?('marked '+new Date().toTimeString().slice(0,5)):'no usable quotes (market closed?)';
  posStatusMsg('marked '+okN+'/'+occs.length+' legs','ok');
  renderPositions();markCheck();
+}
+function tTargets(t){return tpslTargets(t.strategy,t.net,t.user,t.legs);}
+function tPrices(t,usd){
+ const und=t.row.underlying,S0=POSD.spot[und]||0;
+ const open=t.legs.filter(l=>l.status==='open');
+ if(!S0||!open.length)return null;
+ const metas=open.map(l=>legMeta(l,POSD.marks,S0,todayISO()));
+ if(metas.some(g=>!(g.sig>0)))return null;
+ const exps=[...new Set(open.map(l=>String(l.expiry)))];
+ const today=solvePrice(t.net,metas,S0,usd,'today');
+ const exp=exps.length===1?solvePrice(t.net,metas,S0,usd,'expiry'):null;
+ const pick=a=>{if(!a||!a.length)return null;return a.reduce((b,x)=>Math.abs(x-S0)<Math.abs(b-S0)?x:b);};
+ return{S0,today:pick(today),expiry:pick(exp),multi:exps.length>1};
+}
+function targetsHTML(t){
+ const T=tTargets(t);if(!T.tp&&!T.sl)return'';
+ const und=t.row.underlying,S0=POSD.spot[und]||0;
+ const parts=t.strat.custom?null:mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
+ const row=(k,o,col)=>{
+  if(!o)return'';
+  const pr=POSD.markTs?tPrices(t,o.usd):null;
+  let px='';
+  if(pr){const bits=[];
+   if(pr.today!=null)bits.push('~'+f2(pr.today)+' now');
+   if(pr.expiry!=null)bits.push(f2(pr.expiry)+' at expiry');
+   if(bits.length)px=' &middot; needs '+und+' '+bits.join(' / ');
+   else px=' &middot; not reachable on price alone (time-driven)';}
+  const now=(parts&&parts.ok)?parts.unrl:null;
+  const hit=now!=null&&(k==='TP'?now>=o.usd:now<=o.usd);
+  return '<div class="posLegs" style="color:'+col+'">'+k+' '+money(o.usd)+' &middot; '+esc(o.lbl)+px
+   +(hit?' &middot; <b>HIT</b>':(now!=null?' &middot; now '+money(now):''))+'</div>';};
+ return row('TP',T.tp,'var(--long)')+row('SL',T.sl,'var(--short)');
 }
 function markCheck(){
  if(!POSD.markTs)return;
