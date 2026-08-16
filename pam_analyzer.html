@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.34</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.35</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -771,6 +771,13 @@
             <button class="btn" id="posGapBtn" style="padding:4px 10px;font-size:11px">Check missed bars</button>
           </div></div>
         <div id="posInbox"></div>
+      </div>
+      <div id="posMarkWrap" style="margin-top:10px">
+        <div class="posHead"><div><b style="font-size:12px">Marks</b> <span id="mdMeter" class="posPill">-</span> <span id="mdStamp" style="font-family:var(--mono);font-size:10.5px;color:var(--faint)"></span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <input id="mdKey" type="password" autocomplete="off" placeholder="marketdata.app token" style="font-family:var(--mono);font-size:11px;background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 8px;width:170px">
+            <button class="btn" id="mdMarkBtn" style="padding:4px 10px;font-size:11px">Mark now</button>
+          </div></div>
       </div>
       <div id="posAuthNote" style="display:none;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px">Sign in on the Chat tab first — positions are private to your login and sync across your devices.</div>
 
@@ -3710,7 +3717,7 @@ setInterval(()=>{
    (bank_fills / eod_marks are written by the feed script and used
    by the importer next session). Engine block untouched.
    ============================================================ */
-const POSD={list:[],uid:null,dirtyNet:false,editId:null};
+const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},markTs:null,mdBusy:false};
 const f2=v=>(Math.round(v*100)/100).toFixed(2);
 const money=v=>(v<0?'-$':'$')+f2(Math.abs(v));
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
@@ -3738,6 +3745,61 @@ function earnRule(t){
 }
 
 /* ---- v0.28 importer engine: fills -> campaigns -> proposed trades (pure, testable) ---- */
+/* ---- v0.35 marking core: P&L math, mark-based triggers, attach planning (pure) ---- */
+function mkLiq(legs,marks){let liq=0;const miss=[];
+ legs.forEach(l=>{if(l.status!=='open')return;const m=marks[l.occ_symbol];
+  if(!m||!(m.mid>0)){miss.push(l.occ_symbol);return;}
+  liq+=(l.side==='sell'?-1:1)*m.mid*100*(+l.qty||1);});
+ return{liq,miss};}
+function mkParts(net,realized,kind,legs,marks){
+ const {liq,miss}=mkLiq(legs,marks);
+ if(miss.length)return{ok:false,miss};
+ const unrl=net+liq,total=unrl+(realized||0);
+ const cap=(kind==='credit'&&net>0)?(net+liq)/net:null;
+ return{ok:true,liq,unrl,total,cap};}
+function mkDecay(l,marks){const m=marks[l.occ_symbol];
+ if(!m||!(m.mid>=0)||!(+l.open_price>0))return null;return m.mid/(+l.open_price);}
+function mkTriggers(strategy,net,user,legs,parts,marks){
+ const out=[];if(!parts.ok)return out;const u=user||{},tp=+u.tp||0,sl=+u.sl||0;
+ const P=(k,m)=>out.push({key:k,msg:m});const r2=v=>Math.round(v*100)/100;
+ if(tp&&parts.total>=tp)P('mk_tp_user','your target hit - total P&L '+r2(parts.total));
+ if(sl&&parts.total<=-sl)P('mk_sl_user','your stop hit - total P&L '+r2(parts.total));
+ const shorts=legs.filter(l=>l.status==='open'&&l.side==='sell');
+ if(['bull_put_spread','bear_call_spread','short_put','short_call'].includes(strategy)&&net>0){
+  const cost=-parts.liq;
+  if(cost<=0.3*net)P('mk_tp70','~70% of credit decayed (buyback '+r2(cost)+' vs credit '+r2(net)+') - close per ruleset');
+  if(parts.unrl<=-1.5*net)P('mk_sl15','loss ~1.5x credit (unrl '+r2(parts.unrl)+') - cut per ruleset');}
+ if(['bull_call_spread','bear_put_spread'].includes(strategy)){
+  const d=-net;if(d>0&&!sl&&parts.unrl<=-0.5*d)P('mk_guard50','marked loss ~50% of debit - guard per ruleset');}
+ if(['long_call','long_put'].includes(strategy)){
+  const d=-net;if(d>0){if(!tp&&parts.unrl>=d)P('mk_tp2x','~2x premium reached - default TP');
+   if(!sl&&parts.unrl<=-0.5*d)P('mk_sl50','~50% of premium lost - default stop');}}
+ if(['diagonal_call','bb_collar','short_call','short_put'].includes(strategy))
+  shorts.forEach(l=>{const d=mkDecay(l,marks);
+   if(d!=null&&d<=0.30)P('mk_decay_'+l.occ_symbol,'short '+l.occ_symbol.slice(-9)+' ~'+Math.round((1-d)*100)+'% decayed - harvest/roll');});
+ if(strategy==='diagonal_call'){const d=-net,g=sl||0.5*d;
+  if(d>0&&g>0&&parts.unrl<=-g)P('mk_guard','mark-loss guard hit (unrl '+r2(parts.unrl)+')');}
+ if(['bb_collar','diagonal_call','short_call'].includes(strategy))
+  shorts.forEach(l=>{const m=marks[l.occ_symbol];
+   if(m&&m.delta!=null&&Math.abs(m.delta)>=0.80)P('mk_delta_'+l.occ_symbol,'short '+l.occ_symbol.slice(-9)+' delta '+(Math.round(Math.abs(m.delta)*100)/100)+' - roll per card');});
+ return out;}
+function attachPlan(camp,existingLegs,cashOf,feeCostOf){
+ const plan={closes:[],rollOpens:[],adds:[],realizedDelta:0,netDelta:0,rolls:(camp.events||[]).slice(),err:null};
+ const byOcc={};existingLegs.forEach(l=>{if(l.status==='open')byOcc[l.occ_symbol]=l;});
+ const rollTo=new Set(plan.rolls.map(e=>e.to));
+ for(const s of camp.spells){
+  if(s.preHistory){const leg=byOcc[s.occ];
+   if(!leg){plan.err='closing fills for '+s.occ+' but no matching open leg on the trade';return plan;}
+   if(Math.round(s.peak)!==Math.round(+leg.qty)){plan.err='qty mismatch on '+s.occ+' ('+s.peak+' vs leg '+leg.qty+')';return plan;}
+   plan.closes.push({leg,occ:s.occ,px:s.closePx,date:s.closeDate,fills:s.closeF});}
+  else if(!s.closed){(rollTo.has(s.occ)?plan.rollOpens:plan.adds).push(s);}
+  else plan.closes.push({leg:null,occ:s.occ,px:s.closePx,date:s.closeDate,fills:s.openF.concat(s.closeF),roundTrip:true});
+ }
+ const rfills=[];plan.closes.forEach(c=>rfills.push(...c.fills));plan.rollOpens.forEach(s=>rfills.push(...s.openF));
+ plan.realizedDelta=cashOf(rfills)-feeCostOf(rfills);
+ const afills=[];plan.adds.forEach(s=>afills.push(...s.openF));
+ plan.netDelta=cashOf(afills);
+ return plan;}
 function occParse(occ){const m=String(occ).match(/^([A-Z.]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/);if(!m)return null;
  return{und:m[1],expiry:'20'+m[2]+'-'+m[3]+'-'+m[4],cp:m[5],strike:+m[6]/1000};}
 function vwapPx(fs){let q=0,pq=0;fs.forEach(f=>{q+=+f.q;pq+=+f.p*+f.q;});return q?pq/q:null;}
@@ -3781,7 +3843,7 @@ function clusterCampaigns(fills,todayISO){
   const used=new Set();
   c.spells.forEach(sc=>{
    if(!sc.closed||sc.expired)return;const D=sc.closeDate;if(sc.openDate===D)return;
-   const mate=c.spells.find(o=>o!==sc&&!used.has(o)&&o.dir===sc.dir&&o.cp===sc.cp&&o.openDate===D&&o.openDate!==c.start);
+   const mate=c.spells.find(o=>o!==sc&&!used.has(o)&&o.dir===sc.dir&&o.cp===sc.cp&&o.openDate===D&&(o.openDate!==c.start||sc.preHistory));
    if(mate){used.add(mate);c.events.push({type:'roll',date:D,from:sc.occ,to:mate.occ,cash:cashOf(sc.closeF)+cashOf(mate.openF)-feeCostOf(sc.closeF)-feeCostOf(mate.openF)});}
   });
   c.events.sort((x,y)=>x.date<y.date?-1:1);
@@ -4002,6 +4064,8 @@ async function loadPositions(){
  renderPositions();dteCheck();try{draw();}catch(e){}
  refreshInboxCount();
  if(!POSD.gapAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.gapAuto=1;setTimeout(()=>{try{posGapCheck();}catch(e){}},2500);}
+ mdMeterLoad();
+ if(!POSD.mdAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.mdAuto=1;setTimeout(()=>{try{mdFetchMarks(false);}catch(e){}},3500);}
 }
 function legLine(l){return (l.side==='sell'?'-':'+')+(l.qty||1)+' '+f2(+l.strike)+l.cp+' '+String(l.expiry||'').slice(2)+(l.open_price!=null?(' @'+f2(+l.open_price)):'');}
 function pill(txt,cls){return '<span class="posPill '+(cls||'')+'">'+txt+'</span>';}
@@ -4082,7 +4146,7 @@ async function posEditSave(tid,card){
  const dels=t.legs.map(l=>l.id).filter(id=>id&&!keep.has(id));
  const newMin=rows.filter(r=>r.status==='open').reduce((a,r)=>(!a||r.expiry<a)?r.expiry:a,null);
  let fired=t.row.alerts_fired||{};
- if(String(newMin||'')!==String(t.minExp||'')){const keepF={};Object.keys(fired).forEach(k=>{if(!/^dte|^earn_/.test(k))keepF[k]=fired[k];});fired=keepF;}
+ if(String(newMin||'')!==String(t.minExp||'')){const keepF={};Object.keys(fired).forEach(k=>{if(!/^dte|^earn_|^mk_/.test(k))keepF[k]=fired[k];});fired=keepF;}
  const patch={strategy,status,opened_at:opened,closed_at:closedAt,
   lots:Math.max(1,Math.round(+g('peLots').value||1)),
   net_entry:+g('peNet').value||0,
@@ -4117,6 +4181,11 @@ function renderPositions(){
     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dteTxt!=null?pill(dteTxt+' DTE',dcls):'')+pill('net '+money(t.net))
     +(t.strat.uncapped?pill('uncapped'):isFinite(t.d.maxLoss)?pill('max loss '+money(t.d.maxLoss)):'')+'</div></div>'
     +'<div class="posLegs">'+(function(){const o=t.legs.filter(l=>l.status==='open');const shown=(o.length?o:t.legs).map(legLine).join('<br>');const hid=t.legs.length-(o.length||t.legs.length);return shown+(hid>0?'<br><span style="color:var(--faint)">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</span>':'');})()+'</div>'
+    +(function(){if(!POSD.markTs)return'';
+      const parts=mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
+      if(!parts.ok)return '<div class="posLegs" style="color:var(--faint)">marks missing for '+parts.miss.length+' leg(s) - Mark now to refresh</div>';
+      const R=+t.row.realized_pnl||0,cU=parts.unrl>=0?'var(--long)':'var(--short)',cT=parts.total>=0?'var(--long)':'var(--short)';
+      return '<div class="posLegs">mark '+money(parts.liq)+' &middot; realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';})()
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
     +'<button class="btn" data-act="edit" style="padding:4px 10px;font-size:11px">Edit</button>'
@@ -4189,11 +4258,12 @@ async function loadInbox(){
 function inboxCardHTML(c,i){
  const dup=POSD.list.some(t=>t.row.status==='open'&&t.row.underlying===c.und);
  const allPre=c.spells.every(s=>s.preHistory);
+ const host=dup?POSD.list.find(t=>t.row.status==='open'&&t.row.underlying===c.und):null;
  const d1f=(function(){const ids=new Set();c.spells.forEach(s=>{if(!s.preHistory)s.openF.concat(s.closeF).forEach(f=>ids.add(f.id));});return feeCostOf(c.fills.filter(f=>f.d===c.start&&ids.has(f.id)));})();
  return '<div class="posCard" data-ci="'+i+'">'
   +'<div class="posHead"><div><b>'+esc(c.und)+'</b> <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">'+c.start+(c.open?' -> open':' -> '+c.end)+'</span></div>'
   +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+pill(c.fills.length+' fills')+pill(c.open?'OPEN':'closed',c.open?'warn':'')+(c.events.length?pill(c.events.length+' roll'+(c.events.length===1?'':'s'),'warn'):'')+'</div></div>'
-  +(dup?'<div style="font-family:var(--mono);font-size:10.5px;color:#e8c46a;margin-top:4px">an open trade on '+esc(c.und)+' already exists - Ignore this card if you entered it manually</div>':'')
+  +(dup?'<div style="font-family:var(--mono);font-size:10.5px;color:#e8c46a;margin-top:4px">an open trade on '+esc(c.und)+' already exists</div><div style="margin-top:4px"><button class="btn impAttach" style="padding:3px 9px;font-size:10.5px">Attach to the open '+esc(host?host.strat.name:'trade')+'</button></div>':'')
   +'<div class="posGrid"><span style="font-family:var(--mono);font-size:11px;color:var(--mut)">import as</span><select class="impStrat">'
   +Object.keys(POS_STRATS).map(k=>'<option value="'+k+'"'+(k===c.proposal?' selected':'')+'>'+esc(POS_STRATS[k].name)+(k===c.proposal?' \u2190 proposed':'')+'</option>').join('')
   +'</select></div>'
@@ -4225,6 +4295,7 @@ function renderInbox(){
  el.querySelectorAll('.impConfirm').forEach(b=>{b.onclick=()=>importCampaign(+b.closest('.posCard[data-ci]').dataset.ci);});
  el.querySelectorAll('.impIgnore').forEach(b=>{b.onclick=()=>ignoreCampaign(+b.closest('.posCard[data-ci]').dataset.ci);});
  el.querySelectorAll('.impSplit').forEach(b=>{b.onclick=()=>splitInbox(+b.closest('.posCard[data-ci]').dataset.ci);});
+ el.querySelectorAll('.impAttach').forEach(b=>{b.onclick=()=>attachCampaign(+b.closest('.posCard[data-ci]').dataset.ci);});
  const ia=el.querySelector('#impAllBtn');if(ia)ia.onclick=impAllClosed;
  const ig=el.querySelector('#ignAllBtn');if(ig)ig.onclick=ignAllClosed;
 }
@@ -4299,6 +4370,110 @@ function splitInbox(i){
  renderInbox();
  posStatusMsg('Split '+c.und+' into '+parts.length+' campaigns - review each proposal.','ok');
 }
+
+/* ---------------- marks: marketdata.app per-leg mid + delta, shared credit meter ---------------- */
+const MD_KEY_LS='pam_md_key';
+function creditDay(){return new Date(Date.now()-13.5*3600e3).toISOString().slice(0,10);} /* meter day rolls at 21:30 SGT */
+async function mdMeterLoad(){const el=q('mdMeter');if(!ME){if(el)el.textContent='-';return{used:0};}
+ const {data}=await sb.from('md_credits').select('used').eq('user_id',ME.id).eq('credit_day',creditDay()).maybeSingle();
+ const used=data?+data.used:0;if(el)el.textContent='credits '+used+'/100';return{used};}
+async function mdMeterAdd(n){if(!ME||!n)return;const day=creditDay();
+ const {data}=await sb.from('md_credits').select('used').eq('user_id',ME.id).eq('credit_day',day).maybeSingle();
+ const used=(data?+data.used:0)+n;
+ await sb.from('md_credits').upsert({user_id:ME.id,credit_day:day,used,updated_at:new Date().toISOString()},{onConflict:'user_id,credit_day'});
+ const el=q('mdMeter');if(el)el.textContent='credits '+used+'/100';}
+function openOccs(){const s=new Set();POSD.list.forEach(t=>{if(t.row.status!=='open')return;
+ t.legs.forEach(l=>{if(l.status==='open'&&l.occ_symbol)s.add(l.occ_symbol);});});return[...s];}
+async function mdFetchMarks(manual){
+ if(POSD.mdBusy)return;if(!ME){if(manual)posStatusMsg('sign in first','err');return;}
+ const key=(q('mdKey').value||'').trim();
+ if(!key){if(manual)posStatusMsg('paste your marketdata.app token first','err');return;}
+ const occs=openOccs();if(!occs.length){if(manual)posStatusMsg('no open legs to mark','');return;}
+ const {used}=await mdMeterLoad();
+ if(!manual){if(used>0)return;if(used+occs.length>90)return;} /* auto = first mark of the credit-day only */
+ else if(used+occs.length>100&&!confirm('This mark costs ~'+occs.length+' credits and '+used+' are already used today (marketdata lets the balance go negative). Continue?'))return;
+ POSD.mdBusy=true;posStatusMsg('marking '+occs.length+' legs\u2026');
+ let okN=0;const eod=[];
+ try{
+  for(const occ of occs){
+   try{
+    const r=await fetch('https://api.marketdata.app/v1/options/quotes/'+encodeURIComponent(occ)+'/?token='+encodeURIComponent(key));
+    if(r.status!==200&&r.status!==203)continue; /* 203 = cached tier, body-identical */
+    const j=await r.json();if(!j||j.s!=='ok')continue;
+    const bid=(j.bid&&j.bid[0])||0,ask=(j.ask&&j.ask[0])||0;
+    let mid=(j.mid&&j.mid[0])||0;if(!(mid>0)&&bid>0&&ask>0)mid=(bid+ask)/2;
+    if(!(mid>0))continue; /* quote-quality guard: no zero/one-sided marks */
+    POSD.marks[occ]={mid:+mid,delta:(j.delta&&j.delta[0]!=null)?+j.delta[0]:null,bid:+bid||null,ask:+ask||null};
+    okN++;
+    eod.push({user_id:ME.id,occ_symbol:occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,mid:Math.round(mid*10000)/10000,delta:POSD.marks[occ].delta,source:'marketdata'});
+   }catch(e){}
+  }
+ }finally{POSD.mdBusy=false;}
+ await mdMeterAdd(occs.length); /* billed per symbol requested */
+ if(eod.length)try{await sb.from('eod_marks').upsert(eod,{onConflict:'user_id,occ_symbol,mark_date'});}catch(e){}
+ POSD.markTs=okN?new Date():POSD.markTs;
+ const st=q('mdStamp');if(st)st.textContent=okN?('marked '+new Date().toTimeString().slice(0,5)):'no usable quotes (market closed?)';
+ posStatusMsg('marked '+okN+'/'+occs.length+' legs','ok');
+ renderPositions();markCheck();
+}
+function markCheck(){
+ if(!POSD.markTs)return;
+ POSD.list.forEach(t=>{
+  if(t.row.status!=='open'||t.strat.custom)return;
+  const parts=mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
+  if(!parts.ok)return;
+  let changed=false;
+  mkTriggers(t.strategy,t.net,t.user,t.legs,parts,POSD.marks).forEach(g=>{
+   if(t.fired[g.key])return;t.fired[g.key]=todayISO();changed=true;
+   posAlert(t.row.underlying+' '+t.strat.name+': '+g.msg);});
+  if(changed)sb.from('trades').update({alerts_fired:t.fired}).eq('id',t.row.id).then(()=>{});
+ });
+}
+/* ---------------- attach: route new fills onto an existing open trade ---------------- */
+async function attachCampaign(i){
+ const c=POSD.inbox[i];if(!c)return;
+ const host=POSD.list.find(t=>t.row.status==='open'&&t.row.underlying===c.und);
+ if(!host){posStatusMsg('no open trade on '+c.und+' to attach to','err');return;}
+ const plan=attachPlan(c,host.legs,cashOf,feeCostOf);
+ if(plan.err){posStatusMsg('attach: '+plan.err+' - use Confirm import or Split instead','err');return;}
+ const bits=[plan.closes.filter(x=>x.leg).length+' leg close(s)',plan.rollOpens.length+' roll-open(s)',plan.adds.length+' add(s)','realized '+money(plan.realizedDelta)];
+ if(plan.netDelta)bits.push('entry adj '+money(plan.netDelta));
+ if(!confirm('Attach to the open '+host.row.underlying+' '+host.strat.name+'? '+bits.join(', ')))return;
+ for(const cl of plan.closes){
+  if(!cl.leg)continue;const l=cl.leg,fc=feeCostOf(cl.fills);
+  const realized=(l.open_price!=null)?Math.round(((l.side==='sell'?(+l.open_price-cl.px):(cl.px-+l.open_price))*100*(+l.qty)-fc)*100)/100:null;
+  const {error}=await sb.from('trade_legs').update({status:'closed',close_price:Math.round(cl.px*10000)/10000,close_date:cl.date,realized_pnl:realized,fees:Math.round(((+l.fees||0)+feesOf(cl.fills))*100)/100}).eq('id',l.id);
+  if(error){posStatusMsg(error.message,'err');return;}
+ }
+ const news=plan.rollOpens.concat(plan.adds);
+ const rows=news.map(s=>({trade_id:host.row.id,user_id:ME.id,occ_symbol:s.occ,cp:s.cp,strike:s.strike,expiry:s.expiry,
+  side:s.dir==='long'?'buy':'sell',qty:s.peak,open_price:s.openPx!=null?Math.round(s.openPx*10000)/10000:null,
+  open_date:s.openDate,status:'open',fees:Math.round((s.fees||0)*100)/100}));
+ let legIns=[];
+ if(rows.length){const {data,error}=await sb.from('trade_legs').insert(rows).select();
+  if(error){posStatusMsg(error.message,'err');return;}legIns=data||[];}
+ const closedIds=new Set(plan.closes.filter(x=>x.leg).map(x=>x.leg.id));
+ const openExp=[...host.legs.filter(l=>l.status==='open'&&!closedIds.has(l.id)).map(l=>String(l.expiry)),...rows.map(r2=>String(r2.expiry))].sort()[0]||null;
+ let fired=host.row.alerts_fired||{};
+ if(String(openExp||'')!==String(host.minExp||'')){const k={};Object.keys(fired).forEach(x=>{if(!/^dte|^earn_|^mk_/.test(x))k[x]=fired[x];});fired=k;}
+ const patch={realized_pnl:Math.round(((+host.row.realized_pnl||0)+plan.realizedDelta)*100)/100,
+  net_entry:Math.round(((+host.row.net_entry||0)+plan.netDelta)*100)/100,
+  alerts_fired:fired,
+  notes:(((host.row.notes||'')+(plan.rolls.length?'; '+plan.rolls.map(e=>'roll '+e.date+' '+e.from+' -> '+e.to+' '+money(e.cash)).join('; '):''))||null)};
+ const {error:e3}=await sb.from('trades').update(patch).eq('id',host.row.id);
+ if(e3){posStatusMsg(e3.message,'err');return;}
+ for(const cl of plan.closes){
+  if(!cl.fills.length)continue;
+  await sb.from('bank_fills').update({status:'matched',trade_id:host.row.id,leg_id:cl.leg?cl.leg.id:null}).in('fill_id',cl.fills.map(f=>f.id));
+ }
+ for(let k2=0;k2<news.length;k2++){
+  const ids=news[k2].openF.map(f=>f.id);
+  if(ids.length)await sb.from('bank_fills').update({status:'matched',trade_id:host.row.id,leg_id:legIns[k2]?legIns[k2].id:null}).in('fill_id',ids);
+ }
+ posStatusMsg('Attached to '+host.row.underlying+' - realized '+money(plan.realizedDelta)+' booked.','ok');
+ POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();loadPositions();
+}
+
 /* ---------------- away-check: replay daily bars missed since last look ---------------- */
 async function posGapCheck(){
  const open=POSD.list.filter(t=>t.row.status==='open');
@@ -4469,6 +4644,9 @@ setInterval(()=>{if(POSD.list.length)dteCheck();},6*3600*1000);
  q('pfStrat').onchange=pfBuild;
  q('pfAddLeg').onclick=()=>{const n=q('pfLegs').children.length;q('pfLegs').insertAdjacentHTML('beforeend',pfLegRow(null,n));pfRecalc();
   q('pfLegs').lastElementChild.querySelectorAll('input,select').forEach(el=>{el.oninput=pfRecalc;});};
+ q('mdKey').value=localStorage.getItem(MD_KEY_LS)||'';
+ q('mdKey').oninput=()=>{localStorage.setItem(MD_KEY_LS,q('mdKey').value.trim());};
+ q('mdMarkBtn').onclick=()=>mdFetchMarks(true);
  q('posInboxBtn').onclick=loadInbox;
  q('posGapBtn').onclick=posGapCheck;
  q('posUidCopy').onclick=()=>{try{navigator.clipboard.writeText(q('posUid').textContent);posStatusMsg('user id copied','ok');}catch(e){}};
