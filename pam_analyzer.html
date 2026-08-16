@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.29</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.31</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -3787,10 +3787,17 @@ function clusterCampaigns(fills,todayISO){
   const preIds=new Set();c.spells.forEach(s=>{if(s.preHistory)s.openF.concat(s.closeF).forEach(f=>preIds.add(f.id));});
   const rf=c.fills.filter(f=>!preIds.has(f.id)&&(c.open?f.d>c.start:true));
   c.realized=cashOf(rf)-feeCostOf(rf);
+  if(c.open)c.spells.forEach(s=>{if(s.expired&&s.openDate===c.start)c.realized+=cashOf(s.openF)-feeCostOf(s.openF);});
   c.needsBasis=c.spells.some(s=>s.preHistory);
   c.proposal=proposeStrat(c);
  });
  return camps;
+}
+function splitCampaign(c,idxSet,todayISO){
+ const sel=new Set();c.spells.forEach((s,si)=>{if(idxSet.has(si))s.openF.concat(s.closeF).forEach(f=>sel.add(f.id));});
+ const fA=c.fills.filter(f=>sel.has(f.id)),fB=c.fills.filter(f=>!sel.has(f.id));
+ if(!fA.length||!fB.length)return[c];
+ return clusterCampaigns(fA,todayISO).concat(clusterCampaigns(fB,todayISO));
 }
 function proposeStrat(c){
  const init=c.spells.filter(s=>s.openDate===c.start&&!s.preHistory);
@@ -4172,38 +4179,53 @@ async function loadInbox(){
  renderInbox();
  posStatusMsg(POSD.inbox.length+' campaign'+(POSD.inbox.length===1?'':'s')+' proposed from '+rows.length+' fills - confirm or ignore each','ok');
 }
+function inboxCardHTML(c,i){
+ const dup=POSD.list.some(t=>t.row.status==='open'&&t.row.underlying===c.und);
+ return '<div class="posCard" data-ci="'+i+'">'
+  +'<div class="posHead"><div><b>'+esc(c.und)+'</b> <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">'+c.start+(c.open?' -> open':' -> '+c.end)+'</span></div>'
+  +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+pill(c.fills.length+' fills')+pill(c.open?'OPEN':'closed',c.open?'warn':'')+(c.events.length?pill(c.events.length+' roll'+(c.events.length===1?'':'s'),'warn'):'')+'</div></div>'
+  +(dup?'<div style="font-family:var(--mono);font-size:10.5px;color:#e8c46a;margin-top:4px">an open trade on '+esc(c.und)+' already exists - Ignore this card if you entered it manually</div>':'')
+  +'<div class="posGrid"><span style="font-family:var(--mono);font-size:11px;color:var(--mut)">import as</span><select class="impStrat">'
+  +Object.keys(POS_STRATS).map(k=>'<option value="'+k+'"'+(k===c.proposal?' selected':'')+'>'+esc(POS_STRATS[k].name)+(k===c.proposal?' \u2190 proposed':'')+'</option>').join('')
+  +'</select></div>'
+  +'<div class="posLegs">'+c.spells.map((s,si)=>'<label style="display:block;cursor:pointer"><input type="checkbox" class="impSel" data-si="'+si+'" style="vertical-align:middle;margin-right:6px">'+spellLine(s)+'</label>').join('')+'</div>'
+  +(c.spells.length>1?'<div style="margin-top:4px"><button class="btn impSplit" style="padding:3px 9px;font-size:10.5px">Split ticked legs into their own trade</button></div>':'')
+  +(c.spells.some(s=>s.expired)?'<div style="font-family:var(--mono);font-size:10.5px;color:#cf7a64;margin-top:4px">expired legs are assumed worthless ($0) - if they finished in the money, fix the numbers via Edit after import</div>':'')
+  +(c.events.length?'<div class="posLegs" style="color:#e8c46a">'+c.events.map(e=>'Roll '+e.date+': '+esc(e.from.slice(-15))+' -> '+esc(e.to.slice(-15))+' net '+money(e.cash)).join('<br>')+'</div>':'')
+  +'<div class="posLegs">entry (day-1 net) '+money(c.netEntry)+(c.realized?' &middot; realized so far '+money(c.realized):'')+(c.needsBasis?' &middot; <span style="color:#cf7a64">a leg predates the feed - basis unknown, edit after import</span>':'')+'</div>'
+  +'<div class="posGrid"><button class="btn impConfirm" style="padding:4px 10px;font-size:11px">Confirm import</button>'
+  +'<button class="btn impIgnore" style="padding:4px 10px;font-size:11px">Ignore</button></div>'
+  +'</div>';
+}
 function renderInbox(){
  const el=q('posInbox');if(!el)return;
  if(!POSD.inbox){el.innerHTML='';return;}
  if(!POSD.inbox.length){el.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px">no unmatched fills - everything is imported or ignored</div>';return;}
- el.innerHTML=POSD.inbox.map((c,i)=>{
-  const dup=POSD.list.some(t=>t.row.status==='open'&&t.row.underlying===c.und);
-  return '<div class="posCard" data-ci="'+i+'">'
-   +'<div class="posHead"><div><b>'+esc(c.und)+'</b> <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">'+c.start+(c.open?' -> open':' -> '+c.end)+'</span></div>'
-   +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+pill(c.fills.length+' fills')+pill(c.open?'OPEN':'closed',c.open?'warn':'')+(c.events.length?pill(c.events.length+' roll'+(c.events.length===1?'':'s'),'warn'):'')+'</div></div>'
-   +(dup?'<div style="font-family:var(--mono);font-size:10.5px;color:#e8c46a;margin-top:4px">an open trade on '+esc(c.und)+' already exists - Ignore this card if you entered it manually</div>':'')
-   +'<div class="posGrid"><span style="font-family:var(--mono);font-size:11px;color:var(--mut)">import as</span><select class="impStrat">'
-   +Object.keys(POS_STRATS).map(k=>'<option value="'+k+'"'+(k===c.proposal?' selected':'')+'>'+esc(POS_STRATS[k].name)+(k===c.proposal?' \u2190 proposed':'')+'</option>').join('')
-   +'</select></div>'
-   +'<div class="posLegs">'+c.spells.map(spellLine).join('<br>')+'</div>'
-   +(c.events.length?'<div class="posLegs" style="color:#e8c46a">'+c.events.map(e=>'Roll '+e.date+': '+esc(e.from.slice(-15))+' -> '+esc(e.to.slice(-15))+' net '+money(e.cash)).join('<br>')+'</div>':'')
-   +'<div class="posLegs">day-1 net '+money(c.netEntry)+(c.realized?' &middot; realized so far '+money(c.realized):'')+(c.needsBasis?' &middot; <span style="color:#cf7a64">a leg predates the feed - basis unknown, edit after import</span>':'')+'</div>'
-   +'<div class="posGrid"><button class="btn impConfirm" style="padding:4px 10px;font-size:11px">Confirm import</button>'
-   +'<button class="btn impIgnore" style="padding:4px 10px;font-size:11px">Ignore</button></div>'
-   +'</div>';
- }).join('');
- el.querySelectorAll('.impConfirm').forEach(b=>{b.onclick=()=>importCampaign(+b.closest('.posCard').dataset.ci);});
- el.querySelectorAll('.impIgnore').forEach(b=>{b.onclick=()=>ignoreCampaign(+b.closest('.posCard').dataset.ci);});
+ const opens=[],dones=[];
+ POSD.inbox.forEach((c,i)=>{(c.open?opens:dones).push(i);});
+ let h=opens.map(i=>inboxCardHTML(POSD.inbox[i],i)).join('');
+ if(!opens.length)h='<div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px">no open campaigns in the fills</div>';
+ if(dones.length){
+  h+='<details class="posCard" style="margin-top:8px"><summary style="font-family:var(--mono);font-size:11px;color:var(--mut);cursor:pointer">'
+   +dones.length+' closed/expired campaign'+(dones.length===1?'':'s')+' hidden</summary>'
+   +'<div class="posGrid" style="margin:8px 0"><button class="btn" id="impAllBtn" style="padding:4px 10px;font-size:11px">Import all closed (for stats)</button>'
+   +'<button class="btn" id="ignAllBtn" style="padding:4px 10px;font-size:11px">Ignore all closed</button></div>'
+   +dones.map(i=>inboxCardHTML(POSD.inbox[i],i)).join('')+'</details>';
+ }
+ el.innerHTML=h;
+ el.querySelectorAll('.impConfirm').forEach(b=>{b.onclick=()=>importCampaign(+b.closest('.posCard[data-ci]').dataset.ci);});
+ el.querySelectorAll('.impIgnore').forEach(b=>{b.onclick=()=>ignoreCampaign(+b.closest('.posCard[data-ci]').dataset.ci);});
+ el.querySelectorAll('.impSplit').forEach(b=>{b.onclick=()=>splitInbox(+b.closest('.posCard[data-ci]').dataset.ci);});
+ const ia=el.querySelector('#impAllBtn');if(ia)ia.onclick=impAllClosed;
+ const ig=el.querySelector('#ignAllBtn');if(ig)ig.onclick=ignAllClosed;
 }
-async function importCampaign(i){
- const c=POSD.inbox[i];if(!c)return;
- const sel=q('posInbox').querySelector('[data-ci="'+i+'"] .impStrat'),sk=sel?sel.value:c.proposal;
+async function importCampaignObj(c,sk){
  const trow={underlying:c.und,strategy:sk,status:c.open?'open':'closed',opened_at:c.start,closed_at:c.open?null:c.end,lots:1,
   net_entry:Math.round(c.netEntry*100)/100,realized_pnl:Math.round((c.realized||0)*100)/100,user_inputs:{},
   alerts_fired:{_gap:todayISO()},
   notes:c.events.length?c.events.map(e=>'roll '+e.date+' '+e.from+' -> '+e.to+' '+money(e.cash)).join('; '):null};
  const {data:ins,error}=await sb.from('trades').insert(trow).select().single();
- if(error){posStatusMsg('import: '+error.message,'err');return;}
+ if(error){posStatusMsg('import: '+error.message,'err');return false;}
  const lrows=c.spells.map(s=>({trade_id:ins.id,occ_symbol:s.occ,cp:s.cp,strike:s.strike,expiry:s.expiry,
   side:s.dir==='long'?'buy':'sell',qty:s.peak,
   open_price:s.openPx!=null?Math.round(s.openPx*10000)/10000:null,open_date:s.openDate,
@@ -4213,12 +4235,18 @@ async function importCampaign(i){
   fees:Math.round((s.fees||0)*100)/100,
   realized_pnl:s.realized!=null?Math.round(s.realized*100)/100:null}));
  const {data:legIns,error:e2}=await sb.from('trade_legs').insert(lrows).select();
- if(e2){posStatusMsg('import legs: '+e2.message,'err');return;}
+ if(e2){posStatusMsg('import legs: '+e2.message,'err');return false;}
  for(let k=0;k<c.spells.length;k++){
   const s=c.spells[k],leg=(legIns||[])[k];
   const ids=s.openF.concat(s.closeF).map(f=>f.id);
   if(ids.length)await sb.from('bank_fills').update({status:'matched',trade_id:ins.id,leg_id:leg?leg.id:null}).in('fill_id',ids);
  }
+ return true;
+}
+async function importCampaign(i){
+ const c=POSD.inbox[i];if(!c)return;
+ const sel=q('posInbox').querySelector('[data-ci="'+i+'"] .impStrat'),sk=sel?sel.value:c.proposal;
+ if(!(await importCampaignObj(c,sk)))return;
  posStatusMsg('Imported '+c.und+' as '+POS_STRATS[sk].name+'.','ok');
  POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();loadPositions();
 }
@@ -4228,6 +4256,37 @@ async function ignoreCampaign(i){
  await sb.from('bank_fills').update({status:'ignored'}).in('fill_id',c.fills.map(f=>f.id));
  POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();
  posStatusMsg('Ignored.','');
+}
+async function impAllClosed(){
+ const list=POSD.inbox.filter(c=>!c.open);
+ if(!list.length)return;
+ if(!confirm('Import all '+list.length+' closed campaigns with their proposed labels? They land in the closed list + stats. You can relabel any of them via edit afterwards.'))return;
+ let n=0;
+ for(const c of list){posStatusMsg('importing '+c.und+'\u2026');if(await importCampaignObj(c,c.proposal))n++;else break;}
+ POSD.inbox=POSD.inbox.filter(c=>c.open);
+ renderInbox();refreshInboxCount();loadPositions();
+ posStatusMsg('Imported '+n+' closed campaign'+(n===1?'':'s')+'.','ok');
+}
+async function ignAllClosed(){
+ const list=POSD.inbox.filter(c=>!c.open);
+ if(!list.length)return;
+ const ids=[];list.forEach(c=>c.fills.forEach(f=>ids.push(f.id)));
+ if(!confirm('Ignore all '+list.length+' closed campaigns ('+ids.length+' fills)? They will not be proposed again.'))return;
+ for(let k=0;k<ids.length;k+=400)await sb.from('bank_fills').update({status:'ignored'}).in('fill_id',ids.slice(k,k+400));
+ POSD.inbox=POSD.inbox.filter(c=>c.open);
+ renderInbox();refreshInboxCount();
+ posStatusMsg('Ignored '+list.length+' closed campaigns.','');
+}
+function splitInbox(i){
+ const c=POSD.inbox[i];if(!c)return;
+ const card=q('posInbox').querySelector('[data-ci="'+i+'"]');
+ const sel=new Set();card.querySelectorAll('.impSel:checked').forEach(cb=>sel.add(+cb.dataset.si));
+ if(!sel.size||sel.size>=c.spells.length){posStatusMsg('tick the legs that belong together (some, not all)','err');return;}
+ const parts=splitCampaign(c,sel,todayISO());
+ if(parts.length<2){posStatusMsg('split did not separate - check the ticks','err');return;}
+ POSD.inbox.splice(i,1,...parts);
+ renderInbox();
+ posStatusMsg('Split '+c.und+' into '+parts.length+' campaigns - review each proposal.','ok');
 }
 /* ---------------- away-check: replay daily bars missed since last look ---------------- */
 async function posGapCheck(){
