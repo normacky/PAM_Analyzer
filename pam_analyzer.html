@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.35</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.36</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -4065,6 +4065,7 @@ async function loadPositions(){
  refreshInboxCount();
  if(!POSD.gapAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.gapAuto=1;setTimeout(()=>{try{posGapCheck();}catch(e){}},2500);}
  mdMeterLoad();
+ mdLoadCached();
  if(!POSD.mdAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.mdAuto=1;setTimeout(()=>{try{mdFetchMarks(false);}catch(e){}},3500);}
 }
 function legLine(l){return (l.side==='sell'?'-':'+')+(l.qty||1)+' '+f2(+l.strike)+l.cp+' '+String(l.expiry||'').slice(2)+(l.open_price!=null?(' @'+f2(+l.open_price)):'');}
@@ -4382,6 +4383,27 @@ async function mdMeterAdd(n){if(!ME||!n)return;const day=creditDay();
  const used=(data?+data.used:0)+n;
  await sb.from('md_credits').upsert({user_id:ME.id,credit_day:day,used,updated_at:new Date().toISOString()},{onConflict:'user_id,credit_day'});
  const el=q('mdMeter');if(el)el.textContent='credits '+used+'/100';}
+async function mdLoadCached(){
+ if(!ME)return;const occs=openOccs();if(!occs.length)return;
+ const {data,error}=await sb.from('eod_marks').select('occ_symbol,mid,bid,ask,delta,mark_date,updated_at')
+  .eq('user_id',ME.id).in('occ_symbol',occs)
+  .order('mark_date',{ascending:false}).order('updated_at',{ascending:false}).limit(400);
+ if(error||!data||!data.length)return;
+ let newest=null,newestDay=null,got=0;
+ data.forEach(r=>{
+  if(POSD.marks[r.occ_symbol]&&POSD.marks[r.occ_symbol]._cached!==true)return; // never overwrite a fresh live mark
+  if(POSD.marks[r.occ_symbol])return;                                          // first row per occ = latest
+  if(!(+r.mid>0))return;
+  POSD.marks[r.occ_symbol]={mid:+r.mid,delta:r.delta!=null?+r.delta:null,bid:r.bid!=null?+r.bid:null,ask:r.ask!=null?+r.ask:null,_cached:true};
+  got++;const u=new Date(r.updated_at);if(!newest||u>newest){newest=u;newestDay=String(r.mark_date);}
+ });
+ if(!got)return;
+ if(!POSD.markTs||newest>POSD.markTs)POSD.markTs=newest;
+ const st=q('mdStamp');
+ if(st)st.textContent='marks from '+(newestDay===todayISO()?newest.toTimeString().slice(0,5):newestDay)+' (synced)';
+ renderPositions();
+ if(newestDay===todayISO())markCheck(); // alert only off same-day marks, never stale ones
+}
 function openOccs(){const s=new Set();POSD.list.forEach(t=>{if(t.row.status!=='open')return;
  t.legs.forEach(l=>{if(l.status==='open'&&l.occ_symbol)s.add(l.occ_symbol);});});return[...s];}
 async function mdFetchMarks(manual){
@@ -4405,7 +4427,7 @@ async function mdFetchMarks(manual){
     if(!(mid>0))continue; /* quote-quality guard: no zero/one-sided marks */
     POSD.marks[occ]={mid:+mid,delta:(j.delta&&j.delta[0]!=null)?+j.delta[0]:null,bid:+bid||null,ask:+ask||null};
     okN++;
-    eod.push({user_id:ME.id,occ_symbol:occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,mid:Math.round(mid*10000)/10000,delta:POSD.marks[occ].delta,source:'marketdata'});
+    eod.push({user_id:ME.id,occ_symbol:occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,mid:Math.round(mid*10000)/10000,delta:POSD.marks[occ].delta,source:'marketdata',updated_at:new Date().toISOString()});
    }catch(e){}
   }
  }finally{POSD.mdBusy=false;}
