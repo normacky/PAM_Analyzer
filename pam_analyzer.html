@@ -64,6 +64,26 @@
   .layers button[data-ly="reverse"].on{color:#ff9d7a;border-color:#7a4030}
   .layers button[data-ly="channels"].on{color:#b9a3e8;border-color:#4a3d70}
   .layers button[data-ly="volume"].on{color:#9aa7bd;border-color:#3c4759}
+  .layers button[data-ly="positions"].on{color:#e8c46a;border-color:#6e5a24}
+  .posCard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+  .posHead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .posPill{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line);border-radius:20px;padding:2px 9px;color:var(--mut);white-space:nowrap}
+  .posPill.warn{color:#e8c46a;border-color:#6e5a24}
+  .posPill.bad{color:var(--short);border-color:#7a4030}
+  .posLegs{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px;line-height:1.6}
+  .posTrig{margin-top:8px;border-top:1px dashed var(--line);padding-top:7px}
+  .posTrig details{margin:3px 0}
+  .posTrig summary{cursor:pointer;font-size:12px;color:var(--txt);list-style:none}
+  .posTrig summary::before{content:"\25B8  ";color:var(--faint)}
+  .posTrig details[open] summary::before{content:"\25BE  "}
+  .posTrig .why{font-family:var(--mono);font-size:10.5px;color:var(--mut);padding:4px 0 2px 14px;line-height:1.55}
+  .posGrid{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+  .posGrid input,.posGrid select{font-family:var(--mono);font-size:12px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px;outline:none}
+  .posGrid input{width:96px}
+  .posGrid input.wide{width:150px}
+  .posLegRow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px}
+  .posLegRow input{width:86px;font-family:var(--mono);font-size:12px;background:var(--panel-in);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 7px;outline:none}
+  .posLegRow .lbl{min-width:128px;color:var(--txt)}
   .ctl-label{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
   .btn{font-family:var(--mono);font-size:12px;background:var(--btnbg);color:var(--txt);border:1px solid var(--line);
     border-radius:9px;padding:7px 13px;cursor:pointer}
@@ -543,6 +563,7 @@
       <button data-ly="turtle">Turtle S1/S2</button>
       <button data-ly="reverse">Reverse S1s/S2s</button>
       <button data-ly="volume" class="on">Volume</button>
+      <button data-ly="positions" class="on">Positions</button>
     </div>
     <span class="ctl-label" style="margin-left:8px">Declutter</span>
     <div class="seg" id="segRecent"><button data-r="0" class="on">All</button><button data-r="1">Recent</button></div>
@@ -595,6 +616,7 @@
     <button class="tabbtn" data-tab="eff">Effectiveness</button>
     <button class="tabbtn" data-tab="read">Read</button>
     <button class="tabbtn" data-tab="trade">Trade</button>
+    <button class="tabbtn" data-tab="positions">Positions</button>
     <button class="tabbtn" data-tab="log">Check log</button>
     <button class="tabbtn" data-tab="group">Group</button>
     <button class="tabbtn" data-tab="chat">Chat<span class="chatBadge"></span></button>
@@ -606,6 +628,7 @@
     <button class="tabbtn" data-tab="eff">Effectiveness</button>
     <button class="tabbtn" data-tab="read">Read</button>
     <button class="tabbtn" data-tab="trade">Trade</button>
+    <button class="tabbtn" data-tab="positions">Positions</button>
     <button class="tabbtn" data-tab="log">Check log</button>
     <button class="tabbtn" data-tab="group">Group</button>
     <button class="tabbtn" data-tab="chat">Chat<span class="chatBadge"></span></button>
@@ -729,6 +752,63 @@
       </details>
     </div>
   </div><!-- /trade panel -->
+  <div class="tabpanel" data-tab="positions">
+    <div class="card">
+      <div class="posHead">
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.28</span></h2>
+        <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
+      </div>
+      <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
+      <div id="posStatus" style="font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px"></div>
+      <div id="posInboxWrap" style="margin-top:10px">
+        <div class="posHead"><div><b style="font-size:12px">Import inbox</b> <span id="posInboxCount" class="posPill">-</span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn" id="posInboxBtn" style="padding:4px 10px;font-size:11px">Scan fills</button>
+            <button class="btn" id="posGapBtn" style="padding:4px 10px;font-size:11px">Check missed bars</button>
+          </div></div>
+        <div id="posInbox"></div>
+      </div>
+      <div id="posAuthNote" style="display:none;font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:8px">Sign in on the Chat tab first — positions are private to your login and sync across your devices.</div>
+
+      <div id="posForm" style="display:none;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px">
+        <div class="posGrid">
+          <input id="pfUnder" class="wide" placeholder="Underlying e.g. NET" autocapitalize="characters" spellcheck="false">
+          <select id="pfStrat"></select>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">lots</span>
+          <input id="pfLots" type="number" min="1" step="1" value="1" style="width:64px">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">opened</span>
+          <input id="pfDate" type="date" style="width:150px">
+        </div>
+        <div id="pfLegs"></div>
+        <div style="margin-top:4px"><button class="btn" id="pfAddLeg" style="display:none;padding:4px 10px;font-size:11px">+ leg</button></div>
+        <div class="posGrid" id="pfInputs"></div>
+        <div class="posGrid">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">net entry $ (+credit / −debit)</span>
+          <input id="pfNet" type="number" step="0.01">
+          <span id="pfNetAuto" style="font-family:var(--mono);font-size:10.5px;color:var(--faint)"></span>
+        </div>
+        <div class="posTrig" id="pfTrig"></div>
+        <div class="posGrid">
+          <button class="btn" id="pfSave">Save trade</button>
+          <button class="btn" id="pfCancel">Cancel</button>
+          <span class="err" id="pfErr" style="font-family:var(--mono);font-size:11px"></span>
+        </div>
+      </div>
+
+      <h2 style="margin-top:18px">Open</h2>
+      <div id="posOpen"><div style="font-family:var(--mono);font-size:11px;color:var(--faint)">nothing yet</div></div>
+
+      <h2 style="margin-top:22px">Closed</h2>
+      <div id="posStats" style="font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:4px"></div>
+      <div id="posClosed" class="log" style="margin-top:8px"></div>
+
+      <div style="border-top:1px dashed var(--line);margin-top:18px;padding-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.6">
+        Feed import (BankSync via Claude Code) lands next session — the push script needs your user id:
+        <span id="posUid" style="color:var(--mut)">sign in to see it</span>
+        <button class="btn" id="posUidCopy" style="padding:2px 8px;font-size:10px;margin-left:6px">copy</button>
+      </div>
+    </div>
+  </div><!-- /positions panel -->
   <div class="tabpanel" data-tab="log">
   <div class="card" id="checklogCard" style="margin-top:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
@@ -1552,7 +1632,7 @@ function analyse(bars){
    ============================================================ */
 document.getElementById('verBadge').textContent='engine '+ENGINE_VERSION;
 const S={src:'NVDA',tf:'2',lens:1,ticker:PAM_DATA.ticker,name:(PAM_DATA.name||''),effMonths:36,
-  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false,volume:true}, recentOnly:false,
+  layers:{pam:true,sma:true,channels:false,turtle:false,reverse:false,volume:true,positions:true}, recentOnly:false,
   ind:{stoch:false,rsi:false,macd:false,atr:false}, span:null, start:null};
 const THEMES={dark:{grid:'#1b232c',chipBg:'#10161d',zero:'#2a3550'},light:{grid:'#e7e1d4',chipBg:'#fffdf9',zero:'#ded7ca'}};
 let THEME='dark'; try{THEME=localStorage.getItem('pam_theme')||'dark';}catch(e){}
@@ -1936,6 +2016,8 @@ function drawCore(){
     [['#cf7a64',t.sl],['#6f7fa6',t.tgt]].forEach(([c,lv])=>{if(lv>hi||lv<lo)return;
       ctx.strokeStyle=c;ctx.setLineDash([4,3]);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(xr0,y(lv));ctx.lineTo(x1,y(lv));ctx.stroke();ctx.setLineDash([]);});
   }
+  // positions layer (v0.27) — SL/TP lines + entry/exit markers come from the account module
+  if(S.layers.positions&&window.POS){try{POS.drawOn({ctx,view,x,y,i0,W,padL,padR,priceTop,priceBot,hi,lo});}catch(e){}}
   // ===== indicator sub-panels (share the x-axis; date gridlines already drawn behind) =====
   function pY(p,v,vmin,vmax){return p.top+(vmax-v)/(vmax-vmin)*(p.bot-p.top);}
   function pPoly(p,key,col,w,vmin,vmax){ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();let st=false;
@@ -2001,7 +2083,20 @@ function xhPill(cx,cy,text,C){             // a small filled axis label centred 
   octx.strokeStyle=C.line; octx.lineWidth=1; octx.strokeRect(cx-w/2+0.5,cy-h/2+0.5,w-1,h-1);
   octx.fillStyle=C.txt; octx.fillText(text,cx,cy+0.5);
 }
+function posTipShow(L,mx,my,rWidth,isTouch){  // v0.27 — hover card for a position SL/TP line
+  tip.innerHTML=`<div class="d">${L.strat}</div>
+    <div class="row"><span style="color:${L.color}">${L.label}</span><b>${xhPrice(L.price)}</b></div>
+    <div class="cls" style="color:#8895ad;max-width:230px;white-space:normal;line-height:1.5">${L.why}</div>`;
+  tip.style.opacity=1;
+  const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
+  const tw=tip.offsetWidth||196, th=tip.offsetHeight||90, gapX=16, gapY=isTouch?26:16;
+  let lx=ox+mx+gapX; if(lx+tw>ox+rWidth-6)lx=ox+mx-gapX-tw; lx=Math.max(ox+6,Math.min(lx,ox+rWidth-tw-6));
+  let ty; if(isTouch){ty=oy+my-gapY-th; if(ty<oy+6)ty=oy+my+gapY;} else {ty=oy+my+gapY; if(ty+th>oy+chartH-6)ty=oy+my-gapY-th;}
+  ty=Math.max(oy+6,Math.min(ty,oy+chartH-th-6));
+  tip.style.left=lx+'px'; tip.style.top=ty+'px';
+}
 function showTip(b,mx,my,rWidth,isTouch){   // rich OHLC card (shared by mouse + touch); mx,my = pointer in chart CSS px
+  if(GEO&&GEO.posLv&&GEO.posLv.length){const hit=GEO.posLv.find(L=>Math.abs(L.y-my)<=6); if(hit){posTipShow(hit,mx,my,rWidth,isTouch);return;}}
   if(!b)return;
   const trig=TRIGS.find(t=>t.i===b.i);
   const dirw=b.cls.dir==='bull'?'<span style="color:var(--long)">bullish</span>':b.cls.dir==='bear'?'<span style="color:var(--short)">bearish</span>':'neutral';
@@ -2233,6 +2328,7 @@ async function fetchSymbol(ticker){
     recompute(); buildEff(); renderEffectiveness();
     setStatus(ticker+': '+daily.close.length+' daily'+(weekly?(' · '+weekly.close.length+' weekly'):' · no weekly (2-Day fallback)')+(coName?(' · '+coName):'')+' loaded','ok');
     S.lastSym=ticker; if(typeof logCheck==='function'){logCheck(ticker,S.name);}else if(typeof saveLocal==='function'){saveLocal();}
+    if(window.POS){try{POS.onBars(ticker,daily);}catch(e){}}
   }catch(err){
     setStatus('Couldn’t load '+ticker+': '+err.message+'. Check the symbol/key, or use “Paste data…”.','err');
   }finally{ $('#fetchBtn').disabled=false; FETCH_BUSY=false; }
@@ -2964,7 +3060,7 @@ if(S.lastSym && ($('#keyInput').value||'').trim() && !DRIVE.connected){ $('#tkIn
 (function(){ const tb=document.getElementById('themeToggle'); if(tb){ tb.textContent=THEME==='light'?'◐ Dark':'◐ Light'; tb.onclick=()=>applyTheme(THEME==='light'?'dark':'light'); } applyTheme(THEME); })();
 /* ===== tabbed workspace + swipe ===== */
 (function(){
-  const TABS=['scan','eff','read','trade','log','group','chat'];
+  const TABS=['scan','eff','read','trade','positions','log','group','chat'];
   window.__pamTab='scan';
   function setTab(t){ if(TABS.indexOf(t)<0)t='scan'; window.__pamTab=t;
     document.querySelectorAll('.tabpanel').forEach(p=>p.classList.toggle('on',p.getAttribute('data-tab')===t));
@@ -3603,6 +3699,609 @@ setInterval(()=>{
     const f=q('chatFeed');f.scrollTop=f.scrollHeight;
   }
 },400);
+
+/* ============================================================
+   POSITIONS — v0.27 (P2a session 1)
+   Registry-driven options campaigns. Supabase: trades + trade_legs
+   (bank_fills / eod_marks are written by the feed script and used
+   by the importer next session). Engine block untouched.
+   ============================================================ */
+const POSD={list:[],uid:null,dirtyNet:false};
+const f2=v=>(Math.round(v*100)/100).toFixed(2);
+const money=v=>(v<0?'-$':'$')+f2(Math.abs(v));
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const dteOf=exp=>{if(!exp)return null;return Math.round((new Date(exp+'T00:00:00')-new Date(todayISO()+'T00:00:00'))/864e5);};
+const occBuild=(sym,exp,cp,k)=>{const m=String(exp).split('-');return sym.toUpperCase()+m[0].slice(2)+m[1]+m[2]+cp+String(Math.round(k*1000)).padStart(8,'0');};
+function R(kind,txt,why){return{kind,txt,why};}
+function lotQ(t){return Math.max(1,+t.lots||1);}
+function K(t,id){const l=t.map&&t.map[id];return l?+l.strike:NaN;}
+function width$(t,a,b){return Math.abs(K(t,a)-K(t,b))*100*legQty(t,a);}
+function legQty(t,id){const l=t.map&&t.map[id];return l?Math.max(1,+l.qty||1):lotQ(t);}
+
+
+/* ---- earnings calendar (from the nightly scan's earnings.json in the repo) ---- */
+const EARN={loaded:false,symbols:null};
+fetch('https://raw.githubusercontent.com/normacky/pam_analyzer/main/earnings.json?nc='+Date.now(),{cache:'no-store'})
+ .then(r=>r.json()).then(j=>{EARN.symbols=(j&&j.symbols)||{};EARN.loaded=true;try{renderPositions();}catch(e){}}).catch(()=>{});
+function nextEarn(sym){if(!EARN.symbols)return null;const rows=EARN.symbols[sym];if(!rows)return null;
+ const t=todayISO();let best=null;rows.forEach(r=>{const d=r[0];if(d>=t&&(!best||d<best))best=d;});return best;}
+function earnRule(t){
+ if(!EARN.loaded)return R('info','Earnings check pending (calendar loading)','Dates come from the nightly scan earnings.json in the repo.');
+ const e=nextEarn(t.row.underlying);
+ if(!e)return R('info','No earnings in the calendar window','The calendar reaches ~65 days out; re-check manually for far expiries.');
+ if(t.minExp&&e<=t.minExp)return R('cut','Earnings '+e+' BEFORE expiry - close/cut ahead of it','Ruleset: no earnings inside a short-premium expiry; gap risk outweighs the remaining credit. Alert fires within 7 days of the date.');
+ return R('info','Earnings '+e+' - after expiry, clear','Next report lands beyond this position\'s nearest expiry.');
+}
+
+/* ---- v0.28 importer engine: fills -> campaigns -> proposed trades (pure, testable) ---- */
+function occParse(occ){const m=String(occ).match(/^([A-Z.]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/);if(!m)return null;
+ return{und:m[1],expiry:'20'+m[2]+'-'+m[3]+'-'+m[4],cp:m[5],strike:+m[6]/1000};}
+function vwapPx(fs){let q=0,pq=0;fs.forEach(f=>{q+=+f.q;pq+=+f.p*+f.q;});return q?pq/q:null;}
+function cashOf(fs){return fs.reduce((a,f)=>a+((f.side==='sell'?1:-1)*+f.p*+f.q*100),0);}
+function feesOf(fs){return fs.reduce((a,f)=>a+(+f.f||0),0);}
+function clusterCampaigns(fills,todayISO){
+ const camps=[];let cur=null,book={};      // book: occ -> live spell
+ const flat=()=>Object.values(book).every(s=>!s||s.qty===0);
+ fills.forEach(fill=>{
+  const meta=occParse(fill.occ);if(!meta)return;
+  const sgn=(fill.side==='buy'?1:-1)*+fill.q;
+  if(!cur){cur={und:meta.und,start:fill.d,fills:[],spells:[],events:[],open:true};book={};}
+  cur.fills.push(fill);
+  let s=book[fill.occ];
+  if(!s||s.qty===0){
+   s={occ:fill.occ,...meta,dir:sgn>0?'long':'short',qty:0,peak:0,openF:[],closeF:[],openDate:fill.d,closed:false,
+      preHistory:/TOCLOSE/i.test(fill.descr||'')};
+   book[fill.occ]=s;cur.spells.push(s);
+  }
+  const opening=(s.dir==='long')===(sgn>0);
+  if(opening){s.openF.push(fill);s.qty+=Math.abs(sgn);}
+  else{s.closeF.push(fill);s.qty-=Math.abs(sgn);if(s.qty<=0){s.qty=0;s.closed=true;s.closeDate=fill.d;}}
+  s.peak=Math.max(s.peak,s.qty);
+  if(flat()){cur.end=fill.d;cur.open=false;camps.push(cur);cur=null;}
+ });
+ if(cur)camps.push(cur);
+ camps.forEach(c=>{
+  c.spells.forEach(s=>{
+   if(!s.closed&&s.expiry<todayISO){s.closed=true;s.expired=true;s.closeDate=s.expiry;} // expired worthless
+   s.openPx=vwapPx(s.openF);s.closePx=s.closed?(s.expired?0:vwapPx(s.closeF)):null;
+   s.fees=feesOf(s.openF)+feesOf(s.closeF);
+   s.realized=s.closed?(s.preHistory?null:cashOf(s.openF)+cashOf(s.closeF)+(s.expired?0:0)):null;
+  });
+  // rolls (post-pass, fill-order independent): same date, same cp+dir, one spell closed + another opened
+  const used=new Set();
+  c.spells.forEach(sc=>{
+   if(!sc.closed||sc.expired)return;const D=sc.closeDate;if(sc.openDate===D)return;
+   const mate=c.spells.find(o=>o!==sc&&!used.has(o)&&o.dir===sc.dir&&o.cp===sc.cp&&o.openDate===D&&o.openDate!==c.start);
+   if(mate){used.add(mate);c.events.push({type:'roll',date:D,from:sc.occ,to:mate.occ,cash:cashOf(sc.closeF)+cashOf(mate.openF)});}
+  });
+  c.events.sort((x,y)=>x.date<y.date?-1:1);
+  c.open=c.spells.some(s=>!s.closed);
+  if(!c.open&&!c.end)c.end=c.spells.reduce((a,s)=>s.closeDate>a?s.closeDate:a,'');
+  c.netEntry=cashOf(c.fills.filter(f=>f.d===c.start));
+  c.realized=c.spells.reduce((a,s)=>a+(s.realized||0),0);
+  c.needsBasis=c.spells.some(s=>s.preHistory);
+  c.proposal=proposeStrat(c);
+ });
+ return camps;
+}
+function proposeStrat(c){
+ const init=c.spells.filter(s=>s.openDate===c.start&&!s.preHistory);
+ const by=(cp,dir)=>init.filter(s=>s.cp===cp&&s.dir===dir);
+ const n=init.length,bc=by('C','long'),sc=by('C','short'),bp=by('P','long'),sp=by('P','short');
+ if(n===1){if(bc.length)return'long_call';if(bp.length)return'long_put';if(sp.length)return'short_put';if(sc.length)return'short_call';}
+ if(n===2&&sp.length===1&&bp.length===1&&sp[0].expiry===bp[0].expiry)
+  return sp[0].strike>bp[0].strike?'bull_put_spread':'bear_put_spread';
+ if(n===2&&sc.length===1&&bc.length===1&&sc[0].expiry===bc[0].expiry)
+  return sc[0].strike<bc[0].strike?'bear_call_spread':'bull_call_spread';
+ if(n===2&&bc.length===1&&sc.length===1&&bc[0].expiry>sc[0].expiry)return'diagonal_call';
+ if(n===3&&bc.length===1&&sp.length===1&&bp.length===1&&sp[0].strike>bp[0].strike)return'bull_bang';
+ if(n===4&&bc.length===1&&sp.length===1&&bp.length===1&&sc.length===1
+    &&sc[0].expiry<bc[0].expiry&&Math.abs(sp[0].strike-bc[0].strike)<1e-9&&bp[0].strike<sp[0].strike)return'bb_collar';
+ return'custom';
+}
+
+/* ---- the strategy registry: data + tiny formulas, engine is generic ---- */
+const POS_STRATS={
+ bull_put_spread:{name:'Bull put spread',kind:'credit',earn:true,
+  legs:[{id:'sp',lbl:'Sell put (higher K)',cp:'P',side:'sell'},{id:'lp',lbl:'Buy put (lower K)',cp:'P',side:'buy'}],
+  derived:t=>{const w=width$(t,'sp','lp');return{credit:t.net,maxLoss:w-t.net,maxProfit:t.net,be:K(t,'sp')-t.net/(100*legQty(t,'sp'))};},
+  levels:t=>[
+   {price:K(t,'sp'),color:'#cf7a64',label:'Cut - short strike',why:'Ruleset: cut loss if price reaches the short-put strike. A managed cut typically costs ~1.5x the credit; a gap through can cost more.'},
+   {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Short strike minus credit per share. Below here the spread loses at expiry.'}],
+  rules:t=>[
+   R('tp','TP: 90% of credit captured ('+money(.9*t.d.credit)+' of '+money(t.d.credit)+')','Ruleset: take profit at 90% of net credit - 80% if you need the buying power back. Live marking lands in P2b; until then check the mark at your broker.'),
+   R('cut','Cut: loss reaches 1.5x credit ('+money(1.5*t.d.credit)+')','Ruleset: a cut typically costs ~1.5x credit - keep that under 3% of NLV. Mark-based; live in P2b.'),
+   R('cut','Cut line: short strike '+f2(K(t,'sp'))+' (on chart, alerts live)','Ruleset: exit if price touches the short-put strike.'),
+   R('dte','Close before expiry - alerts at 21 / 7 / 1 / 0 DTE','Ruleset hard rule: expiring below the short strike can cost the full max loss (up to 4x credit). Max loss here: '+money(t.d.maxLoss)+'.'),
+   earnRule(t)]},
+ bear_call_spread:{name:'Bear call spread',kind:'credit',earn:true,
+  legs:[{id:'sc',lbl:'Sell call (lower K)',cp:'C',side:'sell'},{id:'lc',lbl:'Buy call (higher K)',cp:'C',side:'buy'}],
+  derived:t=>{const w=width$(t,'sc','lc');return{credit:t.net,maxLoss:w-t.net,maxProfit:t.net,be:K(t,'sc')+t.net/(100*legQty(t,'sc'))};},
+  levels:t=>[
+   {price:K(t,'sc'),color:'#cf7a64',label:'Cut - short strike',why:'Ruleset: cut loss if price reaches the short-call strike. A managed cut typically costs ~1.5x the credit.'},
+   {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Short strike plus credit per share. Above here the spread loses at expiry.'}],
+  rules:t=>[
+   R('tp','TP: 90% of credit captured ('+money(.9*t.d.credit)+' of '+money(t.d.credit)+')','Ruleset: identical discipline to the bull put spread - 90% of credit, 80% to free buying power.'),
+   R('cut','Cut: loss reaches 1.5x credit ('+money(1.5*t.d.credit)+')','Ruleset: cut when the loss hits 1.5x the credit received.'),
+   R('cut','Cut line: short strike '+f2(K(t,'sc'))+' (on chart, alerts live)','Ruleset: exit if price touches the short-call strike.'),
+   R('dte','Close before expiry - alerts at 21 / 7 / 1 / 0 DTE','Ruleset hard rule: never let a credit spread expire in trouble. Max loss here: '+money(t.d.maxLoss)+'.'),
+   earnRule(t)]},
+ bull_call_spread:{name:'Bull call spread',kind:'debit',
+  legs:[{id:'lc',lbl:'Buy call (lower K)',cp:'C',side:'buy'},{id:'sc',lbl:'Sell call (target K)',cp:'C',side:'sell'}],
+  derived:t=>{const w=width$(t,'lc','sc');return{debit:-t.net,maxLoss:-t.net,maxProfit:w+t.net,be:K(t,'lc')-t.net/(100*legQty(t,'lc'))};},
+  levels:t=>[
+   {price:K(t,'sc'),color:'#5fb89e',label:'Target - short strike',why:'Max profit is realised at/above here at expiry. Ruleset TP: close at 80% of max profit rather than holding for the last dollars.'},
+   {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Long strike plus debit per share. Above here the spread wins at expiry.'}],
+  rules:t=>[
+   R('tp','TP: 80% of max profit ('+money(.8*t.d.maxProfit)+' of '+money(t.d.maxProfit)+')','Ruleset (debit verticals): take profit at 80% of max profit - most of the remaining value only arrives at expiry.'),
+   R('cut','Cut: 50% of max loss ('+money(.5*t.d.maxLoss)+')','Ruleset: cut at 50% of max loss. Exception the card allows: a >80% loss from a gap with >2 weeks left may be held for a bounce - your call.'),
+   R('dte','Expiry alerts at 21 / 7 / 1 / 0 DTE','Card runs ~30 DTE; profit accrues toward expiry, so the TP check matters more as DTE shrinks.')]},
+ bear_put_spread:{name:'Bear put spread',kind:'debit',
+  legs:[{id:'lp',lbl:'Buy put (higher K)',cp:'P',side:'buy'},{id:'sp',lbl:'Sell put (target K)',cp:'P',side:'sell'}],
+  derived:t=>{const w=width$(t,'lp','sp');return{debit:-t.net,maxLoss:-t.net,maxProfit:w+t.net,be:K(t,'lp')+t.net/(100*legQty(t,'lp'))};},
+  levels:t=>[
+   {price:K(t,'sp'),color:'#5fb89e',label:'Target - short strike',why:'Max profit is realised at/below here at expiry. Ruleset TP: close at 80% of max profit.'},
+   {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Long strike minus debit per share. Below here the spread wins at expiry.'}],
+  rules:t=>[
+   R('tp','TP: 80% of max profit ('+money(.8*t.d.maxProfit)+' of '+money(t.d.maxProfit)+')','Ruleset (debit verticals): take profit at 80% of max profit.'),
+   R('cut','Cut: 50% of max loss ('+money(.5*t.d.maxLoss)+')','Ruleset: cut at 50% of max loss; the >80% gap-loss exception with >2 weeks left applies here too.'),
+   R('dte','Expiry alerts at 21 / 7 / 1 / 0 DTE','Card runs ~30 DTE.')]},
+ bull_bang:{name:'Bull bang',kind:'debit',uncapped:true,
+  inputs:[{id:'tp',lbl:'Profit target $'},{id:'sl',lbl:'Max loss you accept $'}],
+  legs:[{id:'lc',lbl:'Buy call (slightly OTM)',cp:'C',side:'buy'},{id:'sp',lbl:'Sell put (at support)',cp:'P',side:'sell'},{id:'pp',lbl:'Buy put (protection)',cp:'P',side:'buy'}],
+  derived:t=>{const w=width$(t,'sp','pp');return{maxLoss:w-t.net,maxProfit:Infinity};},
+  levels:t=>[
+   {price:K(t,'sp'),color:'#d4a85c',label:'Short put - defend zone',why:'Card: set at PAM support you are willing to own. Below here you behave like an owner and assignment starts to matter.'},
+   {price:K(t,'pp'),color:'#cf7a64',label:'Protection floor',why:'Below here the max-loss zone begins. Max loss: (put width + net debit) = '+money(t.d.maxLoss)+'.'}],
+  rules:t=>[
+   R('tp',(t.user.tp?'TP: your target '+money(+t.user.tp):'TP: set a $ target - the card has no fixed % rule'),'Card: take profit at YOUR target; an early exit also captures leftover time value. Upside is unlimited (behaves like shares above the long-call strike), so the strip shows $ P&L and ROI, not % of max.'),
+   R('cut',(t.user.sl?'Stop: your max loss '+money(+t.user.sl):'Stop: set a $ stop (must be less than max loss '+money(t.d.maxLoss)+')'),'Card: cut at your stop if it is smaller than max loss, or when the bullish setup is no longer valid on the chart.'),
+   R('dte','Close ALL legs together - expiry alerts at 21 / 7 / 1 / 0 DTE','Card: multi-leg synthetics are always closed as one unit unless deliberately legging out.')]},
+ long_call:{name:'Long call',kind:'debit',
+  inputs:[{id:'tp',lbl:'Profit target $ (default 2x premium)'},{id:'sl',lbl:'Stop $ (default 50% premium)'}],
+  legs:[{id:'lc',lbl:'Buy call',cp:'C',side:'buy'}],
+  derived:t=>({debit:-t.net,be:K(t,'lc')-t.net/(100*legQty(t,'lc'))}),
+  levels:t=>[{price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Strike plus premium per share - above here the call wins at expiry.'}],
+  rules:t=>[
+   R('tp',(+t.user.tp?'TP: your target '+money(+t.user.tp):'TP: 2x premium ('+money(2*t.d.debit)+') by default'),'Ruleset (long singles): default take-profit at 2x the premium paid, or your own target. Marked live in P2b.'),
+   R('cut',(+t.user.sl?'Stop: '+money(+t.user.sl):'Stop: 50% of premium ('+money(.5*t.d.debit)+')'),'Ruleset: cut a long option at 50% of premium - time decay only accelerates from there.'),
+   R('dte','Expiry alerts at 21 / 7 / 1 / 0 DTE','Long options bleed time value into expiry; do not hold the last weeks without a working thesis.')]},
+ long_put:{name:'Long put',kind:'debit',
+  inputs:[{id:'tp',lbl:'Profit target $ (default 2x premium)'},{id:'sl',lbl:'Stop $ (default 50% premium)'}],
+  legs:[{id:'lp',lbl:'Buy put',cp:'P',side:'buy'}],
+  derived:t=>({debit:-t.net,be:K(t,'lp')+t.net/(100*legQty(t,'lp'))}),
+  levels:t=>[{price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Strike minus premium per share - below here the put wins at expiry.'}],
+  rules:t=>[
+   R('tp',(+t.user.tp?'TP: your target '+money(+t.user.tp):'TP: 2x premium ('+money(2*t.d.debit)+') by default'),'Ruleset (long singles): default take-profit at 2x premium, or your own target. Marked live in P2b.'),
+   R('cut',(+t.user.sl?'Stop: '+money(+t.user.sl):'Stop: 50% of premium ('+money(.5*t.d.debit)+')'),'Ruleset: cut a long option at 50% of premium.'),
+   R('dte','Expiry alerts at 21 / 7 / 1 / 0 DTE','Time decay works against you into expiry.')]},
+ short_put:{name:'Short put (CSP)',kind:'credit',earn:true,
+  legs:[{id:'sp',lbl:'Sell put',cp:'P',side:'sell'}],
+  derived:t=>({credit:t.net,be:K(t,'sp')-t.net/(100*legQty(t,'sp'))}),
+  levels:t=>[
+   {price:K(t,'sp'),color:'#cf7a64',label:'Cut / assignment - strike',why:'Card: below the strike you are behaving like an owner. Cut, roll, or accept assignment deliberately - never by accident.'},
+   {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Strike minus credit per share.'}],
+  rules:t=>[
+   R('tp','TP: ~70% of premium decayed ('+money(.7*t.d.credit)+' kept)','Ruleset (CSP/CC family): buy back around 70% decay and redeploy - the last 30% is slow. Marked live in P2b.'),
+   R('cut','Cut line: strike touch (on chart, alerts live)','Card: exit or roll when price reaches the short strike unless you want the shares.'),
+   R('dte','Close/roll before expiry - alerts at 21 / 7 / 1 / 0 DTE','Assignment risk concentrates in the final week.'),
+   earnRule(t)]},
+ short_call:{name:'Short call',kind:'credit',earn:true,
+  legs:[{id:'sc',lbl:'Sell call',cp:'C',side:'sell'}],
+  derived:t=>({credit:t.net,be:K(t,'sc')+t.net/(100*legQty(t,'sc'))}),
+  levels:t=>[
+   {price:K(t,'sc'),color:'#cf7a64',label:'Cut - short strike',why:'Above the strike a naked call loses open-endedly (a covered one caps the shares). Roll up/out or close.'},
+   {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Strike plus credit per share.'}],
+  rules:t=>[
+   R('tp','TP: ~70% of premium decayed ('+money(.7*t.d.credit)+' kept)','Ruleset (CC family): buy back around 70% decay and re-sell the next expiry. Marked live in P2b.'),
+   R('cut','Cut line: strike touch (on chart, alerts live)','Card: roll or close when price reaches the strike; if covered by shares, rolling keeps the upside.'),
+   R('dte','Close/roll before expiry - alerts at 21 / 7 / 1 / 0 DTE','Assignment risk concentrates in the final week.'),
+   earnRule(t)]},
+ diagonal_call:{name:'Diagonal call (PMCC)',kind:'debit',earn:true,
+  inputs:[{id:'sl',lbl:'Mark-loss guard $ (default 50% of debit)'}],
+  legs:[{id:'lc',lbl:'Buy call (far expiry)',cp:'C',side:'buy'},{id:'sc',lbl:'Sell call (near expiry)',cp:'C',side:'sell'}],
+  derived:t=>({debit:-t.net}),
+  levels:t=>[{price:K(t,'sc'),color:'#d4a85c',label:'Roll zone - short strike',why:'Card: as price approaches the short strike, roll it up/out so it stops capping the long leg.'}],
+  rules:t=>[
+   R('tp','TP per short leg: ~70% of its premium decayed - then roll','Ruleset (calendar/diagonal family): each short call is its own income cycle; harvest ~70% and re-sell. Marked live in P2b.'),
+   R('cut',(+t.user.sl?'Mark-loss guard: '+money(+t.user.sl):'Mark-loss guard: 50% of net debit ('+money(.5*t.d.debit)+')'),'Card: exit the whole structure if the marked loss reaches the guard. Marked live in P2b.'),
+   R('dte','Close ALL when the long leg is under 30 DTE - alerts at 21 / 7 / 1 / 0 on the nearest leg','Card: the long leg is the engine; under ~30 DTE its decay outruns the short-leg income.'),
+   R('info','Trend-break stop: 50MA under 150MA, or price under a declining 200MA','Card SL: exit the structure on a trend break - eyeball it on the chart; auto-check lands with marking.'),
+   earnRule(t)]},
+ bb_collar:{name:'BB Collar',kind:'debit',uncapped:true,earn:true,
+  inputs:[{id:'tp',lbl:'Campaign target $'},{id:'sl',lbl:'Campaign stop $'},{id:'res',lbl:'Resistance (roll line) price'}],
+  legs:[{id:'lc',lbl:'Buy call (far)',cp:'C',side:'buy'},{id:'sp',lbl:'Sell put (same strike, far)',cp:'P',side:'sell'},{id:'pp',lbl:'Buy put (protection, far)',cp:'P',side:'buy'},{id:'sc',lbl:'Sell call (near - the collar)',cp:'C',side:'sell'}],
+  derived:t=>({maxLossCore:(K(t,'sp')-K(t,'pp'))*100*legQty(t,'sp')-t.net}),
+  levels:t=>{const a=[
+   {price:K(t,'sp'),color:'#d4a85c',label:'Synthetic strike - support',why:'The synthetic (long call + short put, same strike) behaves like shares from here. Card: set at PAM support you are willing to own.'},
+   {price:K(t,'pp'),color:'#cf7a64',label:'Protection floor',why:'Below here the protective put caps the damage on the far legs. Core max loss: '+money(t.d.maxLossCore)+' (short-call credits reduce it as they accrue).'}];
+   if(+t.user.res)a.push({price:+t.user.res,color:'#5fb89e',label:'Roll zone - resistance',why:'Card: when price breaks resistance (or short-call delta > 0.80 - auto in P2b), roll the short call up/out so it stops capping the synthetic.'});
+   return a;},
+  rules:t=>[
+   R('info','Roll the short call at resistance'+(+t.user.res?' ('+f2(+t.user.res)+', line on chart)':' - set the resistance price to draw the line'),'Card: the collar call finances the trade; roll it up/out when price threatens it rather than letting it cap the synthetic. Delta > 0.80 auto-alert lands in P2b.'),
+   R('tp',(+t.user.tp?'TP: campaign target '+money(+t.user.tp):'TP: set a campaign $ target'),'Card: whole-campaign target including every roll credit collected so far. Upside above the synthetic strike is share-like.'),
+   R('cut',(+t.user.sl?'Stop: campaign loss '+money(+t.user.sl):'Stop: set a campaign $ stop (core max loss '+money(t.d.maxLossCore)+')'),'Card: cut at your stop, or when the bullish structure fails on the chart.'),
+   R('dte','Nearest short leg drives 21 / 7 / 1 / 0 alerts - roll it; close ALL if the far legs pass under 30 DTE','Each collar call is rolled; the far synthetic is closed as one unit near its own expiry.'),
+   earnRule(t)]},
+ custom:{name:'Custom',kind:'custom',custom:true,
+  inputs:[{id:'tp',lbl:'Profit target $ (opt)'},{id:'sl',lbl:'Max loss $ (opt)'},{id:'l1',lbl:'Alert line 1 price (opt)'},{id:'l2',lbl:'Alert line 2 price (opt)'}],
+  legs:[],
+  derived:t=>({}),
+  levels:t=>{const a=[];if(+t.user.l1)a.push({price:+t.user.l1,color:'#d4a85c',label:'Alert line 1',why:'Your own level - fires an alert when a bar touches it.'});if(+t.user.l2)a.push({price:+t.user.l2,color:'#cf7a64',label:'Alert line 2',why:'Your own level - fires an alert when a bar touches it.'});return a;},
+  rules:t=>{const a=[];if(+t.user.tp)a.push(R('tp','TP: your target '+money(+t.user.tp),'Your own rule - marked live in P2b.'));if(+t.user.sl)a.push(R('cut','Stop: your max loss '+money(+t.user.sl),'Your own rule - marked live in P2b.'));a.push(R('dte','Expiry alerts at 21 / 7 / 1 / 0 DTE','On the nearest open leg.'));if(!a.length)a.push(R('info','No triggers defined yet','Add a target, stop or alert line above.'));return a;}}
+};
+/* map stored legs back onto template ids (no extra schema column needed) */
+function mapLegs(sk,legs){
+ const m={},by=(cp,side)=>legs.filter(l=>l.cp===cp&&l.side===side&&l.status!=='removed');
+ const hiK=(a,b)=>(+b.strike)-(+a.strike), loK=(a,b)=>(+a.strike)-(+b.strike);
+ if(sk==='bull_put_spread'){m.sp=by('P','sell').sort(hiK)[0];m.lp=by('P','buy').sort(loK)[0];}
+ else if(sk==='bear_call_spread'){m.sc=by('C','sell').sort(loK)[0];m.lc=by('C','buy').sort(hiK)[0];}
+ else if(sk==='bull_call_spread'){m.lc=by('C','buy').sort(loK)[0];m.sc=by('C','sell').sort(hiK)[0];}
+ else if(sk==='bear_put_spread'){m.lp=by('P','buy').sort(hiK)[0];m.sp=by('P','sell').sort(loK)[0];}
+ else if(sk==='bull_bang'){m.lc=by('C','buy')[0];m.sp=by('P','sell').sort(hiK)[0];m.pp=by('P','buy').sort(loK)[0];}
+ else if(sk==='long_call'){m.lc=by('C','buy')[0];}
+ else if(sk==='long_put'){m.lp=by('P','buy')[0];}
+ else if(sk==='short_put'){m.sp=by('P','sell')[0];}
+ else if(sk==='short_call'){const o=by('C','sell').filter(l=>l.status==='open');m.sc=(o.length?o:by('C','sell'))[0];}
+ else if(sk==='diagonal_call'){m.lc=by('C','buy').slice().sort((a,c)=>String(c.expiry).localeCompare(String(a.expiry)))[0];
+  const o=by('C','sell').filter(l=>l.status==='open');m.sc=(o.length?o:by('C','sell')).slice().sort((a,c)=>String(a.expiry).localeCompare(String(c.expiry)))[0];}
+ else if(sk==='bb_collar'){const far=legs.reduce((a,l)=>String(l.expiry)>a?String(l.expiry):a,'');
+  m.lc=by('C','buy').find(l=>String(l.expiry)===far);
+  m.sp=by('P','sell').find(l=>String(l.expiry)===far);
+  m.pp=by('P','buy').filter(l=>String(l.expiry)===far).sort(loK)[0];
+  const scs=by('C','sell').filter(l=>String(l.expiry)!==far),so=scs.filter(l=>l.status==='open');
+  m.sc=(so.length?so:scs).slice().sort((a,c)=>String(a.expiry).localeCompare(String(c.expiry)))[0];}
+ return m;
+}
+function posStatusMsg(m,k){const e=q('posStatus');if(e){e.textContent=m||'';e.style.color=k==='err'||k==='bad'?'var(--short)':k==='ok'?'var(--long)':'var(--mut)';}}
+function posAlert(msg){
+ posStatusMsg(msg,'bad');
+ try{
+  if(alertsOn){beep();try{navigator.vibrate&&navigator.vibrate([60,60,60]);}catch(e){}
+   if('Notification' in window&&Notification.permission==='granted'){const n=new Notification('PAM positions',{body:msg,tag:'pam-pos',renotify:true});n.onclick=()=>{try{window.focus();}catch(e){}if(window.pamSetTab)pamSetTab('positions');try{n.close();}catch(e){}};}}
+ }catch(e){}
+}
+function buildTradeObj(row,legs){
+ const strat=POS_STRATS[row.strategy]||POS_STRATS.custom;
+ const t={row,legs:legs||[],strategy:row.strategy,strat,net:+row.net_entry||0,lots:row.lots||1,user:row.user_inputs||{},fired:row.alerts_fired||{}};
+ t.map=strat.custom?{}:mapLegs(row.strategy,t.legs);
+ try{t.d=strat.derived(t)||{};}catch(e){t.d={};}
+ t.ok=strat.custom?true:Object.keys(t.map).every(k=>t.map[k]);
+ t.minDte=null;t.minExp=null;t.legs.forEach(l=>{if(l.status==='open'&&l.expiry){const d=dteOf(l.expiry);if(t.minDte==null||d<t.minDte){t.minDte=d;t.minExp=String(l.expiry);}}});
+ return t;
+}
+function tLevels(t){try{return t.ok?(t.strat.levels(t)||[]).filter(L=>isFinite(L.price)):[];}catch(e){return[];}}
+function tRules(t){try{return t.ok?(t.strat.rules(t)||[]):[R('info','Legs could not be matched to the '+t.strat.name+' template','Check leg sides/strikes, or relabel the strategy.')];}catch(e){return[];}}
+
+/* ---------------- load + render ---------------- */
+async function loadPositions(){
+ if(!ME){POSD.list=[];renderPositions();return;}
+ const {data:ts,error}=await sb.from('trades').select('*').order('created_at',{ascending:false});
+ if(error){posStatusMsg('Could not load positions: '+error.message,'err');return;}
+ let legs=[];
+ if(ts&&ts.length){const {data:ls}=await sb.from('trade_legs').select('*').in('trade_id',ts.map(r=>r.id));legs=ls||[];}
+ POSD.list=(ts||[]).map(r=>buildTradeObj(r,legs.filter(l=>l.trade_id===r.id)));
+ renderPositions();dteCheck();try{draw();}catch(e){}
+ refreshInboxCount();
+ if(!POSD.gapAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.gapAuto=1;setTimeout(()=>{try{posGapCheck();}catch(e){}},2500);}
+}
+function legLine(l){return (l.side==='sell'?'-':'+')+(l.qty||1)+' '+f2(+l.strike)+l.cp+' '+String(l.expiry||'').slice(2)+(l.open_price!=null?(' @'+f2(+l.open_price)):'');}
+function pill(txt,cls){return '<span class="posPill '+(cls||'')+'">'+txt+'</span>';}
+function rulesHTML(t){
+ return tRules(t).map(r=>{const col=r.kind==='tp'?'var(--long)':r.kind==='cut'?'var(--short)':r.kind==='dte'?'#e8c46a':'var(--mut)';
+  return '<details><summary><b style="color:'+col+'">'+esc(r.txt)+'</b></summary><div class="why">'+esc(r.why)+'</div></details>';}).join('');
+}
+function renderPositions(){
+ const open=POSD.list.filter(t=>t.row.status==='open'),closed=POSD.list.filter(t=>t.row.status==='closed');
+ const oEl=q('posOpen');
+ if(!ME){oEl.innerHTML='';q('posAuthNote').style.display='block';q('posUid').textContent='sign in to see it';}
+ else{
+  q('posAuthNote').style.display='none';q('posUid').textContent=ME.id;
+  oEl.innerHTML=open.length?open.map(t=>{
+   const dte=t.minDte,dcls=dte==null?'':dte<=7?'bad':dte<=21?'warn':'';
+   return '<div class="posCard" data-tid="'+t.row.id+'">'
+    +'<div class="posHead"><div><b>'+esc(t.row.underlying)+'</b> <span style="color:var(--mut)">'+esc(t.strat.name)+'</span></div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dte!=null?pill(dte+' DTE',dcls):'')+pill('net '+money(t.net))
+    +(t.strat.uncapped?pill('uncapped'):isFinite(t.d.maxLoss)?pill('max loss '+money(t.d.maxLoss)):'')+'</div></div>'
+    +'<div class="posLegs">'+t.legs.map(legLine).join(' &middot; ')+'</div>'
+    +'<div class="posTrig">'+rulesHTML(t)+'</div>'
+    +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
+    +'<button class="btn" data-act="close" style="padding:4px 10px;font-size:11px">Close trade</button>'
+    +'<button class="btn" data-act="del" style="padding:4px 10px;font-size:11px">Delete</button></div></div>';
+  }).join(''):'<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">nothing yet - tap + New trade, or wait for the feed importer next session</div>';
+ }
+ const cEl=q('posClosed'),sEl=q('posStats');
+ cEl.innerHTML=closed.map(t=>{const w=(+t.row.realized_pnl||0)>0;
+  return '<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:5px 0;font-family:var(--mono);font-size:11px">'
+   +'<span><b style="color:var(--txt)">'+esc(t.row.underlying)+'</b> '+esc(t.strat.name)+' <span style="color:var(--faint)">'+String(t.row.opened_at||'')+' -> '+String(t.row.closed_at||'')+'</span></span>'
+   +'<b style="color:'+(w?'var(--long)':'var(--short)')+'">'+money(+t.row.realized_pnl||0)+'</b></div>';}).join('')||'<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">no closed trades yet</div>';
+ if(closed.length){
+  const by={};closed.forEach(t=>{const k=t.strat.name;(by[k]=by[k]||{n:0,w:0,p:0});by[k].n++;by[k].p+=(+t.row.realized_pnl||0);if((+t.row.realized_pnl||0)>0)by[k].w++;});
+  const tot=closed.reduce((a,t)=>a+(+t.row.realized_pnl||0),0),wins=closed.filter(t=>(+t.row.realized_pnl||0)>0).length;
+  sEl.innerHTML='All: '+wins+'/'+closed.length+' wins ('+Math.round(100*wins/closed.length)+'%) &middot; total '+money(tot)+'<br>'
+   +Object.keys(by).map(k=>esc(k)+': '+by[k].w+'/'+by[k].n+' &middot; '+money(by[k].p)).join(' &nbsp;|&nbsp; ');
+ } else sEl.innerHTML='';
+ oEl.querySelectorAll('button[data-act]').forEach(b=>{b.onclick=()=>{
+  const id=b.closest('.posCard').getAttribute('data-tid'),t=POSD.list.find(x=>x.row.id===id);if(!t)return;
+  if(b.dataset.act==='chart'){$('#tkInput').value=t.row.underlying;fetchSymbol(t.row.underlying);}
+  else if(b.dataset.act==='close')closeTrade(t);
+  else if(b.dataset.act==='del')delTrade(t);
+ };});
+}
+async function closeTrade(t){
+ const v=prompt('Close '+t.row.underlying+' '+t.strat.name+'\nTotal $ received on close (negative if you PAID to close). Entry was '+money(t.net)+'.','0');
+ if(v==null)return;const exit=+v;if(!isFinite(exit)){posStatusMsg('Not a number.','err');return;}
+ const realized=t.net+exit,d=todayISO();
+ const {error}=await sb.from('trades').update({status:'closed',closed_at:d,realized_pnl:realized}).eq('id',t.row.id);
+ if(error){posStatusMsg('Close failed: '+error.message,'err');return;}
+ await sb.from('trade_legs').update({status:'closed',close_date:d}).eq('trade_id',t.row.id).eq('status','open');
+ posStatusMsg('Closed '+t.row.underlying+' - realized '+money(realized),'ok');loadPositions();
+}
+async function delTrade(t){
+ if(!confirm('Delete '+t.row.underlying+' '+t.strat.name+' and its legs? This cannot be undone.'))return;
+ const {error}=await sb.from('trades').delete().eq('id',t.row.id);
+ if(error){posStatusMsg('Delete failed: '+error.message,'err');return;}
+ posStatusMsg('Deleted.','');loadPositions();
+}
+
+
+/* ---------------- import inbox: fills -> proposed campaigns ---------------- */
+async function refreshInboxCount(){
+ const el=q('posInboxCount');if(!ME){el.textContent='-';return;}
+ const {count}=await sb.from('bank_fills').select('*',{count:'exact',head:true}).eq('status','unmatched');
+ el.textContent=(count==null?'-':count+' unmatched');
+}
+function spellLine(s){
+ return (s.dir==='short'?'-':'+')+s.peak+' '+f2(s.strike)+s.cp+' '+String(s.expiry).slice(2)
+  +' @'+(s.openPx!=null?f2(s.openPx):'?')
+  +(s.closed?((s.expired?' -> expired':' -> closed'+(s.closePx!=null?' @'+f2(s.closePx):''))+(s.realized!=null?' ('+money(s.realized)+')':'')):' open');
+}
+async function loadInbox(){
+ if(!ME){posStatusMsg('sign in first (Chat tab)','err');return;}
+ posStatusMsg('scanning fills\u2026');
+ const {data,error}=await sb.from('bank_fills').select('*').eq('status','unmatched').order('trade_date',{ascending:true}).order('fill_id',{ascending:true});
+ if(error){posStatusMsg(error.message,'err');return;}
+ const rows=(data||[]).map(f=>({id:f.fill_id,occ:f.occ_symbol,side:f.side,q:+f.qty_contracts,p:+f.price,d:String(f.trade_date),f:+f.fees||0,descr:f.descr||''}));
+ const byU={};rows.forEach(r=>{const m=occParse(r.occ);if(m)(byU[m.und]=byU[m.und]||[]).push(r);});
+ POSD.inbox=[];Object.keys(byU).sort().forEach(u=>{clusterCampaigns(byU[u],todayISO()).forEach(c=>POSD.inbox.push(c));});
+ renderInbox();
+ posStatusMsg(POSD.inbox.length+' campaign'+(POSD.inbox.length===1?'':'s')+' proposed from '+rows.length+' fills - confirm or ignore each','ok');
+}
+function renderInbox(){
+ const el=q('posInbox');if(!el)return;
+ if(!POSD.inbox){el.innerHTML='';return;}
+ if(!POSD.inbox.length){el.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px">no unmatched fills - everything is imported or ignored</div>';return;}
+ el.innerHTML=POSD.inbox.map((c,i)=>{
+  const dup=POSD.list.some(t=>t.row.status==='open'&&t.row.underlying===c.und);
+  return '<div class="posCard" data-ci="'+i+'">'
+   +'<div class="posHead"><div><b>'+esc(c.und)+'</b> <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">'+c.start+(c.open?' -> open':' -> '+c.end)+'</span></div>'
+   +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+pill(c.fills.length+' fills')+pill(c.open?'OPEN':'closed',c.open?'warn':'')+(c.events.length?pill(c.events.length+' roll'+(c.events.length===1?'':'s'),'warn'):'')+'</div></div>'
+   +(dup?'<div style="font-family:var(--mono);font-size:10.5px;color:#e8c46a;margin-top:4px">an open trade on '+esc(c.und)+' already exists - Ignore this card if you entered it manually</div>':'')
+   +'<div class="posGrid"><span style="font-family:var(--mono);font-size:11px;color:var(--mut)">import as</span><select class="impStrat">'
+   +Object.keys(POS_STRATS).map(k=>'<option value="'+k+'"'+(k===c.proposal?' selected':'')+'>'+esc(POS_STRATS[k].name)+(k===c.proposal?' \u2190 proposed':'')+'</option>').join('')
+   +'</select></div>'
+   +'<div class="posLegs">'+c.spells.map(spellLine).join('<br>')+'</div>'
+   +(c.events.length?'<div class="posLegs" style="color:#e8c46a">'+c.events.map(e=>'Roll '+e.date+': '+esc(e.from.slice(-15))+' -> '+esc(e.to.slice(-15))+' net '+money(e.cash)).join('<br>')+'</div>':'')
+   +'<div class="posLegs">day-1 net '+money(c.netEntry)+(c.realized?' &middot; realized so far '+money(c.realized):'')+(c.needsBasis?' &middot; <span style="color:#cf7a64">a leg predates the feed - basis unknown, edit after import</span>':'')+'</div>'
+   +'<div class="posGrid"><button class="btn impConfirm" style="padding:4px 10px;font-size:11px">Confirm import</button>'
+   +'<button class="btn impIgnore" style="padding:4px 10px;font-size:11px">Ignore</button></div>'
+   +'</div>';
+ }).join('');
+ el.querySelectorAll('.impConfirm').forEach(b=>{b.onclick=()=>importCampaign(+b.closest('.posCard').dataset.ci);});
+ el.querySelectorAll('.impIgnore').forEach(b=>{b.onclick=()=>ignoreCampaign(+b.closest('.posCard').dataset.ci);});
+}
+async function importCampaign(i){
+ const c=POSD.inbox[i];if(!c)return;
+ const sel=q('posInbox').querySelector('[data-ci="'+i+'"] .impStrat'),sk=sel?sel.value:c.proposal;
+ const trow={underlying:c.und,strategy:sk,status:c.open?'open':'closed',opened_at:c.start,closed_at:c.open?null:c.end,lots:1,
+  net_entry:Math.round(c.netEntry*100)/100,realized_pnl:Math.round((c.realized||0)*100)/100,user_inputs:{},
+  alerts_fired:{_gap:todayISO()},
+  notes:c.events.length?c.events.map(e=>'roll '+e.date+' '+e.from+' -> '+e.to+' '+money(e.cash)).join('; '):null};
+ const {data:ins,error}=await sb.from('trades').insert(trow).select().single();
+ if(error){posStatusMsg('import: '+error.message,'err');return;}
+ const lrows=c.spells.map(s=>({trade_id:ins.id,occ_symbol:s.occ,cp:s.cp,strike:s.strike,expiry:s.expiry,
+  side:s.dir,qty:s.peak,
+  open_price:s.openPx!=null?Math.round(s.openPx*10000)/10000:null,open_date:s.openDate,
+  close_price:s.closed?(s.closePx!=null?Math.round(s.closePx*10000)/10000:null):null,
+  close_date:s.closed?s.closeDate:null,
+  status:s.closed?(s.expired?'expired':'closed'):'open',
+  fees:Math.round((s.fees||0)*100)/100,
+  realized_pnl:s.realized!=null?Math.round(s.realized*100)/100:null}));
+ const {data:legIns,error:e2}=await sb.from('trade_legs').insert(lrows).select();
+ if(e2){posStatusMsg('import legs: '+e2.message,'err');return;}
+ for(let k=0;k<c.spells.length;k++){
+  const s=c.spells[k],leg=(legIns||[])[k];
+  const ids=s.openF.concat(s.closeF).map(f=>f.id);
+  if(ids.length)await sb.from('bank_fills').update({status:'matched',trade_id:ins.id,leg_id:leg?leg.id:null}).in('fill_id',ids);
+ }
+ posStatusMsg('Imported '+c.und+' as '+POS_STRATS[sk].name+'.','ok');
+ POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();loadPositions();
+}
+async function ignoreCampaign(i){
+ const c=POSD.inbox[i];if(!c)return;
+ if(!confirm('Ignore '+c.fills.length+' '+c.und+' fills? They will not be proposed again (they stay in the database, marked ignored).'))return;
+ await sb.from('bank_fills').update({status:'ignored'}).in('fill_id',c.fills.map(f=>f.id));
+ POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();
+ posStatusMsg('Ignored.','');
+}
+/* ---------------- away-check: replay daily bars missed since last look ---------------- */
+async function posGapCheck(){
+ const open=POSD.list.filter(t=>t.row.status==='open');
+ if(!open.length){posStatusMsg('no open trades to check','');return;}
+ const key=($('#keyInput').value||'').trim();
+ const canProxy=!!GROUP.token&&!!GROUP.url&&GROUP.url.indexOf('PASTE_')!==0;
+ if(!key&&!canProxy){posStatusMsg('gap check needs your Twelve Data key or group token (top of page)','err');return;}
+ if(FETCH_BUSY){posStatusMsg('another fetch is running - try again shortly','err');return;}
+ const today=todayISO();
+ const syms=[...new Set(open.map(t=>t.row.underlying))].filter(sym=>open.some(t=>t.row.underlying===sym&&t.fired._gap!==today));
+ if(!syms.length){posStatusMsg('missed-bar check: already up to date','ok');return;}
+ FETCH_BUSY=true;let hits=0;
+ try{
+  for(const sym of syms){
+   posStatusMsg('checking missed bars: '+sym+'\u2026');
+   let bars;
+   try{bars=await withRetry(()=>tdSeriesFetch(sym,'1day',90,key));}
+   catch(e){posStatusMsg(sym+': '+e.message,'err');continue;}
+   for(const t of open.filter(x=>x.row.underlying===sym)){
+    const from=String(t.fired._gap||t.row.opened_at||'');let changed=false;
+    for(let bi=0;bi<bars.close.length;bi++){
+     const bd=bars.time[bi];if(bd<=from)continue;
+     tLevels(t).forEach(L=>{
+      const k2='lv_'+L.label.replace(/\W+/g,'_')+'_'+Math.round(L.price*100);
+      if(t.fired[k2])return;
+      if(bars.low[bi]<=L.price&&L.price<=bars.high[bi]){t.fired[k2]=bd;changed=true;hits++;
+       posAlert(sym+' '+t.strat.name+': '+L.label+' '+f2(L.price)+' touched while away ('+bd+')');}
+     });
+    }
+    const lastD=bars.time[bars.time.length-1];
+    if(lastD&&t.fired._gap!==lastD){t.fired._gap=lastD;changed=true;}
+    if(changed)await sb.from('trades').update({alerts_fired:t.fired}).eq('id',t.row.id);
+   }
+  }
+  posStatusMsg('missed-bar check done - '+hits+' touch'+(hits===1?'':'es')+' found',hits?'bad':'ok');
+ }finally{FETCH_BUSY=false;}
+}
+
+/* ---------------- new-trade form ---------------- */
+function pfLegRow(tmpl,i){
+ return '<div class="posLegRow" data-i="'+i+'" data-tmpl="'+(tmpl?tmpl.id:'x'+i)+'">'
+  +(tmpl?('<span class="lbl">'+tmpl.lbl+'</span><input type="hidden" class="pfCp" value="'+tmpl.cp+'"><input type="hidden" class="pfSide" value="'+tmpl.side+'">')
+        :('<select class="pfSide"><option value="buy">buy</option><option value="sell">sell</option></select><select class="pfCp"><option value="C">C</option><option value="P">P</option></select>'))
+  +'<input class="pfK" type="number" step="0.5" placeholder="strike">'
+  +'<input class="pfExp" type="date" style="width:140px">'
+  +'<input class="pfQty" type="number" min="1" step="1" value="1" style="width:56px" title="contracts">'
+  +'<input class="pfPx" type="number" step="0.01" placeholder="price/sh">'
+  +'</div>';
+}
+function pfBuild(){
+ const sk=q('pfStrat').value,st=POS_STRATS[sk];POSD.dirtyNet=false;
+ q('pfLegs').innerHTML=st.custom?pfLegRow(null,0):st.legs.map((L,i)=>pfLegRow(L,i)).join('');
+ q('pfAddLeg').style.display=st.custom?'inline-block':'none';
+ q('pfInputs').innerHTML=(st.inputs||[]).map(inp=>'<span style="font-family:var(--mono);font-size:11px;color:var(--mut)">'+inp.lbl+'</span><input data-uin="'+inp.id+'" type="number" step="0.01">').join('');
+ q('pfLots').value=1;
+ pfRecalc();
+ q('posForm').querySelectorAll('input,select').forEach(el=>{el.oninput=()=>{if(el.id==='pfNet')POSD.dirtyNet=true;pfRecalc();};});
+}
+function pfCollect(){
+ const sk=q('pfStrat').value,st=POS_STRATS[sk],lots=Math.max(1,+q('pfLots').value||1);
+ const legs=[...q('pfLegs').querySelectorAll('.posLegRow')].map(r=>{
+  const g=c=>r.querySelector(c); return{tmpl:r.getAttribute('data-tmpl'),cp:g('.pfCp').value,side:g('.pfSide').value,
+   strike:+g('.pfK').value||null,expiry:g('.pfExp').value||null,qty:Math.max(1,+g('.pfQty').value||1)*0+((+g('.pfQty').value||1)),open_price:g('.pfPx').value===''?null:+g('.pfPx').value};});
+ const user={};q('pfInputs').querySelectorAll('input[data-uin]').forEach(i=>{if(i.value!=='')user[i.getAttribute('data-uin')]=+i.value;});
+ const auto=legs.reduce((a,l)=>a+((l.open_price!=null&&l.strike)?(l.side==='sell'?1:-1)*l.open_price*l.qty*100:0),0);
+ return{sk,st,lots,legs,user,auto};
+}
+function pfRecalc(){
+ const c=pfCollect();
+ c.legs.forEach((l,i)=>{const r=q('pfLegs').querySelectorAll('.posLegRow')[i];if(r&&!r.dataset.touched)r.querySelector('.pfQty').value=c.lots;});
+ q('pfNetAuto').textContent='auto from leg prices: '+money(c.auto)+' - edit to override';
+ if(!POSD.dirtyNet)q('pfNet').value=f2(c.auto);
+ const net=+q('pfNet').value||0;
+ const rows=c.legs.filter(l=>l.strike&&l.expiry).map(l=>({cp:l.cp,side:l.side,strike:l.strike,expiry:l.expiry,qty:l.qty,status:'open'}));
+ const fake=buildTradeObj({strategy:c.sk,net_entry:net,lots:c.lots,user_inputs:c.user,alerts_fired:{},status:'open',underlying:(q('pfUnder').value||'').toUpperCase()},rows);
+ const lv=tLevels(fake);
+ q('pfTrig').innerHTML='<div style="font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-bottom:4px">Proposed triggers - tap any row for the basis. These save with the trade.</div>'
+  +(fake.ok&&rows.length? rulesHTML(fake)+(lv.length?'<div class="why" style="padding-left:0">Chart lines: '+lv.map(L=>L.label+' @ '+f2(L.price)).join(' &middot; ')+'</div>':'')
+   :'<div class="why" style="padding-left:0">fill the strikes + expiries to see the proposed SL/TP and their rationale</div>');
+}
+async function pfSave(){
+ const c=pfCollect(),err=q('pfErr');err.textContent='';
+ const under=(q('pfUnder').value||'').trim().toUpperCase();
+ if(!ME){err.textContent='sign in first (Chat tab)';return;}
+ if(!under){err.textContent='underlying?';return;}
+ const need=c.st.custom?1:c.st.legs.length;
+ const good=c.legs.filter(l=>l.strike&&l.expiry);
+ if(good.length<need){err.textContent='fill strike + expiry on every leg';return;}
+ const opened=q('pfDate').value||todayISO();
+ const trow={underlying:under,strategy:c.sk,status:'open',opened_at:opened,lots:c.lots,net_entry:+q('pfNet').value||0,user_inputs:c.user,alerts_fired:{}};
+ const {data:ins,error}=await sb.from('trades').insert(trow).select().single();
+ if(error){err.textContent=error.message;return;}
+ const lrows=good.map(l=>({trade_id:ins.id,occ_symbol:occBuild(under,l.expiry,l.cp,l.strike),cp:l.cp,strike:l.strike,expiry:l.expiry,side:l.side,qty:l.qty,open_price:l.open_price,open_date:opened,status:'open'}));
+ const {error:e2}=await sb.from('trade_legs').insert(lrows);
+ if(e2){err.textContent='legs: '+e2.message;return;}
+ q('posForm').style.display='none';posStatusMsg('Saved '+under+' '+c.st.name+'.','ok');loadPositions();
+}
+
+/* ---------------- chart layer + alerts ---------------- */
+window.POS={
+ drawOn(env){
+  const sym=((S&&S.ticker)||PAM_DATA.ticker||'').toUpperCase();if(!sym)return;
+  GEO.posLv=[];const ctx2=env.ctx;
+  const open=POSD.list.filter(t=>t.row.status==='open'&&t.row.underlying===sym);
+  open.forEach(t=>{tLevels(t).forEach(L=>{
+   if(L.price>env.hi||L.price<env.lo)return;const yy=env.y(L.price);
+   ctx2.strokeStyle=L.color;ctx2.setLineDash([7,4]);ctx2.lineWidth=1.3;
+   ctx2.beginPath();ctx2.moveTo(env.padL,yy);ctx2.lineTo(env.W-env.padR,yy);ctx2.stroke();ctx2.setLineDash([]);
+   ctx2.font='600 9px IBM Plex Mono';const tag=f2(L.price),tw=ctx2.measureText(tag).width+8;
+   ctx2.fillStyle=L.color;ctx2.fillRect(env.W-env.padR+2,yy-7,tw,14);
+   ctx2.fillStyle='#0c0f16';ctx2.textAlign='left';ctx2.textBaseline='middle';ctx2.fillText(tag,env.W-env.padR+6,yy+0.5);
+   ctx2.fillStyle=L.color;ctx2.globalAlpha=.9;ctx2.fillText(L.label,env.padL+4,yy-7);ctx2.globalAlpha=1;
+   GEO.posLv.push({y:yy,price:L.price,label:L.label,why:L.why,color:L.color,strat:sym+' - '+t.strat.name});
+  });});
+  const closed=POSD.list.filter(t=>t.row.status==='closed'&&t.row.underlying===sym);
+  const idxOf=d=>{if(!d)return -1;for(const b of env.view){if(b.date>=d)return b.i;}return -1;};
+  closed.forEach(t=>{
+   const win=(+t.row.realized_pnl||0)>0,col=win?'#5fb89e':'#cf7a64';
+   const ei=idxOf(String(t.row.opened_at)),xi=idxOf(String(t.row.closed_at));
+   const mark=(bi,ch)=>{if(bi<env.i0||bi>=env.i0+env.view.length)return null;const b=env.view[bi-env.i0];if(!b)return null;
+    const xx=env.x(bi-env.i0),yy=env.y(b.close);
+    ctx2.fillStyle=col;ctx2.beginPath();ctx2.arc(xx,yy,3.5,0,6.3);ctx2.fill();
+    ctx2.font='600 9px IBM Plex Mono';ctx2.textAlign='center';ctx2.fillText(ch,xx,yy-9);return{xx,yy};};
+   const a=mark(ei,'E'),b=mark(xi,'X');
+   if(a&&b){ctx2.strokeStyle=col;ctx2.globalAlpha=.5;ctx2.setLineDash([2,4]);ctx2.lineWidth=1;
+    ctx2.beginPath();ctx2.moveTo(a.xx,a.yy);ctx2.lineTo(b.xx,b.yy);ctx2.stroke();ctx2.setLineDash([]);ctx2.globalAlpha=1;}
+  });
+ },
+ onBars(sym,daily){
+  sym=(sym||'').toUpperCase();if(!daily||!daily.close||!daily.close.length)return;
+  const n=daily.close.length-1,last={date:daily.time[n],high:+daily.high[n],low:+daily.low[n]};
+  POSD.list.filter(t=>t.row.status==='open'&&t.row.underlying===sym).forEach(t=>{
+   let changed=false;
+   tLevels(t).forEach(L=>{
+    const key='lv_'+L.label.replace(/\W+/g,'_')+'_'+Math.round(L.price*100);
+    if(t.fired[key])return;
+    if(last.low<=L.price&&L.price<=last.high){t.fired[key]=last.date;changed=true;
+     posAlert(sym+' '+t.strat.name+': '+L.label+' '+f2(L.price)+' touched ('+last.date+')');}
+   });
+   if(t.fired._gap!==last.date){t.fired._gap=last.date;changed=true;}
+   if(changed)sb.from('trades').update({alerts_fired:t.fired}).eq('id',t.row.id).then(()=>{});
+  });
+ },
+ refresh:loadPositions
+};
+function dteCheck(){
+ POSD.list.filter(t=>t.row.status==='open'&&t.minDte!=null).forEach(t=>{
+  let changed=false;
+  [21,7,1,0].forEach(th=>{const key='dte'+th;
+   if(t.minDte<=th&&!t.fired[key]){t.fired[key]=todayISO();changed=true;
+    posAlert(t.row.underlying+' '+t.strat.name+': '+t.minDte+' DTE - '+(t.minDte<=0?'EXPIRY - act now':'close/roll per ruleset'));}});
+  if(t.strat.earn&&EARN.loaded){const e=nextEarn(t.row.underlying);
+   if(e&&t.minExp&&e<=t.minExp&&dteOf(e)<=7&&!t.fired['earn_'+e]){t.fired['earn_'+e]=todayISO();changed=true;
+    posAlert(t.row.underlying+' '+t.strat.name+': earnings '+e+' before expiry - close/cut per ruleset');}}
+  if(changed)sb.from('trades').update({alerts_fired:t.fired}).eq('id',t.row.id).then(()=>{});
+ });
+}
+setInterval(()=>{if(POSD.list.length)dteCheck();},6*3600*1000);
+
+/* ---------------- wiring + auth ---------------- */
+(function(){
+ const sel=q('pfStrat');Object.keys(POS_STRATS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=POS_STRATS[k].name;sel.appendChild(o);});
+ q('pfLegs').addEventListener('input',e=>{const r=e.target.closest('.posLegRow');if(r&&e.target.classList.contains('pfQty'))r.dataset.touched='1';});
+ q('posNewBtn').onclick=()=>{const f=q('posForm');const show=f.style.display==='none';f.style.display=show?'block':'none';
+  if(show){q('pfUnder').value=(S&&S.ticker)||'';q('pfDate').value=todayISO();pfBuild();}};
+ q('pfCancel').onclick=()=>{q('posForm').style.display='none';};
+ q('pfSave').onclick=pfSave;
+ q('pfStrat').onchange=pfBuild;
+ q('pfAddLeg').onclick=()=>{const n=q('pfLegs').children.length;q('pfLegs').insertAdjacentHTML('beforeend',pfLegRow(null,n));pfRecalc();
+  q('pfLegs').lastElementChild.querySelectorAll('input,select').forEach(el=>{el.oninput=pfRecalc;});};
+ q('posInboxBtn').onclick=loadInbox;
+ q('posGapBtn').onclick=posGapCheck;
+ q('posUidCopy').onclick=()=>{try{navigator.clipboard.writeText(q('posUid').textContent);posStatusMsg('user id copied','ok');}catch(e){}};
+ sb.auth.getSession().then(({data})=>{if(data&&data.session)setTimeout(loadPositions,600);});
+ sb.auth.onAuthStateChange((_e,s)=>{setTimeout(loadPositions,600);});
+})();
+/* =================== end POSITIONS v0.27 =================== */
+
 initAlerts();
 })();
 </script>
