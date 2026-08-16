@@ -71,6 +71,56 @@
   .posPill.warn{color:#e8c46a;border-color:#6e5a24}
   .posPill.bad{color:var(--short);border-color:#7a4030}
   .posLegs{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px;line-height:1.6}
+  /* ===== P&L runway bar (design 1a) ===== */
+  .pnlbar{position:relative;height:12px;background:var(--panel-in);border:1px solid var(--hair);border-radius:6px;margin:27px 2px 25px}
+  .pnlbar.inf{border-right:0;border-radius:6px 0 0 6px}
+  .pnlbar.inf::after{content:"";position:absolute;right:-1px;top:-1px;bottom:-1px;width:52px;background:linear-gradient(90deg,transparent,var(--panel));pointer-events:none}
+  .pnlfill{position:absolute;top:1px;height:8px;border-radius:2px}
+  .pnlfill.g{background:var(--long)}.pnlfill.r{background:var(--short)}
+  .pnlfill.u{opacity:.42}
+  .pnlline{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dotted;z-index:1}
+  .pnlline.tp{border-color:var(--long)}.pnlline.sl{border-color:var(--short)}
+  .pnlline.be{border-left:2px solid var(--faint);top:-3px;bottom:-3px}
+  .pnlcur{position:absolute;top:-7px;bottom:-7px;width:3px;border-radius:2px;transform:translateX(-50%);z-index:2}
+  .pnlcur.g{background:var(--long)}.pnlcur.r{background:var(--short)}
+  .pnllab{position:absolute;font-family:var(--mono);font-size:9.5px;white-space:nowrap;transform:translateX(-50%);z-index:3}
+  .pnllab.t{top:-20px}.pnllab.b{bottom:-18px}
+  .pnllab.tp{color:var(--long)}.pnllab.sl{color:var(--short)}.pnllab.be{color:var(--faint)}
+  .pnllab.cur{font-weight:600}
+  .pnllab.cur.g{color:var(--long)}.pnllab.cur.r{color:var(--short)}
+  .pnlend{position:absolute;bottom:-18px;font-family:var(--mono);font-size:9px;color:var(--faint);z-index:1}
+  .pnlend.l{left:0}.pnlend.r{right:0}
+  .pnlx{font-family:var(--mono);font-size:10.5px;margin-top:2px;line-height:1.6}
+  /* ===== redesigned trade editor ===== */
+  .peGrid2{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 10px;margin-top:10px}
+  .peL2{font-family:var(--mono);font-size:9.5px;color:var(--mut);display:flex;flex-direction:column;gap:3px;min-width:0}
+  .peL2 .peI,.peC .peI{width:100%;box-sizing:border-box;min-width:0}
+  .peHint{font-size:9px;color:var(--faint);min-height:11px}
+  .peLegs{margin-top:12px;border:1px solid var(--hair);border-radius:9px;padding:2px 10px 4px}
+  .peLeg{display:block;border-top:1px solid var(--hair);padding:9px 0 10px;margin:0}
+  .peLeg:first-child{border-top:0}
+  .peLeg.rowClosed{opacity:.62}
+  .peRow1{display:grid;grid-template-columns:58px 46px 72px minmax(90px,1fr) 46px 58px;gap:5px;align-items:end}
+  .peRow2{display:grid;grid-template-columns:74px 64px minmax(90px,1fr) 64px minmax(90px,1fr);gap:5px;align-items:end;margin-top:6px}
+  .peC{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .peC b{font-family:var(--mono);font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:500;white-space:nowrap}
+  .peActs{display:flex;gap:4px;justify-content:flex-end}
+  .peActs .btn{padding:3px 8px;font-size:11px}
+  .peRoll{color:var(--force);border-color:#534522}
+  .peI:disabled{opacity:.35}
+  .peRollBox{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:6px;align-items:end;border:1px solid #534522;border-left:3px solid var(--force);border-radius:8px;background:rgba(212,168,92,.07);padding:8px 10px;margin-top:8px}
+  .peRollBox .peRollNote{grid-column:1/-1;font-family:var(--mono);font-size:9.5px;color:var(--mut);line-height:1.5}
+  .peRollBox .btn{padding:4px 8px;font-size:10.5px;white-space:nowrap}
+  .peFoot{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+  .peFoot .btn{padding:4px 12px;font-size:11px}
+  .peSaveBtn{background:var(--long);color:var(--ink);border-color:var(--long)}
+  .peDirty{font-family:var(--mono);font-size:9.5px;color:var(--force);margin-left:auto}
+  @media (max-width:460px){
+    .peGrid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .peRow1{grid-template-columns:50px 40px 60px minmax(76px,1fr) 38px 52px}
+    .peRow2{grid-template-columns:64px 54px minmax(76px,1fr) 54px minmax(76px,1fr)}
+    .peRollBox{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
   .peGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:6px}
   .peL{display:flex;flex-direction:column;font-family:var(--mono);font-size:10px;color:var(--mut);gap:2px}
   .peI{background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-family:var(--mono);font-size:11px;min-width:0}
@@ -4179,49 +4229,126 @@ function rulesHTML(t){
 /* ---------------- edit an existing trade: fix typos, record rollovers, relabel ---------------- */
 function editorLegRowHTML(l){
  const v=x=>x==null?'':String(x);
- return '<div class="peLeg" data-lid="'+(l.id||'')+'">'
-  +'<select class="peI" data-f="side"><option value="buy"'+(l.side!=='sell'?' selected':'')+'>buy</option><option value="sell"'+(l.side==='sell'?' selected':'')+'>sell</option></select>'
-  +'<select class="peI" data-f="cp"><option'+(l.cp!=='P'?' selected':'')+'>C</option><option'+(l.cp==='P'?' selected':'')+'>P</option></select>'
-  +'<input class="peI" data-f="strike" type="number" step="any" placeholder="strike" value="'+v(l.strike)+'" style="width:74px">'
-  +'<input class="peI" data-f="expiry" type="date" value="'+esc(v(l.expiry))+'">'
-  +'<input class="peI" data-f="qty" type="number" step="1" placeholder="qty" value="'+(l.qty||1)+'" style="width:52px">'
-  +'<input class="peI" data-f="open_price" type="number" step="any" placeholder="open px" value="'+v(l.open_price)+'" style="width:74px">'
-  +'<input class="peI" data-f="open_date" type="date" value="'+esc(v(l.open_date))+'">'
-  +'<select class="peI" data-f="status"><option'+(l.status==='open'?' selected':'')+'>open</option><option'+(l.status==='closed'?' selected':'')+'>closed</option><option'+(l.status==='expired'?' selected':'')+'>expired</option></select>'
-  +'<input class="peI" data-f="close_price" type="number" step="any" placeholder="close px" value="'+v(l.close_price)+'" style="width:74px">'
-  +'<input class="peI" data-f="close_date" type="date" value="'+esc(v(l.close_date))+'">'
-  +'<button class="btn peDel" title="remove leg" style="padding:2px 8px;font-size:11px">x</button></div>';
+ const open=l.status!=='closed'&&l.status!=='expired';
+ const dis=open?' disabled':'';
+ return '<div class="peLeg'+(open?'':' rowClosed')+'" data-lid="'+(l.id||'')+'">'
+  +'<div class="peRow1">'
+  +'<span class="peC"><b>side</b><select class="peI" data-f="side"><option value="buy"'+(l.side!=='sell'?' selected':'')+'>buy</option><option value="sell"'+(l.side==='sell'?' selected':'')+'>sell</option></select></span>'
+  +'<span class="peC"><b>c/p</b><select class="peI" data-f="cp"><option'+(l.cp!=='P'?' selected':'')+'>C</option><option'+(l.cp==='P'?' selected':'')+'>P</option></select></span>'
+  +'<span class="peC"><b>strike</b><input class="peI" data-f="strike" type="number" step="any" value="'+v(l.strike)+'"></span>'
+  +'<span class="peC"><b>expiry</b><input class="peI" data-f="expiry" type="date" value="'+esc(v(l.expiry))+'"></span>'
+  +'<span class="peC"><b>qty</b><input class="peI" data-f="qty" type="number" step="1" value="'+(l.qty||1)+'"></span>'
+  +'<span class="peC"><b>&nbsp;</b><span class="peActs">'
+  +(l.side==='sell'&&open?'<button class="btn peRoll" title="roll this short leg: close it and open the next expiry in one step">&#8635;</button>':'')
+  +'<button class="btn peDel" title="remove leg">&#10005;</button></span></span>'
+  +'</div><div class="peRow2">'
+  +'<span class="peC"><b>status</b><select class="peI" data-f="status"><option'+(l.status==='open'?' selected':'')+'>open</option><option'+(l.status==='closed'?' selected':'')+'>closed</option><option'+(l.status==='expired'?' selected':'')+'>expired</option></select></span>'
+  +'<span class="peC"><b>open px</b><input class="peI" data-f="open_price" type="number" step="any" value="'+v(l.open_price)+'"></span>'
+  +'<span class="peC"><b>open date</b><input class="peI" data-f="open_date" type="date" value="'+esc(v(l.open_date))+'"></span>'
+  +'<span class="peC"><b>close px</b><input class="peI" data-f="close_price" type="number" step="any" value="'+v(l.close_price)+'"'+dis+'></span>'
+  +'<span class="peC"><b>close date</b><input class="peI" data-f="close_date" type="date" value="'+esc(v(l.close_date))+'"'+dis+'></span>'
+  +'</div></div>';
 }
 function editorHTML(t){
  const r=t.row,u=r.user_inputs||{};
  const stOpts=Object.keys(POS_STRATS).map(k=>'<option value="'+k+'"'+(k===r.strategy?' selected':'')+'>'+esc(POS_STRATS[k].name)+'</option>').join('');
- const ui=((POS_STRATS[r.strategy]||{}).inputs||[]).map(i=>'<label class="peL">'+esc(i.lbl)+'<input class="peI peU" data-uid="'+i.id+'" type="number" step="any" value="'+(u[i.id]!=null?esc(String(u[i.id])):'')+'"></label>').join('');
+ const short=s=>{const i=s.indexOf('(');return (i>0?s.slice(0,i):s).trim();};
+ const ui=((POS_STRATS[r.strategy]||{}).inputs||[]).map(i=>'<label class="peL2" title="'+esc(i.lbl)+'">'+esc(short(i.lbl))+' &#9432;<input class="peI peU" data-uid="'+i.id+'" type="number" step="any" value="'+(u[i.id]!=null?esc(String(u[i.id])):'')+'"></label>').join('');
+ const legs=t.legs.slice().sort((x,y)=>((x.status==='open')?0:1)-((y.status==='open')?0:1));
  return '<div class="posCard peCard" data-tid="'+r.id+'">'
   +'<div class="posHead"><b>Edit '+esc(r.underlying)+'</b><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">saves to Supabase - alerts re-arm if the nearest expiry changes</span></div>'
-  +'<div class="peGrid">'
-  +'<label class="peL">strategy (relabel is non-destructive)<select class="peI" id="peStrat">'+stOpts+'</select></label>'
-  +'<label class="peL">status<select class="peI" id="peStatus"><option'+(r.status==='open'?' selected':'')+'>open</option><option'+(r.status==='closed'?' selected':'')+'>closed</option></select></label>'
-  +'<label class="peL">opened<input class="peI" id="peOpened" type="date" value="'+esc(String(r.opened_at||''))+'"></label>'
-  +'<label class="peL">closed<input class="peI" id="peClosed" type="date" value="'+esc(String(r.closed_at||''))+'"></label>'
-  +'<label class="peL">lots<input class="peI" id="peLots" type="number" step="1" value="'+(r.lots||1)+'"></label>'
-  +'<label class="peL">net entry $ (+credit / -debit)<input class="peI" id="peNet" type="number" step="any" value="'+(r.net_entry!=null?r.net_entry:'')+'"></label>'
-  +'<label class="peL">realized P&amp;L $ (net of fees)<input class="peI" id="peReal" type="number" step="any" value="'+(r.realized_pnl!=null?r.realized_pnl:'')+'"></label>'
+  +'<div class="peGrid2">'
+  +'<label class="peL2" title="relabel is non-destructive">strategy &#9432;<select class="peI" id="peStrat">'+stOpts+'</select></label>'
+  +'<label class="peL2">status<select class="peI" id="peStatus"><option'+(r.status==='open'?' selected':'')+'>open</option><option'+(r.status==='closed'?' selected':'')+'>closed</option></select></label>'
+  +'<label class="peL2">opened<input class="peI" id="peOpened" type="date" value="'+esc(String(r.opened_at||''))+'"></label>'
+  +'<label class="peL2">closed<input class="peI" id="peClosed" type="date" value="'+esc(String(r.closed_at||''))+'"></label>'
+  +'<label class="peL2">lots<input class="peI" id="peLots" type="number" step="1" value="'+(r.lots||1)+'"></label>'
+  +'<label class="peL2" title="net entry $ (+credit / -debit)">net entry $ &#9432;<input class="peI" id="peNet" type="number" step="any" value="'+(r.net_entry!=null?r.net_entry:'')+'"><span class="peHint peNetHint"></span></label>'
+  +'<label class="peL2" title="realized P&amp;L $ (net of fees)">realized $ &#9432;<input class="peI" id="peReal" type="number" step="any" value="'+(r.realized_pnl!=null?r.realized_pnl:'')+'"></label>'
   +ui+'</div>'
-  +'<div style="font-family:var(--mono);font-size:10.5px;color:var(--mut);margin-top:8px">rollover: set the old short to <b>closed</b> with its close price + date, then <b>+ add leg</b> for the new one, and bump realized by the roll net.</div>'
-  +'<div class="peLegs">'+t.legs.map(editorLegRowHTML).join('')+'</div>'
-  +'<div class="posGrid"><button class="btn peAdd" style="padding:4px 10px;font-size:11px">+ add leg</button>'
-  +'<button class="btn peSave" style="padding:4px 10px;font-size:11px"><b>Save</b></button>'
-  +'<button class="btn peCancel" style="padding:4px 10px;font-size:11px">Cancel</button></div>'
+  +'<div class="peLegs">'+legs.map(editorLegRowHTML).join('')+'</div>'
+  +'<div class="peFoot"><button class="btn peAdd">+ add leg</button>'
+  +'<button class="btn peSaveBtn peSave"><b>Save</b></button>'
+  +'<button class="btn peCancel">Cancel</button>'
+  +'<span class="peDirty" style="display:none"></span></div>'
   +'<div class="peErr" style="font-family:var(--mono);font-size:11px;color:var(--short);margin-top:4px"></div></div>';
 }
-function wireLegDels(card){card.querySelectorAll('.peDel').forEach(b=>{b.onclick=()=>{b.closest('.peLeg').remove();};});}
+function peTouch(card,el){card.__dirtySet=card.__dirtySet||new Set();card.__dirtySet.add(el||{});
+ const n=card.__dirtySet.size,dd=card.querySelector('.peDirty');
+ if(dd){dd.style.display='';dd.innerHTML='&#9679; '+n+' unsaved change'+(n===1?'':'s');}}
+function peNetHint(card){
+ const el=card.querySelector('.peNetHint');if(!el)return;
+ let s=0,any=false;
+ card.querySelectorAll('.peLeg').forEach(row=>{const F=n=>row.querySelector('[data-f="'+n+'"]');
+  const px=+F('open_price').value,q=Math.max(1,Math.round(+F('qty').value||1));
+  if(px>0){any=true;s+=(F('side').value==='sell'?1:-1)*px*100*q;}});
+ if(!any){el.textContent='';return;}
+ const net=+card.querySelector('#peNet').value||0,m=Math.abs(s-net)<=1;
+ el.innerHTML='legs imply '+(s>=0?'+':'&minus;')+'$'+Math.abs(Math.round(s)).toLocaleString()+(m?' &#10003;':' (differs after rolls - ok)');
+ el.style.color=m?'var(--long)':'var(--faint)';
+}
+function peRollToggle(card,row){
+ const old=row.querySelector('.peRollBox');
+ if(old){old.remove();return;}
+ const F=n=>row.querySelector('[data-f="'+n+'"]');
+ const tid=card.getAttribute('data-tid'),t=POSD.list.find(x=>x.row.id===tid);
+ let mid='';
+ if(t&&POSD.marks){const occ=occBuild(t.row.underlying,F('expiry').value,F('cp').value,+F('strike').value);
+  const m=POSD.marks[occ];if(m&&m.mid>0)mid=m.mid;}
+ const box=document.createElement('div');box.className='peRollBox';
+ box.innerHTML='<span class="peC"><b>close @</b><input class="peI" data-r="cpx" type="number" step="any" value="'+mid+'"></span>'
+  +'<span class="peC"><b>close date</b><input class="peI" data-r="cdt" type="date" value="'+todayISO()+'"></span>'
+  +'<span class="peC"><b>new expiry</b><input class="peI" data-r="nexp" type="date"></span>'
+  +'<span class="peC"><b>new strike</b><input class="peI" data-r="nk" type="number" step="any" value="'+(F('strike').value||'')+'"></span>'
+  +'<span class="peC"><b>new sell @</b><input class="peI" data-r="npx" type="number" step="any"></span>'
+  +'<span class="peC"><b>&nbsp;</b><button class="btn peRollGo"><b>Apply</b></button></span>'
+  +'<div class="peRollNote">one tap: closes this leg at the price above, adds the new short, bumps realized by the roll net (new credit &minus; buyback). Review, then Save.</div>';
+ row.appendChild(box);
+ box.querySelector('.peRollGo').onclick=()=>{
+  const g=n=>box.querySelector('[data-r="'+n+'"]');
+  const cpx=+g('cpx').value,nexp=g('nexp').value,nk=+g('nk').value,npx=+g('npx').value,cdt=g('cdt').value||todayISO();
+  if(!(cpx>=0&&g('cpx').value!=='')||!nexp||!(nk>0)||!(npx>0)){box.querySelector('.peRollNote').innerHTML='<span style="color:var(--short)">need close px, new expiry, new strike and new sell px</span>';return;}
+  const qty=Math.max(1,Math.round(+F('qty').value||1));
+  F('status').value='closed';F('close_price').disabled=false;F('close_date').disabled=false;
+  F('close_price').value=cpx;F('close_date').value=cdt;row.classList.add('rowClosed');
+  card.querySelector('.peLegs').insertAdjacentHTML('beforeend',editorLegRowHTML({side:'sell',cp:F('cp').value,strike:nk,expiry:nexp,qty:qty,open_price:npx,open_date:cdt,status:'open'}));
+  const real=card.querySelector('#peReal');
+  const bump=Math.round((npx-cpx)*100*qty*100)/100;
+  real.value=Math.round(((+real.value||0)+bump)*100)/100;
+  box.remove();wireLegDels(card);peNetHint(card);peTouch(card);
+  posStatusMsg('roll staged: leg closed @'+cpx+', new '+nk+F('cp').value+' '+nexp+' added, realized bumped '+money(bump)+' - review and Save','ok');
+ };
+}
+function wireLegDels(card){
+ card.querySelectorAll('.peLeg').forEach(row=>{
+  if(row.__wired)return;row.__wired=1;
+  const F=n=>row.querySelector('[data-f="'+n+'"]');
+  row.querySelector('.peDel').onclick=()=>{row.remove();peNetHint(card);peTouch(card);};
+  const st=F('status');
+  const sync=init=>{const open=st.value==='open';
+   F('close_price').disabled=open;F('close_date').disabled=open;
+   if(open&&!init){F('close_price').value='';F('close_date').value='';}
+   row.classList.toggle('rowClosed',!open);
+   const rb=row.querySelector('.peRoll');if(rb)rb.style.display=(open&&F('side').value==='sell')?'':'none';
+   if(!open&&!F('close_date').value)F('close_date').value=st.value==='expired'?(F('expiry').value||todayISO()):todayISO();};
+  st.addEventListener('change',()=>{sync(false);});
+  F('side').addEventListener('change',()=>{sync(true);});
+  sync(true);
+  const rb=row.querySelector('.peRoll');
+  if(rb)rb.onclick=e=>{e.preventDefault();peRollToggle(card,row);};
+ });
+}
 function wireEditor(root){
  const card=root&&root.querySelector?root.querySelector('.peCard'):null;if(!card)return;
  const tid=card.getAttribute('data-tid');
  card.querySelector('.peCancel').onclick=()=>{POSD.editId=null;renderPositions();};
- card.querySelector('.peAdd').onclick=()=>{card.querySelector('.peLegs').insertAdjacentHTML('beforeend',editorLegRowHTML({side:'buy',cp:'C',qty:1,status:'open'}));wireLegDels(card);};
+ card.querySelector('.peAdd').onclick=()=>{card.querySelector('.peLegs').insertAdjacentHTML('beforeend',editorLegRowHTML({side:'buy',cp:'C',qty:1,status:'open'}));wireLegDels(card);peNetHint(card);peTouch(card);};
  card.querySelector('.peSave').onclick=()=>posEditSave(tid,card);
- wireLegDels(card);
+ card.addEventListener('input',e=>{const el=e.target;if(!el.classList||!el.classList.contains('peI'))return;
+  peTouch(card,el);
+  const f=el.getAttribute('data-f');if(f==='open_price'||f==='qty'||f==='strike'||el.id==='peNet')peNetHint(card);});
+ card.addEventListener('change',e=>{const el=e.target;if(el.classList&&el.classList.contains('peI'))peTouch(card,el);});
+ wireLegDels(card);peNetHint(card);
 }
 async function posEditSave(tid,card){
  const t=POSD.list.find(x=>x.row.id===tid);if(!t)return;
@@ -4280,15 +4407,9 @@ function renderPositions(){
    const dteTxt=dtes.length?dtes.join(' / '):(dte!=null?String(dte):null);
    return '<div class="posCard" data-tid="'+t.row.id+'">'
     +'<div class="posHead"><div><b>'+esc(t.row.underlying)+'</b> <span style="color:var(--mut)">'+esc(t.strat.name)+'</span></div>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dteTxt!=null?pill(dteTxt+' DTE',dcls):'')+pill('net '+money(t.net))
-    +(t.strat.uncapped?pill('uncapped'):isFinite(t.d.maxLoss)?pill('max loss '+money(t.d.maxLoss)):'')+'</div></div>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dteTxt!=null?pill(dteTxt+' DTE',dcls):'')+'</div></div>'
     +'<div class="posLegs">'+(function(){const o=t.legs.filter(l=>l.status==='open');const shown=(o.length?o:t.legs).map(legLine).join('<br>');const hid=t.legs.length-(o.length||t.legs.length);return shown+(hid>0?'<br><span style="color:var(--faint)">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</span>':'');})()+'</div>'
-    +(function(){if(!POSD.markTs)return'';
-      const parts=mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
-      if(!parts.ok)return '<div class="posLegs" style="color:var(--faint)">marks missing for '+parts.miss.length+' leg(s) - Mark now to refresh</div>';
-      const R=+t.row.realized_pnl||0,cU=parts.unrl>=0?'var(--long)':'var(--short)',cT=parts.total>=0?'var(--long)':'var(--short)';
-      return '<div class="posLegs">realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';})()
-    +targetsHTML(t)
+    +posBarHTML(t)
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
     +'<button class="btn" data-act="edit" style="padding:4px 10px;font-size:11px">Edit</button>'
@@ -4580,6 +4701,62 @@ function targetsHTML(t){
   return '<div class="posLegs" style="color:'+col+'">'+k+' '+money(o.usd)+' &middot; '+esc(o.lbl)+px
    +(hit?' &middot; <b>HIT</b>':(now!=null?' &middot; now '+money(now):''))+'</div>';};
  return row('TP',T.tp,'var(--long)')+row('SL',T.sl,'var(--short)');
+}
+/* ===== design 1a: P&L runway bar (max loss <-> max profit axis, dotted SL/TP, BE at $0, solid realized + lighter unrealized) ===== */
+function oldPartsLine(t){
+ if(!POSD.markTs)return'';
+ const R=+t.row.realized_pnl||0;
+ const parts=mkParts(t.net,R,t.strat.kind,t.legs,POSD.marks);
+ if(!parts.ok)return '<div class="posLegs" style="color:var(--faint)">marks missing for '+parts.miss.length+' leg(s) - Mark now to refresh</div>';
+ const cU=parts.unrl>=0?'var(--long)':'var(--short)',cT=parts.total>=0?'var(--long)':'var(--short)';
+ return '<div class="posLegs">realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';
+}
+function posBarHTML(t){
+ try{
+ const T=tTargets(t);
+ const R0=+t.row.realized_pnl||0;
+ const parts=POSD.markTs?mkParts(t.net,R0,t.strat.kind,t.legs,POSD.marks):null;
+ const ok=!!(parts&&parts.ok);
+ const unrl=ok?parts.unrl:0,total=ok?parts.total:R0;
+ const d=t.d||{};
+ let ml=(isFinite(d.maxLoss)&&d.maxLoss>0)?d.maxLoss:((d.maxLossCore>0)?d.maxLossCore:((d.debit>0)?d.debit:null));
+ let mp=t.strat.uncapped?Infinity:((isFinite(d.maxProfit)&&d.maxProfit>0)?d.maxProfit:((d.credit>0)?d.credit:null));
+ if(ml==null&&T.sl)ml=2*Math.abs(T.sl.usd);
+ if(mp==null&&T.tp&&T.tp.usd>0)mp=1.25*T.tp.usd;
+ if(!(ml>0)||!(mp>0))return oldPartsLine(t)+targetsHTML(t);
+ const inf=!isFinite(mp);
+ const edge=inf?Math.max(T.tp?1.4*T.tp.usd:0,total>0?1.3*total:0,0.35*ml,100):mp;
+ const span=ml+edge,X=v=>Math.max(0,Math.min(100,(v+ml)/span*100));
+ const x0=X(0),xT=X(total),hasCur=ok||Math.abs(R0)>0.005;
+ const seg=(a,b,cls)=>{const lo=Math.min(a,b),hi=Math.max(a,b);if(hi-lo<0.4)return'';
+  return '<i class="pnlfill '+cls+'" style="left:'+lo.toFixed(2)+'%;width:'+(hi-lo).toFixed(2)+'%"></i>';};
+ let fills='';
+ if(Math.abs(R0)>0.005)fills+=seg(x0,X(R0),R0>=0?'g':'r');
+ if(ok&&Math.abs(unrl)>0.005)fills+=seg(X(R0),X(R0+unrl),(unrl>=0?'g':'r')+' u');
+ const lab=(x,cls,pos,txt,tx)=>'<span class="pnllab '+cls+' '+pos+'" style="left:'+x.toFixed(2)+'%'+(tx?';transform:translateX('+tx+')':'')+'">'+txt+'</span>';
+ const line=(v,cls,txt)=>{const x=X(v);const tx=x>90?'-100%':(x<8?'0':null);
+  return '<i class="pnlline '+cls+'" style="left:'+x.toFixed(2)+'%"></i>'+lab(x,cls,'t',txt,tx);};
+ let marks='<i class="pnlline be" style="left:'+x0.toFixed(2)+'%"></i>';
+ if(!hasCur||Math.abs(x0-xT)>7)marks+=lab(x0,'be','b','BE $0',null);
+ if(T.sl)marks+=line(T.sl.usd,'sl','SL &minus;'+money0(T.sl.usd));
+ if(T.tp)marks+=line(T.tp.usd,'tp','TP +'+money0(T.tp.usd));
+ let cur='';
+ if(hasCur){const right=total>=0;
+  cur='<i class="pnlcur '+(total>=0?'g':'r')+'" style="left:'+xT.toFixed(2)+'%"></i>'
+   +lab(xT,'cur '+(total>=0?'g':'r'),'b','&#9650; '+money(total),right?'4px':'calc(-100% - 4px)');}
+ const hideL=hasCur&&total<0&&xT<30,hideR=hasCur&&total>=0&&xT>68;
+ const endL=hideL?'':'<span class="pnlend l">max &minus;'+money0(ml)+'</span>';
+ const endR=hideR?'':'<span class="pnlend r">'+(inf?'&infin; &rarr;':'max +'+money0(edge))+'</span>';
+ let px='';
+ if(POSD.markTs&&(T.tp||T.sl)){
+  const und=t.row.underlying,bits=[];
+  const f=o=>{const p=tPrices(t,o.usd);return (p&&p.today!=null)?(' &middot; exit ~'+f2(p.today)):'';};
+  if(T.tp)bits.push('<span style="color:var(--long)" title="'+esc(T.tp.lbl)+'">TP '+money(T.tp.usd)+f(T.tp)+'</span>');
+  if(T.sl)bits.push('<span style="color:var(--short)" title="'+esc(T.sl.lbl)+'">SL '+money(T.sl.usd)+f(T.sl)+'</span>');
+  px='<div class="pnlx">'+bits.join(' &nbsp;&middot;&nbsp; ')+'</div>';
+ }
+ return oldPartsLine(t)+'<div class="pnlbar'+(inf?' inf':'')+'">'+fills+marks+cur+endL+endR+'</div>'+px;
+ }catch(e){return oldPartsLine(t)+targetsHTML(t);}
 }
 function markCheck(){
  if(!POSD.markTs)return;
