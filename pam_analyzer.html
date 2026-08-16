@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.41</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.42</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -3987,7 +3987,6 @@ const POS_STRATS={
   legs:[{id:'lc',lbl:'Buy call (lower K)',cp:'C',side:'buy'},{id:'sc',lbl:'Sell call (target K)',cp:'C',side:'sell'}],
   derived:t=>{const w=width$(t,'lc','sc');return{debit:-t.net,maxLoss:-t.net,maxProfit:w+t.net,be:K(t,'lc')-t.net/(100*legQty(t,'lc'))};},
   levels:t=>[
-   {price:K(t,'sc'),color:'#5fb89e',label:'Target - short strike',why:'Max profit is realised at/above here at expiry. Ruleset TP: close at 80% of max profit rather than holding for the last dollars.'},
    {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Long strike plus debit per share. Above here the spread wins at expiry.'}],
   rules:t=>[
    R('tp','TP: 80% of max profit ('+money(.8*t.d.maxProfit)+' of '+money(t.d.maxProfit)+')','Ruleset (debit verticals): take profit at 80% of max profit - most of the remaining value only arrives at expiry.'),
@@ -3997,7 +3996,6 @@ const POS_STRATS={
   legs:[{id:'lp',lbl:'Buy put (higher K)',cp:'P',side:'buy'},{id:'sp',lbl:'Sell put (target K)',cp:'P',side:'sell'}],
   derived:t=>{const w=width$(t,'lp','sp');return{debit:-t.net,maxLoss:-t.net,maxProfit:w+t.net,be:K(t,'lp')+t.net/(100*legQty(t,'lp'))};},
   levels:t=>[
-   {price:K(t,'sp'),color:'#5fb89e',label:'Target - short strike',why:'Max profit is realised at/below here at expiry. Ruleset TP: close at 80% of max profit.'},
    {price:t.d.be,color:'#d4a85c',label:'Breakeven',why:'Long strike minus debit per share. Below here the spread wins at expiry.'}],
   rules:t=>[
    R('tp','TP: 80% of max profit ('+money(.8*t.d.maxProfit)+' of '+money(t.d.maxProfit)+')','Ruleset (debit verticals): take profit at 80% of max profit.'),
@@ -4009,7 +4007,7 @@ const POS_STRATS={
   derived:t=>{const w=width$(t,'sp','pp');return{maxLoss:w-t.net,maxProfit:Infinity};},
   levels:t=>[
    {price:K(t,'sp'),color:'#d4a85c',label:'Short put - defend zone',why:'Card: set at PAM support you are willing to own. Below here you behave like an owner and assignment starts to matter.'},
-   {price:K(t,'pp'),color:'#cf7a64',label:'Protection floor',why:'Below here the max-loss zone begins. Max loss: (put width + net debit) = '+money(t.d.maxLoss)+'.'}],
+   ],
   rules:t=>[
    R('tp',(t.user.tp?'TP: your target '+money(+t.user.tp):'TP: set a $ target - the card has no fixed % rule'),'Card: take profit at YOUR target; an early exit also captures leftover time value. Upside is unlimited (behaves like shares above the long-call strike), so the strip shows $ P&L and ROI, not % of max.'),
    R('cut',(t.user.sl?'Stop: your max loss '+money(+t.user.sl):'Stop: set a $ stop (must be less than max loss '+money(t.d.maxLoss)+')'),'Card: cut at your stop if it is smaller than max loss, or when the bullish setup is no longer valid on the chart.'),
@@ -4071,7 +4069,7 @@ const POS_STRATS={
   derived:t=>({maxLossCore:(K(t,'sp')-K(t,'pp'))*100*legQty(t,'sp')-t.net}),
   levels:t=>{const a=[
    {price:K(t,'sp'),color:'#d4a85c',label:'Synthetic strike - support',why:'The synthetic (long call + short put, same strike) behaves like shares from here. Card: set at PAM support you are willing to own.'},
-   {price:K(t,'pp'),color:'#cf7a64',label:'Protection floor',why:'Below here the protective put caps the damage on the far legs. Core max loss: '+money(t.d.maxLossCore)+' (short-call credits reduce it as they accrue).'}];
+   ];
    if(+t.user.res)a.push({price:+t.user.res,color:'#5fb89e',label:'Roll zone - resistance',why:'Card: when price breaks resistance (or short-call delta > 0.80 - auto in P2b), roll the short call up/out so it stops capping the synthetic.'});
    return a;},
   rules:t=>[
