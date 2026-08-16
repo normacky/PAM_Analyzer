@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.32</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.33</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -4109,12 +4109,14 @@ function renderPositions(){
   q('posAuthNote').style.display='none';q('posUid').textContent=ME.id;
   oEl.innerHTML=open.length?open.map(t=>{
    if(POSD.editId===t.row.id)return editorHTML(t);
-   const dte=t.minDte,dcls=dte==null?'':dte<=7?'bad':dte<=21?'warn':'';
+   const dtes=[...new Set(t.legs.filter(l=>l.status==='open'&&l.expiry).map(l=>dteOf(String(l.expiry))))].sort((a,b)=>a-b);
+   const dte=dtes.length?dtes[0]:t.minDte,dcls=dte==null?'':dte<=7?'bad':dte<=21?'warn':'';
+   const dteTxt=dtes.length?dtes.join(' / '):(dte!=null?String(dte):null);
    return '<div class="posCard" data-tid="'+t.row.id+'">'
     +'<div class="posHead"><div><b>'+esc(t.row.underlying)+'</b> <span style="color:var(--mut)">'+esc(t.strat.name)+'</span></div>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dte!=null?pill(dte+' DTE',dcls):'')+pill('net '+money(t.net))
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+(dteTxt!=null?pill(dteTxt+' DTE',dcls):'')+pill('net '+money(t.net))
     +(t.strat.uncapped?pill('uncapped'):isFinite(t.d.maxLoss)?pill('max loss '+money(t.d.maxLoss)):'')+'</div></div>'
-    +'<div class="posLegs">'+t.legs.map(legLine).join(' &middot; ')+'</div>'
+    +'<div class="posLegs">'+(function(){const o=t.legs.filter(l=>l.status==='open');const shown=(o.length?o:t.legs).map(legLine).join(' &middot; ');const hid=t.legs.length-(o.length||t.legs.length);return shown+(hid>0?' &middot; <span style="color:var(--faint)">'+hid+' closed leg'+(hid===1?'':'s')+' in Edit</span>':'');})()+'</div>'
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
     +'<button class="btn" data-act="edit" style="padding:4px 10px;font-size:11px">Edit</button>'
