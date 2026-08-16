@@ -71,6 +71,10 @@
   .posPill.warn{color:#e8c46a;border-color:#6e5a24}
   .posPill.bad{color:var(--short);border-color:#7a4030}
   .posLegs{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px;line-height:1.6}
+  .peGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-top:6px}
+  .peL{display:flex;flex-direction:column;font-family:var(--mono);font-size:10px;color:var(--mut);gap:2px}
+  .peI{background:var(--ink2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-family:var(--mono);font-size:11px;min-width:0}
+  .peLeg{display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:1px dashed var(--line);padding:5px 0}
   .posTrig{margin-top:8px;border-top:1px dashed var(--line);padding-top:7px}
   .posTrig details{margin:3px 0}
   .posTrig summary{cursor:pointer;font-size:12px;color:var(--txt);list-style:none}
@@ -755,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.28</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.29</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -3706,7 +3710,7 @@ setInterval(()=>{
    (bank_fills / eod_marks are written by the feed script and used
    by the importer next session). Engine block untouched.
    ============================================================ */
-const POSD={list:[],uid:null,dirtyNet:false};
+const POSD={list:[],uid:null,dirtyNet:false,editId:null};
 const f2=v=>(Math.round(v*100)/100).toFixed(2);
 const money=v=>(v<0?'-$':'$')+f2(Math.abs(v));
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
@@ -3739,6 +3743,7 @@ function occParse(occ){const m=String(occ).match(/^([A-Z.]+)(\d{2})(\d{2})(\d{2}
 function vwapPx(fs){let q=0,pq=0;fs.forEach(f=>{q+=+f.q;pq+=+f.p*+f.q;});return q?pq/q:null;}
 function cashOf(fs){return fs.reduce((a,f)=>a+((f.side==='sell'?1:-1)*+f.p*+f.q*100),0);}
 function feesOf(fs){return fs.reduce((a,f)=>a+(+f.f||0),0);}
+function feeCostOf(fs){return fs.reduce((a,f)=>a+((/interactive/i.test(f.bank||''))?-(+f.f||0):(+f.f||0)),0);}
 function clusterCampaigns(fills,todayISO){
  const camps=[];let cur=null,book={};      // book: occ -> live spell
  const flat=()=>Object.values(book).every(s=>!s||s.qty===0);
@@ -3765,20 +3770,23 @@ function clusterCampaigns(fills,todayISO){
    if(!s.closed&&s.expiry<todayISO){s.closed=true;s.expired=true;s.closeDate=s.expiry;} // expired worthless
    s.openPx=vwapPx(s.openF);s.closePx=s.closed?(s.expired?0:vwapPx(s.closeF)):null;
    s.fees=feesOf(s.openF)+feesOf(s.closeF);
-   s.realized=s.closed?(s.preHistory?null:cashOf(s.openF)+cashOf(s.closeF)+(s.expired?0:0)):null;
+   s.feeCost=feeCostOf(s.openF)+feeCostOf(s.closeF);
+   s.realized=s.closed?(s.preHistory?null:cashOf(s.openF)+cashOf(s.closeF)-s.feeCost):null;
   });
   // rolls (post-pass, fill-order independent): same date, same cp+dir, one spell closed + another opened
   const used=new Set();
   c.spells.forEach(sc=>{
    if(!sc.closed||sc.expired)return;const D=sc.closeDate;if(sc.openDate===D)return;
    const mate=c.spells.find(o=>o!==sc&&!used.has(o)&&o.dir===sc.dir&&o.cp===sc.cp&&o.openDate===D&&o.openDate!==c.start);
-   if(mate){used.add(mate);c.events.push({type:'roll',date:D,from:sc.occ,to:mate.occ,cash:cashOf(sc.closeF)+cashOf(mate.openF)});}
+   if(mate){used.add(mate);c.events.push({type:'roll',date:D,from:sc.occ,to:mate.occ,cash:cashOf(sc.closeF)+cashOf(mate.openF)-feeCostOf(sc.closeF)-feeCostOf(mate.openF)});}
   });
   c.events.sort((x,y)=>x.date<y.date?-1:1);
   c.open=c.spells.some(s=>!s.closed);
   if(!c.open&&!c.end)c.end=c.spells.reduce((a,s)=>s.closeDate>a?s.closeDate:a,'');
   c.netEntry=cashOf(c.fills.filter(f=>f.d===c.start));
-  c.realized=c.spells.reduce((a,s)=>a+(s.realized||0),0);
+  const preIds=new Set();c.spells.forEach(s=>{if(s.preHistory)s.openF.concat(s.closeF).forEach(f=>preIds.add(f.id));});
+  const rf=c.fills.filter(f=>!preIds.has(f.id)&&(c.open?f.d>c.start:true));
+  c.realized=cashOf(rf)-feeCostOf(rf);
   c.needsBasis=c.spells.some(s=>s.preHistory);
   c.proposal=proposeStrat(c);
  });
@@ -3799,7 +3807,6 @@ function proposeStrat(c){
     &&sc[0].expiry<bc[0].expiry&&Math.abs(sp[0].strike-bc[0].strike)<1e-9&&bp[0].strike<sp[0].strike)return'bb_collar';
  return'custom';
 }
-
 /* ---- the strategy registry: data + tiny formulas, engine is generic ---- */
 const POS_STRATS={
  bull_put_spread:{name:'Bull put spread',kind:'credit',earn:true,
@@ -3963,7 +3970,7 @@ function posAlert(msg){
 }
 function buildTradeObj(row,legs){
  const strat=POS_STRATS[row.strategy]||POS_STRATS.custom;
- const t={row,legs:legs||[],strategy:row.strategy,strat,net:+row.net_entry||0,lots:row.lots||1,user:row.user_inputs||{},fired:row.alerts_fired||{}};
+ const t={row,legs:(legs||[]).map(l=>({...l,side:l.side==='long'?'buy':(l.side==='short'?'sell':l.side)})),strategy:row.strategy,strat,net:+row.net_entry||0,lots:row.lots||1,user:row.user_inputs||{},fired:row.alerts_fired||{}};
  t.map=strat.custom?{}:mapLegs(row.strategy,t.legs);
  try{t.d=strat.derived(t)||{};}catch(e){t.d={};}
  t.ok=strat.custom?true:Object.keys(t.map).every(k=>t.map[k]);
@@ -3991,6 +3998,98 @@ function rulesHTML(t){
  return tRules(t).map(r=>{const col=r.kind==='tp'?'var(--long)':r.kind==='cut'?'var(--short)':r.kind==='dte'?'#e8c46a':'var(--mut)';
   return '<details><summary><b style="color:'+col+'">'+esc(r.txt)+'</b></summary><div class="why">'+esc(r.why)+'</div></details>';}).join('');
 }
+
+/* ---------------- edit an existing trade: fix typos, record rollovers, relabel ---------------- */
+function editorLegRowHTML(l){
+ const v=x=>x==null?'':String(x);
+ return '<div class="peLeg" data-lid="'+(l.id||'')+'">'
+  +'<select class="peI" data-f="side"><option value="buy"'+(l.side!=='sell'?' selected':'')+'>buy</option><option value="sell"'+(l.side==='sell'?' selected':'')+'>sell</option></select>'
+  +'<select class="peI" data-f="cp"><option'+(l.cp!=='P'?' selected':'')+'>C</option><option'+(l.cp==='P'?' selected':'')+'>P</option></select>'
+  +'<input class="peI" data-f="strike" type="number" step="any" placeholder="strike" value="'+v(l.strike)+'" style="width:74px">'
+  +'<input class="peI" data-f="expiry" type="date" value="'+esc(v(l.expiry))+'">'
+  +'<input class="peI" data-f="qty" type="number" step="1" placeholder="qty" value="'+(l.qty||1)+'" style="width:52px">'
+  +'<input class="peI" data-f="open_price" type="number" step="any" placeholder="open px" value="'+v(l.open_price)+'" style="width:74px">'
+  +'<input class="peI" data-f="open_date" type="date" value="'+esc(v(l.open_date))+'">'
+  +'<select class="peI" data-f="status"><option'+(l.status==='open'?' selected':'')+'>open</option><option'+(l.status==='closed'?' selected':'')+'>closed</option><option'+(l.status==='expired'?' selected':'')+'>expired</option></select>'
+  +'<input class="peI" data-f="close_price" type="number" step="any" placeholder="close px" value="'+v(l.close_price)+'" style="width:74px">'
+  +'<input class="peI" data-f="close_date" type="date" value="'+esc(v(l.close_date))+'">'
+  +'<button class="btn peDel" title="remove leg" style="padding:2px 8px;font-size:11px">x</button></div>';
+}
+function editorHTML(t){
+ const r=t.row,u=r.user_inputs||{};
+ const stOpts=Object.keys(POS_STRATS).map(k=>'<option value="'+k+'"'+(k===r.strategy?' selected':'')+'>'+esc(POS_STRATS[k].name)+'</option>').join('');
+ const ui=((POS_STRATS[r.strategy]||{}).inputs||[]).map(i=>'<label class="peL">'+esc(i.lbl)+'<input class="peI peU" data-uid="'+i.id+'" type="number" step="any" value="'+(u[i.id]!=null?esc(String(u[i.id])):'')+'"></label>').join('');
+ return '<div class="posCard peCard" data-tid="'+r.id+'">'
+  +'<div class="posHead"><b>Edit '+esc(r.underlying)+'</b><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">saves to Supabase - alerts re-arm if the nearest expiry changes</span></div>'
+  +'<div class="peGrid">'
+  +'<label class="peL">strategy (relabel is non-destructive)<select class="peI" id="peStrat">'+stOpts+'</select></label>'
+  +'<label class="peL">status<select class="peI" id="peStatus"><option'+(r.status==='open'?' selected':'')+'>open</option><option'+(r.status==='closed'?' selected':'')+'>closed</option></select></label>'
+  +'<label class="peL">opened<input class="peI" id="peOpened" type="date" value="'+esc(String(r.opened_at||''))+'"></label>'
+  +'<label class="peL">closed<input class="peI" id="peClosed" type="date" value="'+esc(String(r.closed_at||''))+'"></label>'
+  +'<label class="peL">lots<input class="peI" id="peLots" type="number" step="1" value="'+(r.lots||1)+'"></label>'
+  +'<label class="peL">net entry $ (+credit / -debit)<input class="peI" id="peNet" type="number" step="any" value="'+(r.net_entry!=null?r.net_entry:'')+'"></label>'
+  +'<label class="peL">realized P&amp;L $ (net of fees)<input class="peI" id="peReal" type="number" step="any" value="'+(r.realized_pnl!=null?r.realized_pnl:'')+'"></label>'
+  +ui+'</div>'
+  +'<div style="font-family:var(--mono);font-size:10.5px;color:var(--mut);margin-top:8px">rollover: set the old short to <b>closed</b> with its close price + date, then <b>+ add leg</b> for the new one, and bump realized by the roll net.</div>'
+  +'<div class="peLegs">'+t.legs.map(editorLegRowHTML).join('')+'</div>'
+  +'<div class="posGrid"><button class="btn peAdd" style="padding:4px 10px;font-size:11px">+ add leg</button>'
+  +'<button class="btn peSave" style="padding:4px 10px;font-size:11px"><b>Save</b></button>'
+  +'<button class="btn peCancel" style="padding:4px 10px;font-size:11px">Cancel</button></div>'
+  +'<div class="peErr" style="font-family:var(--mono);font-size:11px;color:var(--short);margin-top:4px"></div></div>';
+}
+function wireLegDels(card){card.querySelectorAll('.peDel').forEach(b=>{b.onclick=()=>{b.closest('.peLeg').remove();};});}
+function wireEditor(root){
+ const card=root&&root.querySelector?root.querySelector('.peCard'):null;if(!card)return;
+ const tid=card.getAttribute('data-tid');
+ card.querySelector('.peCancel').onclick=()=>{POSD.editId=null;renderPositions();};
+ card.querySelector('.peAdd').onclick=()=>{card.querySelector('.peLegs').insertAdjacentHTML('beforeend',editorLegRowHTML({side:'buy',cp:'C',qty:1,status:'open'}));wireLegDels(card);};
+ card.querySelector('.peSave').onclick=()=>posEditSave(tid,card);
+ wireLegDels(card);
+}
+async function posEditSave(tid,card){
+ const t=POSD.list.find(x=>x.row.id===tid);if(!t)return;
+ const err=card.querySelector('.peErr');err.textContent='';
+ const g=id=>card.querySelector('#'+id);
+ const strategy=g('peStrat').value,status=g('peStatus').value;
+ const opened=g('peOpened').value||t.row.opened_at;
+ const closedAt=status==='closed'?(g('peClosed').value||todayISO()):null;
+ const user={};card.querySelectorAll('.peU').forEach(i=>{const v=i.value.trim();if(v!=='')user[i.getAttribute('data-uid')]=+v;});
+ const rows=[...card.querySelectorAll('.peLeg')].map(div=>{
+  const f=n=>{const el=div.querySelector('[data-f="'+n+'"]');return el?el.value:'';};
+  return {lid:div.getAttribute('data-lid')||null,side:f('side'),cp:f('cp'),strike:+f('strike'),expiry:f('expiry'),
+   qty:Math.max(1,Math.round(+f('qty')||1)),
+   open_price:f('open_price')===''?null:+f('open_price'),open_date:f('open_date')||opened,status:f('status'),
+   close_price:f('close_price')===''?null:+f('close_price'),close_date:f('close_date')||null};
+ });
+ if(!rows.length){err.textContent='a trade needs at least one leg';return;}
+ for(const r of rows){
+  if(!(r.strike>0)||!r.expiry){err.textContent='every leg needs a strike and an expiry';return;}
+  if(r.status==='open'){r.close_price=null;r.close_date=null;}
+  else if(!r.close_date)r.close_date=r.status==='expired'?r.expiry:todayISO();
+ }
+ const keep=new Set(rows.filter(r=>r.lid).map(r=>r.lid));
+ const dels=t.legs.map(l=>l.id).filter(id=>id&&!keep.has(id));
+ const newMin=rows.filter(r=>r.status==='open').reduce((a,r)=>(!a||r.expiry<a)?r.expiry:a,null);
+ let fired=t.row.alerts_fired||{};
+ if(String(newMin||'')!==String(t.minExp||'')){const keepF={};Object.keys(fired).forEach(k=>{if(!/^dte|^earn_/.test(k))keepF[k]=fired[k];});fired=keepF;}
+ const patch={strategy,status,opened_at:opened,closed_at:closedAt,
+  lots:Math.max(1,Math.round(+g('peLots').value||1)),
+  net_entry:+g('peNet').value||0,
+  realized_pnl:g('peReal').value===''?null:+g('peReal').value,
+  user_inputs:user,alerts_fired:fired};
+ const {error}=await sb.from('trades').update(patch).eq('id',tid);
+ if(error){err.textContent=error.message;return;}
+ for(const r of rows){
+  const body={cp:r.cp,strike:r.strike,expiry:r.expiry,side:r.side,qty:r.qty,
+   open_price:r.open_price,open_date:r.open_date,status:r.status,
+   close_price:r.close_price,close_date:r.close_date,
+   occ_symbol:occBuild(t.row.underlying,r.expiry,r.cp,r.strike)};
+  if(r.lid){const {error:e}=await sb.from('trade_legs').update(body).eq('id',r.lid);if(e){err.textContent=e.message;return;}}
+  else{body.trade_id=tid;const {error:e}=await sb.from('trade_legs').insert(body);if(e){err.textContent=e.message;return;}}
+ }
+ if(dels.length){const {error:e}=await sb.from('trade_legs').delete().in('id',dels);if(e){err.textContent=e.message;return;}}
+ POSD.editId=null;posStatusMsg('Updated '+t.row.underlying+'.','ok');loadPositions();
+}
 function renderPositions(){
  const open=POSD.list.filter(t=>t.row.status==='open'),closed=POSD.list.filter(t=>t.row.status==='closed');
  const oEl=q('posOpen');
@@ -3998,6 +4097,7 @@ function renderPositions(){
  else{
   q('posAuthNote').style.display='none';q('posUid').textContent=ME.id;
   oEl.innerHTML=open.length?open.map(t=>{
+   if(POSD.editId===t.row.id)return editorHTML(t);
    const dte=t.minDte,dcls=dte==null?'':dte<=7?'bad':dte<=21?'warn':'';
    return '<div class="posCard" data-tid="'+t.row.id+'">'
     +'<div class="posHead"><div><b>'+esc(t.row.underlying)+'</b> <span style="color:var(--mut)">'+esc(t.strat.name)+'</span></div>'
@@ -4006,15 +4106,17 @@ function renderPositions(){
     +'<div class="posLegs">'+t.legs.map(legLine).join(' &middot; ')+'</div>'
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
+    +'<button class="btn" data-act="edit" style="padding:4px 10px;font-size:11px">Edit</button>'
     +'<button class="btn" data-act="close" style="padding:4px 10px;font-size:11px">Close trade</button>'
     +'<button class="btn" data-act="del" style="padding:4px 10px;font-size:11px">Delete</button></div></div>';
   }).join(''):'<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">nothing yet - tap + New trade, or wait for the feed importer next session</div>';
  }
  const cEl=q('posClosed'),sEl=q('posStats');
- cEl.innerHTML=closed.map(t=>{const w=(+t.row.realized_pnl||0)>0;
+ cEl.innerHTML=closed.map(t=>{if(POSD.editId===t.row.id)return editorHTML(t);const w=(+t.row.realized_pnl||0)>0;
   return '<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:5px 0;font-family:var(--mono);font-size:11px">'
    +'<span><b style="color:var(--txt)">'+esc(t.row.underlying)+'</b> '+esc(t.strat.name)+' <span style="color:var(--faint)">'+String(t.row.opened_at||'')+' -> '+String(t.row.closed_at||'')+'</span></span>'
-   +'<b style="color:'+(w?'var(--long)':'var(--short)')+'">'+money(+t.row.realized_pnl||0)+'</b></div>';}).join('')||'<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">no closed trades yet</div>';
+   +'<b style="color:'+(w?'var(--long)':'var(--short)')+'">'+money(+t.row.realized_pnl||0)+'</b>'
+   +'<a href="#" data-eedit="'+t.row.id+'" style="font-family:var(--mono);font-size:10px;color:var(--faint);text-decoration:underline">edit</a></div>';}).join('')||'<div style="font-family:var(--mono);font-size:11px;color:var(--faint)">no closed trades yet</div>';
  if(closed.length){
   const by={};closed.forEach(t=>{const k=t.strat.name;(by[k]=by[k]||{n:0,w:0,p:0});by[k].n++;by[k].p+=(+t.row.realized_pnl||0);if((+t.row.realized_pnl||0)>0)by[k].w++;});
   const tot=closed.reduce((a,t)=>a+(+t.row.realized_pnl||0),0),wins=closed.filter(t=>(+t.row.realized_pnl||0)>0).length;
@@ -4025,8 +4127,11 @@ function renderPositions(){
   const id=b.closest('.posCard').getAttribute('data-tid'),t=POSD.list.find(x=>x.row.id===id);if(!t)return;
   if(b.dataset.act==='chart'){$('#tkInput').value=t.row.underlying;fetchSymbol(t.row.underlying);}
   else if(b.dataset.act==='close')closeTrade(t);
+  else if(b.dataset.act==='edit'){POSD.editId=t.row.id;renderPositions();}
   else if(b.dataset.act==='del')delTrade(t);
  };});
+ cEl.querySelectorAll('a[data-eedit]').forEach(a2=>{a2.onclick=e=>{e.preventDefault();POSD.editId=a2.getAttribute('data-eedit');renderPositions();};});
+ wireEditor(oEl);wireEditor(cEl);
 }
 async function closeTrade(t){
  const v=prompt('Close '+t.row.underlying+' '+t.strat.name+'\nTotal $ received on close (negative if you PAID to close). Entry was '+money(t.net)+'.','0');
@@ -4061,7 +4166,7 @@ async function loadInbox(){
  posStatusMsg('scanning fills\u2026');
  const {data,error}=await sb.from('bank_fills').select('*').eq('status','unmatched').order('trade_date',{ascending:true}).order('fill_id',{ascending:true});
  if(error){posStatusMsg(error.message,'err');return;}
- const rows=(data||[]).map(f=>({id:f.fill_id,occ:f.occ_symbol,side:f.side,q:+f.qty_contracts,p:+f.price,d:String(f.trade_date),f:+f.fees||0,descr:f.descr||''}));
+ const rows=(data||[]).map(f=>({id:f.fill_id,occ:f.occ_symbol,side:f.side,q:+f.qty_contracts,p:+f.price,d:String(f.trade_date),f:+f.fees||0,descr:f.descr||'',bank:f.bank||''}));
  const byU={};rows.forEach(r=>{const m=occParse(r.occ);if(m)(byU[m.und]=byU[m.und]||[]).push(r);});
  POSD.inbox=[];Object.keys(byU).sort().forEach(u=>{clusterCampaigns(byU[u],todayISO()).forEach(c=>POSD.inbox.push(c));});
  renderInbox();
@@ -4100,7 +4205,7 @@ async function importCampaign(i){
  const {data:ins,error}=await sb.from('trades').insert(trow).select().single();
  if(error){posStatusMsg('import: '+error.message,'err');return;}
  const lrows=c.spells.map(s=>({trade_id:ins.id,occ_symbol:s.occ,cp:s.cp,strike:s.strike,expiry:s.expiry,
-  side:s.dir,qty:s.peak,
+  side:s.dir==='long'?'buy':'sell',qty:s.peak,
   open_price:s.openPx!=null?Math.round(s.openPx*10000)/10000:null,open_date:s.openDate,
   close_price:s.closed?(s.closePx!=null?Math.round(s.closePx*10000)/10000:null):null,
   close_date:s.closed?s.closeDate:null,
