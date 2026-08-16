@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.38</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.41</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -3787,19 +3787,29 @@ function solvePrice(net,metas,S0,target,mode){
 function spreadQty(legs){return legs.filter(l=>l.status==='open').reduce((a,l)=>Math.min(a,+l.qty||1),1e9);}
 function widthOf(legs){const K=legs.filter(l=>l.status==='open').map(l=>+l.strike).sort((a,b)=>a-b);
  return K.length>1?K[K.length-1]-K[0]:0;}
+function dteRamp(ctx){ /* full DTE -> 0%, 0 DTE -> 100%, floored at 50% */
+ const d=ctx&&ctx.dte,e=ctx&&ctx.entryDte;
+ if(!(e>0)||d==null)return 0.5;
+ const f=1-(Math.max(0,d)/e);
+ return Math.max(0.5,Math.min(1,f));}
+function putWidthOf(legs){
+ const sp=legs.filter(l=>l.cp==='P'&&l.side==='sell').sort((a,b)=>b.strike-a.strike)[0];
+ const pp=legs.filter(l=>l.cp==='P'&&l.side==='buy').sort((a,b)=>a.strike-b.strike)[0];
+ if(!sp||!pp)return null;
+ return{w:+sp.strike-+pp.strike,q:Math.min(+sp.qty||1,+pp.qty||1)};}
 /* dollar targets per the agreed TP/SL tables; values are UNREALIZED-P&L targets for the live structure */
-function tpslTargets(strategy,net,user,legs){
+function tpslTargets(strategy,net,user,legs,ctx){
  const u=user||{},open=legs.filter(l=>l.status==='open'),q=spreadQty(open),w=widthOf(open);
  const cr=net>0?net:0,db=net<0?-net:0,r2=v=>Math.round(v*100)/100;
  const T={tp:null,sl:null};
  const pct=(+u.tp_pct>0&&+u.tp_pct<=100)?+u.tp_pct/100:null;
  if(['bull_put_spread','bear_call_spread'].includes(strategy)&&cr>0){
-  const f=pct||0.90;
-  T.tp={usd:r2(f*cr),lbl:Math.round(f*100)+'% of the '+money0(cr)+' credit captured'};
+  const f=pct||dteRamp(ctx),ramp=!pct;
+  T.tp={usd:r2(f*cr),lbl:Math.round(f*100)+'% of the '+money0(cr)+' credit captured'+(ramp?' (DTE ramp, floor 50%)':'')};
   T.sl={usd:r2(-1.5*cr),lbl:'loss 1.5x credit'};
  } else if(['bull_call_spread','bear_put_spread'].includes(strategy)&&db>0){
-  const mp=w*100*q-db,f=pct||0.80;
-  if(mp>0)T.tp={usd:r2(f*mp),lbl:Math.round(f*100)+'% of max profit '+money0(mp)};
+  const mp=w*100*q-db,f=pct||dteRamp(ctx),ramp=!pct;
+  if(mp>0)T.tp={usd:r2(f*mp),lbl:Math.round(f*100)+'% of max profit '+money0(mp)+(ramp?' (DTE ramp, floor 50%)':'')};
   T.sl={usd:r2(-0.5*db),lbl:'50% of max loss '+money0(db)};
  } else if(['long_call','long_put'].includes(strategy)&&db>0){
   T.tp={usd:r2(db),lbl:'2x premium'};T.sl={usd:r2(-0.5*db),lbl:'50% of premium'};
@@ -3808,6 +3818,10 @@ function tpslTargets(strategy,net,user,legs){
   T.tp={usd:r2(f*cr),lbl:Math.round(f*100)+'% of the '+money0(cr)+' credit decayed'};
  } else if(strategy==='diagonal_call'&&db>0){
   T.sl={usd:r2(-0.5*db),lbl:'mark-loss guard, 50% of debit'};
+ } else if(['bull_bang','bb_collar'].includes(strategy)){
+  const pw=putWidthOf(open);
+  if(pw){const ml=pw.w*100*pw.q-net; /* (put strikes difference + net debit) x 100 */
+   if(ml>0)T.sl={usd:r2(-0.5*ml),lbl:'50% of max loss '+money0(ml)+' (put width + debit)'};}
  }
  if(+u.tp)T.tp={usd:r2(+u.tp),lbl:'your campaign target',user:true};
  if(+u.sl)T.sl={usd:r2(-Math.abs(+u.sl)),lbl:'your campaign stop',user:true};
@@ -3828,10 +3842,10 @@ function mkParts(net,realized,kind,legs,marks){
  return{ok:true,liq,unrl,total,cap};}
 function mkDecay(l,marks){const m=marks[l.occ_symbol];
  if(!m||!(m.mid>=0)||!(+l.open_price>0))return null;return m.mid/(+l.open_price);}
-function mkTriggers(strategy,net,user,legs,parts,marks){
+function mkTriggers(strategy,net,user,legs,parts,marks,ctx){
  const out=[];if(!parts.ok)return out;const u=user||{};
  const P=(k,m)=>out.push({key:k,msg:m});const r2=v=>Math.round(v*100)/100;
- const T=tpslTargets(strategy,net,u,legs);
+ const T=tpslTargets(strategy,net,u,legs,ctx);
  if(T.tp){const v=T.tp.user?parts.total:parts.unrl;
   if(v>=T.tp.usd)P('mk_tp','TP hit - '+T.tp.lbl+' ('+money(T.tp.usd)+', now '+money(v)+')');}
  if(T.sl){const v=T.sl.user?parts.total:parts.unrl;
@@ -4123,13 +4137,10 @@ function tTargetLevels(t){
  const T=tTargets(t),out=[];
  [['TP',T.tp,'#5fb89e'],['SL',T.sl,'#cf7a64']].forEach(g=>{
   const k=g[0],o=g[1],col=g[2];
-  if(!o)return;const pr=tPrices(t,o.usd);if(!pr)return;
-  const p=(pr.expiry!=null?pr.expiry:pr.today);if(p==null||!isFinite(p))return;
-  out.push({price:p,color:col,noAlert:true,
-   label:k+' '+money0(o.usd)+(pr.expiry!=null?' at expiry':' (est. today)'),
-   why:k+' target '+money(o.usd)+' - '+o.lbl+'. Price shown is where the combo reaches it'
-    +(pr.expiry!=null?' at expiry (exact payoff).':' if it happened today, holding IV fixed (estimate).')
-    +(pr.today!=null&&pr.expiry!=null&&Math.abs(pr.today-pr.expiry)>0.01?' Today it would take about '+f2(pr.today)+'.':'')});
+  if(!o)return;const pr=tPrices(t,o.usd);if(!pr||pr.today==null||!isFinite(pr.today))return;
+  out.push({price:pr.today,color:col,noAlert:true,
+   label:k+' '+money0(o.usd)+' today',
+   why:k+' target '+money(o.usd)+' - '+o.lbl+'. This is where you would exit TODAY to realise it, repriced at the current DTE with IV held fixed. It drifts as time passes and as IV moves.'});
  });
  return out;}
 function tRules(t){try{return t.ok?(t.strat.rules(t)||[]):[R('info','Legs could not be matched to the '+t.strat.name+' template','Check leg sides/strikes, or relabel the strategy.')];}catch(e){return[];}}
@@ -4267,7 +4278,7 @@ function renderPositions(){
       const parts=mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
       if(!parts.ok)return '<div class="posLegs" style="color:var(--faint)">marks missing for '+parts.miss.length+' leg(s) - Mark now to refresh</div>';
       const R=+t.row.realized_pnl||0,cU=parts.unrl>=0?'var(--long)':'var(--short)',cT=parts.total>=0?'var(--long)':'var(--short)';
-      return '<div class="posLegs">mark '+money(parts.liq)+' &middot; realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';})()
+      return '<div class="posLegs">realized '+money(R)+' &middot; unrealized <b style="color:'+cU+'">'+money(parts.unrl)+'</b> &middot; total <b style="color:'+cT+'">'+money(parts.total)+'</b>'+(parts.cap!=null?' &middot; '+Math.round(parts.cap*100)+'% captured':'')+'</div>';})()
     +targetsHTML(t)
     +'<div class="posTrig">'+rulesHTML(t)+'</div>'
     +'<div class="posGrid"><button class="btn" data-act="chart" style="padding:4px 10px;font-size:11px">Chart</button>'
@@ -4523,7 +4534,17 @@ async function mdFetchMarks(manual){
  posStatusMsg('marked '+okN+'/'+occs.length+' legs','ok');
  renderPositions();markCheck();
 }
-function tTargets(t){return tpslTargets(t.strategy,t.net,t.user,t.legs);}
+function tCtx(t){
+ const open=t.legs.filter(l=>l.status==='open'&&l.expiry);
+ if(!open.length)return{dte:null,entryDte:null};
+ const minExp=open.reduce((a,l)=>String(l.expiry)<a?String(l.expiry):a,'9999-99-99');
+ const dte=dteOf(minExp);
+ const opens=open.map(l=>String(l.open_date||'')).filter(Boolean).sort();
+ const start=opens[0]||String(t.row.opened_at||'');
+ let e=null;
+ if(start)e=Math.round((new Date(minExp)-new Date(start))/864e5);
+ return{dte,entryDte:(e>0?e:null)};}
+function tTargets(t){return tpslTargets(t.strategy,t.net,t.user,t.legs,tCtx(t));}
 function tPrices(t,usd){
  const und=t.row.underlying,S0=POSD.spot[und]||0;
  const open=t.legs.filter(l=>l.status==='open');
@@ -4531,10 +4552,8 @@ function tPrices(t,usd){
  const metas=open.map(l=>legMeta(l,POSD.marks,S0,todayISO()));
  if(metas.some(g=>!(g.sig>0)))return null;
  const exps=[...new Set(open.map(l=>String(l.expiry)))];
- const today=solvePrice(t.net,metas,S0,usd,'today');
- const exp=exps.length===1?solvePrice(t.net,metas,S0,usd,'expiry'):null;
  const pick=a=>{if(!a||!a.length)return null;return a.reduce((b,x)=>Math.abs(x-S0)<Math.abs(b-S0)?x:b);};
- return{S0,today:pick(today),expiry:pick(exp),multi:exps.length>1};
+ return{S0,today:pick(solvePrice(t.net,metas,S0,usd,'today')),multi:exps.length>1};
 }
 function targetsHTML(t){
  const T=tTargets(t);if(!T.tp&&!T.sl)return'';
@@ -4544,11 +4563,8 @@ function targetsHTML(t){
   if(!o)return'';
   const pr=POSD.markTs?tPrices(t,o.usd):null;
   let px='';
-  if(pr){const bits=[];
-   if(pr.today!=null)bits.push('~'+f2(pr.today)+' now');
-   if(pr.expiry!=null)bits.push(f2(pr.expiry)+' at expiry');
-   if(bits.length)px=' &middot; needs '+und+' '+bits.join(' / ');
-   else px=' &middot; not reachable on price alone (time-driven)';}
+  if(pr){px=(pr.today!=null)?(' &middot; exit today at '+und+' ~'+f2(pr.today))
+    :' &middot; not reachable on price alone today (time-driven)';}
   else if(POSD.markTs)px=' &middot; price estimate needs a spot for '+und+' - open its chart once';
   const now=(parts&&parts.ok)?parts.unrl:null;
   const hit=now!=null&&(k==='TP'?now>=o.usd:now<=o.usd);
@@ -4563,8 +4579,10 @@ function markCheck(){
   const parts=mkParts(t.net,+t.row.realized_pnl||0,t.strat.kind,t.legs,POSD.marks);
   if(!parts.ok)return;
   let changed=false;
-  mkTriggers(t.strategy,t.net,t.user,t.legs,parts,POSD.marks).forEach(g=>{
-   if(t.fired[g.key])return;t.fired[g.key]=todayISO();changed=true;
+  mkTriggers(t.strategy,t.net,t.user,t.legs,parts,POSD.marks,tCtx(t)).forEach(g=>{
+   const daily=(g.key==='mk_tp'||g.key==='mk_sl');
+   if(t.fired[g.key]&&!(daily&&t.fired[g.key]!==todayISO()))return;
+   t.fired[g.key]=todayISO();changed=true;
    posAlert(t.row.underlying+' '+t.strat.name+': '+g.msg);});
   if(changed)sb.from('trades').update({alerts_fired:t.fired}).eq('id',t.row.id).then(()=>{});
  });
@@ -4623,8 +4641,9 @@ async function posGapCheck(){
  if(!key&&!canProxy){posStatusMsg('gap check needs your Twelve Data key or group token (top of page)','err');return;}
  if(FETCH_BUSY){posStatusMsg('another fetch is running - try again shortly','err');return;}
  const today=todayISO();
- const syms=[...new Set(open.map(t=>t.row.underlying))].filter(sym=>open.some(t=>t.row.underlying===sym&&t.fired._gap!==today));
+ const syms=[...new Set(open.map(t=>t.row.underlying))].filter(sym=>!POSD.spot[sym]||open.some(t=>t.row.underlying===sym&&t.fired._gap!==today));
  if(!syms.length){posStatusMsg('missed-bar check: already up to date','ok');return;}
+ POSD.gapAuto=1;
  FETCH_BUSY=true;let hits=0;
  try{
   for(const sym of syms){
@@ -4720,16 +4739,28 @@ window.POS={
   const sym=((S&&S.ticker)||PAM_DATA.ticker||'').toUpperCase();if(!sym)return;
   GEO.posLv=[];const ctx2=env.ctx;
   const open=POSD.list.filter(t=>t.row.status==='open'&&t.row.underlying===sym);
+  const rows=[];
   open.forEach(t=>{tLevels(t).forEach(L=>{
-   if(L.price>env.hi||L.price<env.lo)return;const yy=env.y(L.price);
+   if(L.price>env.hi||L.price<env.lo)return;
+   rows.push({L,t,yy:env.y(L.price)});
+  });});
+  rows.sort((a,b)=>a.yy-b.yy);
+  let lastTag=-1e9,lastLab=-1e9;
+  rows.forEach(r=>{
+   const L=r.L,yy=r.yy;
    ctx2.strokeStyle=L.color;ctx2.setLineDash([7,4]);ctx2.lineWidth=1.3;
    ctx2.beginPath();ctx2.moveTo(env.padL,yy);ctx2.lineTo(env.W-env.padR,yy);ctx2.stroke();ctx2.setLineDash([]);
-   ctx2.font='600 9px IBM Plex Mono';const tag=f2(L.price),tw=ctx2.measureText(tag).width+8;
-   ctx2.fillStyle=L.color;ctx2.fillRect(env.W-env.padR+2,yy-7,tw,14);
-   ctx2.fillStyle='#0c0f16';ctx2.textAlign='left';ctx2.textBaseline='middle';ctx2.fillText(tag,env.W-env.padR+6,yy+0.5);
-   ctx2.fillStyle=L.color;ctx2.globalAlpha=.9;ctx2.fillText(L.label,env.padL+4,yy-7);ctx2.globalAlpha=1;
-   GEO.posLv.push({y:yy,price:L.price,label:L.label,why:L.why,color:L.color,strat:sym+' - '+t.strat.name});
-  });});
+   ctx2.font='600 9px IBM Plex Mono';
+   const tagY=Math.max(yy,lastTag+15);lastTag=tagY;
+   const tag=f2(L.price),tw=ctx2.measureText(tag).width+8;
+   if(tagY-yy>1.5){ctx2.strokeStyle=L.color;ctx2.globalAlpha=.5;ctx2.lineWidth=1;
+    ctx2.beginPath();ctx2.moveTo(env.W-env.padR,yy);ctx2.lineTo(env.W-env.padR+2,tagY);ctx2.stroke();ctx2.globalAlpha=1;}
+   ctx2.fillStyle=L.color;ctx2.fillRect(env.W-env.padR+2,tagY-7,tw,14);
+   ctx2.fillStyle='#0c0f16';ctx2.textAlign='left';ctx2.textBaseline='middle';ctx2.fillText(tag,env.W-env.padR+6,tagY+0.5);
+   const labY=Math.max(yy-7,lastLab+11);lastLab=labY;
+   ctx2.fillStyle=L.color;ctx2.globalAlpha=.9;ctx2.fillText(L.label,env.padL+4,labY);ctx2.globalAlpha=1;
+   GEO.posLv.push({y:yy,price:L.price,label:L.label,why:L.why,color:L.color,strat:sym+' - '+r.t.strat.name});
+  });
   const closed=POSD.list.filter(t=>t.row.status==='closed'&&t.row.underlying===sym);
   const idxOf=d=>{if(!d)return -1;for(const b of env.view){if(b.date>=d)return b.i;}return -1;};
   closed.forEach(t=>{
