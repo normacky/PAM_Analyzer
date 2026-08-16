@@ -759,7 +759,7 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.31</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.32</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
@@ -3747,22 +3747,26 @@ function feeCostOf(fs){return fs.reduce((a,f)=>a+((/interactive/i.test(f.bank||'
 function clusterCampaigns(fills,todayISO){
  const camps=[];let cur=null,book={};      // book: occ -> live spell
  const flat=()=>Object.values(book).every(s=>!s||s.qty===0);
- fills.forEach(fill=>{
+ fills.forEach((fill,fi)=>{
   const meta=occParse(fill.occ);if(!meta)return;
   const sgn=(fill.side==='buy'?1:-1)*+fill.q;
   if(!cur){cur={und:meta.und,start:fill.d,fills:[],spells:[],events:[],open:true};book={};}
   cur.fills.push(fill);
   let s=book[fill.occ];
-  if(!s||s.qty===0){
-   s={occ:fill.occ,...meta,dir:sgn>0?'long':'short',qty:0,peak:0,openF:[],closeF:[],openDate:fill.d,closed:false,
-      preHistory:/TOCLOSE/i.test(fill.descr||'')};
+  if(!s||(s.qty===0&&!(s.preHistory&&/TOCLOSE/i.test(fill.descr||'')))){
+   const pre=/TOCLOSE/i.test(fill.descr||'');
+   s={occ:fill.occ,...meta,dir:pre?(sgn>0?'short':'long'):(sgn>0?'long':'short'),qty:0,peak:0,openF:[],closeF:[],
+      openDate:pre?null:fill.d,closed:false,preHistory:pre};
    book[fill.occ]=s;cur.spells.push(s);
   }
-  const opening=(s.dir==='long')===(sgn>0);
-  if(opening){s.openF.push(fill);s.qty+=Math.abs(sgn);}
-  else{s.closeF.push(fill);s.qty-=Math.abs(sgn);if(s.qty<=0){s.qty=0;s.closed=true;s.closeDate=fill.d;}}
-  s.peak=Math.max(s.peak,s.qty);
-  if(flat()){cur.end=fill.d;cur.open=false;camps.push(cur);cur=null;}
+  if(s.preHistory){s.closeF.push(fill);s.peak+=Math.abs(sgn);s.qty=0;s.closed=true;s.closeDate=fill.d;}
+  else{
+   const opening=(s.dir==='long')===(sgn>0);
+   if(opening){s.openF.push(fill);s.qty+=Math.abs(sgn);}
+   else{s.closeF.push(fill);s.qty-=Math.abs(sgn);if(s.qty<=0){s.qty=0;s.closed=true;s.closeDate=fill.d;}}
+   s.peak=Math.max(s.peak,s.qty);
+  }
+  if(flat()){const nx=fills[fi+1];if(!nx||nx.d!==fill.d){cur.end=fill.d;cur.open=false;camps.push(cur);cur=null;}}
  });
  if(cur)camps.push(cur);
  camps.forEach(c=>{
@@ -3783,8 +3787,8 @@ function clusterCampaigns(fills,todayISO){
   c.events.sort((x,y)=>x.date<y.date?-1:1);
   c.open=c.spells.some(s=>!s.closed);
   if(!c.open&&!c.end)c.end=c.spells.reduce((a,s)=>s.closeDate>a?s.closeDate:a,'');
-  c.netEntry=cashOf(c.fills.filter(f=>f.d===c.start));
   const preIds=new Set();c.spells.forEach(s=>{if(s.preHistory)s.openF.concat(s.closeF).forEach(f=>preIds.add(f.id));});
+  c.netEntry=cashOf(c.fills.filter(f=>f.d===c.start&&!preIds.has(f.id)));
   const rf=c.fills.filter(f=>!preIds.has(f.id)&&(c.open?f.d>c.start:true));
   c.realized=cashOf(rf)-feeCostOf(rf);
   if(c.open)c.spells.forEach(s=>{if(s.expired&&s.openDate===c.start)c.realized+=cashOf(s.openF)-feeCostOf(s.openF);});
@@ -4181,6 +4185,8 @@ async function loadInbox(){
 }
 function inboxCardHTML(c,i){
  const dup=POSD.list.some(t=>t.row.status==='open'&&t.row.underlying===c.und);
+ const allPre=c.spells.every(s=>s.preHistory);
+ const d1f=(function(){const ids=new Set();c.spells.forEach(s=>{if(!s.preHistory)s.openF.concat(s.closeF).forEach(f=>ids.add(f.id));});return feeCostOf(c.fills.filter(f=>f.d===c.start&&ids.has(f.id)));})();
  return '<div class="posCard" data-ci="'+i+'">'
   +'<div class="posHead"><div><b>'+esc(c.und)+'</b> <span style="font-family:var(--mono);font-size:11px;color:var(--mut)">'+c.start+(c.open?' -> open':' -> '+c.end)+'</span></div>'
   +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+pill(c.fills.length+' fills')+pill(c.open?'OPEN':'closed',c.open?'warn':'')+(c.events.length?pill(c.events.length+' roll'+(c.events.length===1?'':'s'),'warn'):'')+'</div></div>'
@@ -4192,7 +4198,7 @@ function inboxCardHTML(c,i){
   +(c.spells.length>1?'<div style="margin-top:4px"><button class="btn impSplit" style="padding:3px 9px;font-size:10.5px">Split ticked legs into their own trade</button></div>':'')
   +(c.spells.some(s=>s.expired)?'<div style="font-family:var(--mono);font-size:10.5px;color:#cf7a64;margin-top:4px">expired legs are assumed worthless ($0) - if they finished in the money, fix the numbers via Edit after import</div>':'')
   +(c.events.length?'<div class="posLegs" style="color:#e8c46a">'+c.events.map(e=>'Roll '+e.date+': '+esc(e.from.slice(-15))+' -> '+esc(e.to.slice(-15))+' net '+money(e.cash)).join('<br>')+'</div>':'')
-  +'<div class="posLegs">entry (day-1 net) '+money(c.netEntry)+(c.realized?' &middot; realized so far '+money(c.realized):'')+(c.needsBasis?' &middot; <span style="color:#cf7a64">a leg predates the feed - basis unknown, edit after import</span>':'')+'</div>'
+  +'<div class="posLegs">'+(allPre?'entry predates the feed (basis unknown) - close prices recorded, P&amp;L needs your basis via Edit':'entry (day-1 net) '+money(c.netEntry)+(d1f?' &middot; day-1 fees '+money(d1f):''))+(c.realized?' &middot; realized so far '+money(c.realized):'')+(c.needsBasis&&!allPre?' &middot; <span style="color:#cf7a64">a leg predates the feed - basis unknown, edit after import</span>':'')+'</div>'
   +'<div class="posGrid"><button class="btn impConfirm" style="padding:4px 10px;font-size:11px">Confirm import</button>'
   +'<button class="btn impIgnore" style="padding:4px 10px;font-size:11px">Ignore</button></div>'
   +'</div>';
@@ -4258,14 +4264,16 @@ async function ignoreCampaign(i){
  posStatusMsg('Ignored.','');
 }
 async function impAllClosed(){
- const list=POSD.inbox.filter(c=>!c.open);
- if(!list.length)return;
- if(!confirm('Import all '+list.length+' closed campaigns with their proposed labels? They land in the closed list + stats. You can relabel any of them via edit afterwards.'))return;
+ const all=POSD.inbox.filter(c=>!c.open),skip=all.filter(c=>c.needsBasis),list=all.filter(c=>!c.needsBasis);
+ if(!all.length)return;
+ if(!list.length){posStatusMsg('all '+all.length+' closed campaigns have unknown pre-feed basis - import them one by one and fix via Edit','err');return;}
+ if(!confirm('Import '+list.length+' closed campaigns with their proposed labels?'+(skip.length?' ('+skip.length+' with unknown pre-feed basis will be left for you to handle one by one.)':'')+' They land in the closed list + stats.'))return;
  let n=0;
  for(const c of list){posStatusMsg('importing '+c.und+'\u2026');if(await importCampaignObj(c,c.proposal))n++;else break;}
- POSD.inbox=POSD.inbox.filter(c=>c.open);
+ const done=new Set(list.slice(0,n));
+ POSD.inbox=POSD.inbox.filter(c=>!done.has(c));
  renderInbox();refreshInboxCount();loadPositions();
- posStatusMsg('Imported '+n+' closed campaign'+(n===1?'':'s')+'.','ok');
+ posStatusMsg('Imported '+n+' closed campaign'+(n===1?'':'s')+(skip.length?' - '+skip.length+' pre-feed left in the list':'')+'.','ok');
 }
 async function ignAllClosed(){
  const list=POSD.inbox.filter(c=>!c.open);
