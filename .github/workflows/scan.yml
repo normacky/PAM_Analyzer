@@ -1,42 +1,69 @@
-# Runs the whole-US-market PAM/Turtle scan once each weekday after the US close,
-# then commits scan_results.json back into the repo so the analyzer can read it.
-name: PAM market scan
+# Daily portfolio + market refresh.
+#
+# Order matters: the BankSync push (Claude routine, ~05:00 SGT) must land first, so this
+# workflow WAITS for the routine's completion marker in Supabase, then settles 10 minutes,
+# then runs the portfolio steps, and only afterwards the 3-hour market scan.
+name: PAM daily refresh
 
 on:
   schedule:
-    - cron: '30 20 * * 1-5'   # 20:30 UTC. The run step waits until 16:25 New York before scanning, which self-adjusts for US daylight saving and never skips a run GitHub starts late.
-  workflow_dispatch:           # also lets you run it on demand from the Actions tab
+    # 21:30 UTC = 05:30 SGT next morning, 30 min after the 05:00 SGT BankSync sheet refresh.
+    # Sun-Thu in UTC == Mon-Fri in Singapore.
+    - cron: '30 21 * * 0-4'
+  workflow_dispatch:
 
 permissions:
-  contents: write              # allow the job to commit the results file
+  contents: write
 
 jobs:
-  scan:
+  refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
       - name: Get the code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # full history so the rebase-before-push below always has the common ancestor
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      # ---------- 1. BankSync sheet -> bank_fills ----------
+      - name: Pull BankSync transactions
+        continue-on-error: true
+        env:
+          BANKSYNC_URL: ${{ secrets.BANKSYNC_URL }}
+          BANKSYNC_TOKEN: ${{ secrets.BANKSYNC_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          FEED_TOKEN: ${{ secrets.FEED_TOKEN }}
+          BANKSYNC_DAYS: '120'
+        run: node pam_daily.js banksync
+
+      # ---------- 2. mark every open leg ----------
+      - name: Mark open option legs
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          MD_TOKEN: ${{ secrets.MD_TOKEN }}
+          MD_MAX_CREDITS: '90'
+        run: node pam_daily.js mark
+
+      # ---------- 3. whole-market scan (slowest, runs last) ----------
       - name: Run the market scan
         env:
           ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
           ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
-          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}   # market cap + industry enrichment (matches pam_scan.js)
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
           PAM_HTML: pam_analyzer.html
-          PAM_LIMIT: '0'         # 0 = the whole market
-          PAM_OPT_MIN_MC: '2000000000'   # options enrichment only for fired tickers >= $2bn market cap (edit here anytime)
+          PAM_LIMIT: '0'
+          PAM_OPT_MIN_MC: '2000000000'
         run: |
-          # The cron fires at 20:30 UTC. In US summer that is 16:30 New York (right after the 4 PM
-          # close); in US winter it is 15:30 New York (market still open), so we WAIT until 16:25
-          # New York before scanning. This self-adjusts for daylight saving and, unlike a fixed-time
-          # check, NEVER skips a run that GitHub starts late. A manual "Run workflow" scans at once.
+          # By the time the fills+marks steps finish we are well past 16:25 New York, so this
+          # loop normally passes immediately. It stays as a guard for manual runs.
           if [ "${{ github.event_name }}" = "schedule" ]; then
             while :; do
               ET=$(TZ=America/New_York date +%H%M)
@@ -53,14 +80,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add scan_results.json 2>/dev/null || true
-          git add iv_history.json 2>/dev/null || true        # IV history accumulator (may not exist on the first run)
-          git add enrichment_cache.json 2>/dev/null || true  # shares/industry cache (may not exist on the first run)
-          git add earnings.json 2>/dev/null || true          # earnings calendar accumulator (dates + EPS est/actual)
-          git add earnings_backfill.json 2>/dev/null || true # backfill bookkeeping (probe result + done list)
+          git add iv_history.json 2>/dev/null || true
+          git add enrichment_cache.json 2>/dev/null || true
+          git add earnings.json 2>/dev/null || true
+          git add earnings_backfill.json 2>/dev/null || true
           git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || { echo "nothing to commit"; exit 0; }
-          # The scan runs ~3 hours, so main may have moved on (e.g. you edited files) while it ran. Rebase our
-          # results commit onto the latest main and push, retrying a few times. This is exactly what failed before:
-          # a plain 'git push' from a 3-hour-old checkout gets rejected once the branch has advanced.
           for attempt in 1 2 3 4 5; do
             if git pull --rebase origin main && git push origin HEAD:main; then
               echo "pushed on attempt $attempt"; exit 0
