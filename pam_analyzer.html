@@ -840,11 +840,20 @@
   <div class="tabpanel" data-tab="positions">
     <div class="card">
       <div class="posHead">
-        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.46</span></h2>
+        <h2 style="margin:0">Positions <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">v0.49</span></h2>
         <button class="btn" id="posNewBtn" style="padding:5px 12px;font-size:11px">+ New trade</button>
       </div>
       <div class="lead">options campaigns with ruleset SL/TP — lines + alerts on the chart. Analytical only, not financial advice.</div>
       <div id="posStatus" style="font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:6px"></div>
+      <div id="posDailyWrap" style="margin-top:10px">
+        <div class="posHead"><div><b style="font-size:12px">Daily update</b> <span id="posDailyStamp" style="font-family:var(--mono);font-size:10.5px;color:var(--faint)"></span></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            <label style="font-family:var(--mono);font-size:10.5px;color:var(--mut);display:flex;gap:4px;align-items:center">
+              <input type="checkbox" id="posAutoChk"> auto-apply fills</label>
+            <button class="btn" id="posDailyBtn" style="padding:4px 10px;font-size:11px">Run now</button>
+          </div></div>
+        <div id="posDailyLog" style="font-family:var(--mono);font-size:10.5px;color:var(--mut);line-height:1.5;margin-top:4px"></div>
+      </div>
       <div id="posInboxWrap" style="margin-top:10px">
         <div class="posHead"><div><b style="font-size:12px">Import inbox</b> <span id="posInboxCount" class="posPill">-</span></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -3811,7 +3820,7 @@ setInterval(()=>{
    (bank_fills / eod_marks are written by the feed script and used
    by the importer next session). Engine block untouched.
    ============================================================ */
-const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},spot:{},markTs:null,mdBusy:false,sortKey:(localStorage.getItem('pam_pos_sort')||'dte'),sortDir:(localStorage.getItem('pam_pos_dir')||'asc')};
+const POSD={list:[],uid:null,dirtyNet:false,editId:null,marks:{},spot:{},markTs:null,mdBusy:false,sortKey:(localStorage.getItem('pam_pos_sort')||'dte'),sortDir:(localStorage.getItem('pam_pos_dir')||'asc'),autoApply:(localStorage.getItem('pam_auto_apply')!=='0'),log:[],dailyBusy:false};
 const f2=v=>(Math.round(v*100)/100).toFixed(2);
 const money=v=>(v<0?'-$':'$')+f2(Math.abs(v));
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
@@ -3963,7 +3972,10 @@ function attachPlan(camp,existingLegs,cashOf,feeCostOf){
    if(!leg){plan.err='closing fills for '+s.occ+' but no matching open leg on the trade';return plan;}
    if(Math.round(s.peak)!==Math.round(+leg.qty)){plan.err='qty mismatch on '+s.occ+' ('+s.peak+' vs leg '+leg.qty+')';return plan;}
    plan.closes.push({leg,occ:s.occ,px:s.closePx,date:s.closeDate,fills:s.closeF});}
-  else if(!s.closed){(rollTo.has(s.occ)?plan.rollOpens:plan.adds).push(s);}
+  else if(!s.closed){
+   const dup=existingLegs.find(l=>l.status==='open'&&l.occ_symbol===s.occ);
+   if(dup&&!rollTo.has(s.occ)){plan.err='leg '+s.occ+' is already open on this trade (seeded or already imported)';return plan;}
+   (rollTo.has(s.occ)?plan.rollOpens:plan.adds).push(s);}
   else plan.closes.push({leg:null,occ:s.occ,px:s.closePx,date:s.closeDate,fills:s.openF.concat(s.closeF),roundTrip:true});
  }
  const rfills=[];plan.closes.forEach(c=>rfills.push(...c.fills));plan.rollOpens.forEach(s=>rfills.push(...s.openF));
@@ -4242,7 +4254,7 @@ function tTargetLevels(t){
 function tRules(t){try{return t.ok?(t.strat.rules(t)||[]):[R('info','Legs could not be matched to the '+t.strat.name+' template','Check leg sides/strikes, or relabel the strategy.')];}catch(e){return[];}}
 
 /* ---------------- load + render ---------------- */
-async function loadPositions(){
+async function loadPositions(quiet){
  if(!ME){POSD.list=[];renderPositions();return;}
  const {data:ts,error}=await sb.from('trades').select('*').order('created_at',{ascending:false});
  if(error){posStatusMsg('Could not load positions: '+error.message,'err');return;}
@@ -4251,10 +4263,11 @@ async function loadPositions(){
  POSD.list=(ts||[]).map(r=>buildTradeObj(r,legs.filter(l=>l.trade_id===r.id)));
  renderPositions();dteCheck();try{draw();}catch(e){}
  refreshInboxCount();
- if(!POSD.gapAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.gapAuto=1;setTimeout(()=>{try{posGapCheck();}catch(e){}},2500);}
  mdMeterLoad();
  mdLoadCached();
- if(!POSD.mdAuto&&POSD.list.some(t=>t.row.status==='open')){POSD.mdAuto=1;setTimeout(()=>{try{mdFetchMarks(false);}catch(e){}},3500);}
+ const st0=q('posDailyStamp');
+ if(st0){const d=localStorage.getItem('pam_daily_'+todayISO());st0.textContent=d?('last daily update '+new Date(d).toTimeString().slice(0,5)):'not run today';}
+ if(!quiet&&!POSD.dailyAuto){POSD.dailyAuto=1;setTimeout(()=>{try{dailyUpdate(false);}catch(e){}},2500);}
 }
 function posLegsTable(t){
  const o=t.legs.filter(l=>l.status==='open'),show=o.length?o:t.legs;
@@ -4547,16 +4560,87 @@ function spellLine(s){
   +' @'+(s.openPx!=null?f2(s.openPx):'?')
   +(s.closed?((s.expired?' -> expired':' -> closed'+(s.closePx!=null?' @'+f2(s.closePx):''))+(s.realized!=null?' ('+money(s.realized)+')':'')):' open');
 }
+async function scanFills(){
+ const {data,error}=await sb.from('bank_fills').select('*').eq('status','unmatched').order('trade_date',{ascending:true}).order('fill_id',{ascending:true});
+ if(error)throw new Error(error.message);
+ const rows=(data||[]).map(f=>({id:f.fill_id,occ:f.occ_symbol,side:f.side,q:+f.qty_contracts,p:+f.price,d:String(f.trade_date),f:+f.fees||0,descr:f.descr||'',bank:f.bank||''}));
+ const byU={};rows.forEach(r=>{const m=occParse(r.occ);if(m)(byU[m.und]=byU[m.und]||[]).push(r);});
+ const camps=[];Object.keys(byU).sort().forEach(u=>{clusterCampaigns(byU[u],todayISO()).forEach(c=>camps.push(c));});
+ return{camps,nFills:rows.length};
+}
 async function loadInbox(){
  if(!ME){posStatusMsg('sign in first (Chat tab)','err');return;}
  posStatusMsg('scanning fills\u2026');
- const {data,error}=await sb.from('bank_fills').select('*').eq('status','unmatched').order('trade_date',{ascending:true}).order('fill_id',{ascending:true});
- if(error){posStatusMsg(error.message,'err');return;}
- const rows=(data||[]).map(f=>({id:f.fill_id,occ:f.occ_symbol,side:f.side,q:+f.qty_contracts,p:+f.price,d:String(f.trade_date),f:+f.fees||0,descr:f.descr||'',bank:f.bank||''}));
- const byU={};rows.forEach(r=>{const m=occParse(r.occ);if(m)(byU[m.und]=byU[m.und]||[]).push(r);});
- POSD.inbox=[];Object.keys(byU).sort().forEach(u=>{clusterCampaigns(byU[u],todayISO()).forEach(c=>POSD.inbox.push(c));});
- renderInbox();
- posStatusMsg(POSD.inbox.length+' campaign'+(POSD.inbox.length===1?'':'s')+' proposed from '+rows.length+' fills - confirm or ignore each','ok');
+ let r;try{r=await scanFills();}catch(e){posStatusMsg(e.message,'err');return;}
+ POSD.inbox=r.camps;renderInbox();
+ posStatusMsg(POSD.inbox.length+' campaign'+(POSD.inbox.length===1?'':'s')+' proposed from '+r.nFills+' fills - confirm or ignore each','ok');
+}
+/* every fill in the campaign carries an explicit open/close marker (Schwab natively, IBKR via the feed task) */
+function campTagged(c){
+ return c.fills.every(f=>/TOOPEN|TOCLOSE|ASSIGNED|EXERCISED|EXPIRED/i.test(f.descr||''));
+}
+/* auto-apply: attach clean rolls/closes to open trades, import unambiguous new campaigns, queue the rest */
+async function autoApplyFills(){
+ const out={attached:0,imported:0,queued:0,reasons:[]};
+ let r;try{r=await scanFills();}catch(e){out.err=e.message;return out;}
+ const left=[];
+ for(const c of r.camps){
+  const host=POSD.list.find(t=>t.row.status==='open'&&t.row.underlying===c.und);
+  if(host){
+   const plan=attachPlan(c,host.legs,cashOf,feeCostOf);
+   const touches=plan.closes.filter(x=>x.leg).length+plan.rollOpens.length+plan.adds.length;
+   if(!plan.err&&touches&&campTagged(c)){
+    if(await attachApply(host,plan)){out.attached++;
+     posLog(c.und+': attached '+plan.closes.filter(x=>x.leg).length+' close / '+plan.rollOpens.length+' roll / '+plan.adds.length+' add, realized '+money(plan.realizedDelta));
+     continue;}
+   }
+   left.push(c);out.reasons.push(c.und+' - '+(plan.err?plan.err:(campTagged(c)?'nothing to attach':'fills lack open/close markers')));continue;
+  }
+  if(c.proposal!=='custom'&&!c.needsBasis&&campTagged(c)){
+   if(await importCampaignObj(c,c.proposal)){out.imported++;
+    posLog(c.und+': imported as '+POS_STRATS[c.proposal].name+(c.open?' (open)':' (closed)'));continue;}
+  }
+  left.push(c);
+  out.reasons.push(c.und+' - '+(c.proposal==='custom'?'no strategy match':(c.needsBasis?'basis predates the feed':'fills lack open/close markers')));
+ }
+ POSD.inbox=left;out.queued=left.length;
+ return out;
+}
+function posLog(msg){
+ POSD.log=POSD.log||[];POSD.log.unshift({t:new Date(),msg});
+ if(POSD.log.length>40)POSD.log.pop();
+ const el=q('posDailyLog');if(!el)return;
+ el.innerHTML=POSD.log.slice(0,8).map(x=>'<div>'+x.t.toTimeString().slice(0,5)+' &middot; '+esc(x.msg)+'</div>').join('');
+}
+/* one pass: fills -> positions -> daily bars (OHLCV + spot + level touches) -> option marks -> alerts */
+async function dailyUpdate(manual){
+ if(!ME)return;
+ if(POSD.dailyBusy)return;
+ const key='pam_daily_'+todayISO();
+ if(!manual&&localStorage.getItem(key))return;
+ POSD.dailyBusy=true;
+ try{
+  let msg=[];
+  if(POSD.autoApply){
+   posStatusMsg('daily update: applying new fills\u2026');
+   const a=await autoApplyFills();
+   if(a.err)posLog('fills: '+a.err);
+   if(a.attached||a.imported)await loadPositions(true);
+   msg.push(a.attached+' attached, '+a.imported+' imported'+(a.queued?', '+a.queued+' need review':''));
+   if(a.queued&&a.reasons.length)a.reasons.slice(0,6).forEach(x=>posLog('review: '+x));
+   renderInbox();refreshInboxCount();
+  }
+  posStatusMsg('daily update: refreshing daily bars\u2026');
+  try{await posGapCheck(true);}catch(e){posLog('bars: '+e.message);}
+  msg.push('bars refreshed');
+  posStatusMsg('daily update: marking options\u2026');
+  try{await mdFetchMarks(false);}catch(e){posLog('marks: '+e.message);}
+  msg.push('marks '+(POSD.markTs?'ok':'skipped'));
+  localStorage.setItem(key,new Date().toISOString());
+  const st=q('posDailyStamp');if(st)st.textContent='last daily update '+new Date().toTimeString().slice(0,5);
+  posLog('daily update: '+msg.join(' \u00b7 '));
+  posStatusMsg('daily update done - '+msg.join(' \u00b7 '),'ok');
+ }finally{POSD.dailyBusy=false;}
 }
 function inboxCardHTML(c,i){
  const dup=POSD.list.some(t=>t.row.status==='open'&&t.row.underlying===c.und);
@@ -4630,7 +4714,7 @@ async function importCampaign(i){
  const c=POSD.inbox[i];if(!c)return;
  const sel=q('posInbox').querySelector('[data-ci="'+i+'"] .impStrat'),sk=sel?sel.value:c.proposal;
  if(!(await importCampaignObj(c,sk)))return;
- posStatusMsg('Imported '+c.und+' as '+POS_STRATS[sk].name+'.','ok');
+
  POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();loadPositions();
 }
 async function ignoreCampaign(i){
@@ -4687,7 +4771,7 @@ async function mdMeterAdd(n){if(!ME||!n)return;const day=creditDay();
  const el=q('mdMeter');if(el)el.textContent='credits '+used+'/100';}
 async function mdLoadCached(){
  if(!ME)return;const occs=openOccs();if(!occs.length)return;
- const {data,error}=await sb.from('eod_marks').select('occ_symbol,mid,bid,ask,delta,iv,spot,mark_date,updated_at')
+ const {data,error}=await sb.from('eod_marks').select('occ_symbol,mid,bid,ask,delta,iv,spot,mark_date,updated_at,source')
   .eq('user_id',ME.id).in('occ_symbol',occs)
   .order('mark_date',{ascending:false}).order('updated_at',{ascending:false}).limit(400);
  if(error||!data||!data.length)return;
@@ -4696,7 +4780,7 @@ async function mdLoadCached(){
   if(POSD.marks[r.occ_symbol]&&POSD.marks[r.occ_symbol]._cached!==true)return; // never overwrite a fresh live mark
   if(POSD.marks[r.occ_symbol])return;                                          // first row per occ = latest
   if(!(+r.mid>0))return;
-  POSD.marks[r.occ_symbol]={mid:+r.mid,delta:r.delta!=null?+r.delta:null,bid:r.bid!=null?+r.bid:null,ask:r.ask!=null?+r.ask:null,iv:r.iv!=null?+r.iv:null,_cached:true};
+  POSD.marks[r.occ_symbol]={mid:+r.mid,delta:r.delta!=null?+r.delta:null,bid:r.bid!=null?+r.bid:null,ask:r.ask!=null?+r.ask:null,iv:r.iv!=null?+r.iv:null,src:(r.source==='model'?'m':'q'),mdate:String(r.mark_date),_cached:true};
   if(+r.spot>0)POSD.spot[r.occ_symbol.replace(/\d{6}[CP]\d{8}$/,'')]=+r.spot;
   got++;const u=new Date(r.updated_at);if(!newest||u>newest){newest=u;newestDay=String(r.mark_date);}
  });
@@ -4709,38 +4793,95 @@ async function mdLoadCached(){
 }
 function openOccs(){const s=new Set();POSD.list.forEach(t=>{if(t.row.status!=='open')return;
  t.legs.forEach(l=>{if(l.status==='open'&&l.occ_symbol)s.add(l.occ_symbol);});});return[...s];}
+function bsDelta(cp,S,K,T,sig,r){
+ r=(r==null?0.04:r);
+ if(!(T>0)||!(sig>0))return cp==='C'?(S>K?1:0):(S<K?-1:0);
+ const d1=(Math.log(S/K)+(r+sig*sig/2)*T)/(sig*Math.sqrt(T));
+ return cp==='C'?nrm(d1):nrm(d1)-1;}
+function openLegRows(){
+ const seen={},out=[];
+ POSD.list.forEach(t=>{if(t.row.status!=='open')return;
+  t.legs.forEach(l=>{
+   if(l.status!=='open'||!l.occ_symbol)return;
+   if(seen[l.occ_symbol])return;seen[l.occ_symbol]=1;
+   out.push({occ:l.occ_symbol,cp:l.cp,K:+l.strike,expiry:String(l.expiry||''),side:l.side,
+             und:String(l.occ_symbol).replace(/\d{6}[CP]\d{8}$/,'')});});});
+ return out;}
+/* which legs are worth a credit today: everything else is repriced from stored IV + free spot */
+function mdPlan(rows,anchorAll){
+ const q=[],m=[];
+ rows.forEach(L=>{
+  const k=POSD.marks[L.occ]||null,S=POSD.spot[L.und]||0,dte=L.expiry?dteOf(L.expiry):null;
+  const noBase=!k||!(k.iv>0)||!(S>0);
+  const stale=k&&k.mdate&&((new Date(todayISO())-new Date(k.mdate))/864e5>7);
+  const near=S>0&&Math.abs(S-L.K)/S<=0.08;
+  const deep=k&&k.delta!=null&&Math.abs(k.delta)>=0.70;
+  const soon=dte!=null&&dte<=21;
+  (anchorAll||noBase||stale||near||deep||soon)?q.push(L):m.push(L);});
+ return{q,m};}
+function mdModel(L){
+ const k=POSD.marks[L.occ],S=POSD.spot[L.und];
+ const T=Math.max(1,(new Date(L.expiry)-new Date(todayISO()))/864e5)/365;
+ const mid=bsPrice(L.cp,S,L.K,T,k.iv,0.04);
+ if(!(mid>=0))return null;
+ return{mid:Math.round(mid*10000)/10000,delta:Math.round(bsDelta(L.cp,S,L.K,T,k.iv,0.04)*1e4)/1e4,
+        iv:k.iv,bid:null,ask:null,src:'m'};}
 async function mdFetchMarks(manual){
  if(POSD.mdBusy)return;if(!ME){if(manual)posStatusMsg('sign in first','err');return;}
  const key=(q('mdKey').value||'').trim();
  if(!key){if(manual)posStatusMsg('paste your marketdata.app token first','err');return;}
- const occs=openOccs();if(!occs.length){if(manual)posStatusMsg('no open legs to mark','');return;}
+ const rows=openLegRows();if(!rows.length){if(manual)posStatusMsg('no open legs to mark','');return;}
+ if(!manual){                       /* nightly GitHub job may have marked everything already */
+  const today=todayISO();
+  if(rows.every(L=>{const k=POSD.marks[L.occ];return k&&k.mdate===today;})){
+   const st0=q('mdStamp');if(st0&&!st0.textContent)st0.textContent='marks already current for today';
+   return;}
+ }
+ const dow=new Date().getUTCDay();                    /* US session days only */
+ if(!manual&&(dow===0||dow===6)){if(POSD.markTs)return;}
+ const anchorKey='pam_md_anchor',lastAnchor=localStorage.getItem(anchorKey);
+ const anchorDue=!lastAnchor||((new Date(todayISO())-new Date(lastAnchor))/864e5>=7);
+ const anchorAll=!!manual||anchorDue;                  /* manual press = full re-anchor */
+ const plan=mdPlan(rows,anchorAll);
  const {used}=await mdMeterLoad();
- if(!manual){if(used>0)return;if(used+occs.length>90)return;} /* auto = first mark of the credit-day only */
- else if(used+occs.length>100&&!confirm('This mark costs ~'+occs.length+' credits and '+used+' are already used today (marketdata lets the balance go negative). Continue?'))return;
- POSD.mdBusy=true;posStatusMsg('marking '+occs.length+' legs\u2026');
- let okN=0;const eod=[];
+ if(!manual){if(used>0)return;if(used+plan.q.length>90)return;}
+ else if(used+plan.q.length>100&&!confirm('This refresh quotes '+plan.q.length+' legs (~'+plan.q.length+' credits); '+used+' are already used today. Continue?'))return;
+ POSD.mdBusy=true;posStatusMsg('marking: quoting '+plan.q.length+', modelling '+plan.m.length+'\u2026');
+ let okQ=0,okM=0;const eod=[];
  try{
-  for(const occ of occs){
+  for(const L of plan.q){
    try{
-    const r=await fetch('https://api.marketdata.app/v1/options/quotes/'+encodeURIComponent(occ)+'/?token='+encodeURIComponent(key));
+    const r=await fetch('https://api.marketdata.app/v1/options/quotes/'+encodeURIComponent(L.occ)+'/?token='+encodeURIComponent(key));
     if(r.status!==200&&r.status!==203)continue; /* 203 = cached tier, body-identical */
     const j=await r.json();if(!j||j.s!=='ok')continue;
     const bid=(j.bid&&j.bid[0])||0,ask=(j.ask&&j.ask[0])||0;
     let mid=(j.mid&&j.mid[0])||0;if(!(mid>0)&&bid>0&&ask>0)mid=(bid+ask)/2;
     if(!(mid>0))continue; /* quote-quality guard: no zero/one-sided marks */
-    const und=occ.replace(/\d{6}[CP]\d{8}$/,'');
-    const sp=(j.underlyingPrice&&j.underlyingPrice[0])||null;if(sp>0)POSD.spot[und]=+sp;
-    POSD.marks[occ]={mid:+mid,delta:(j.delta&&j.delta[0]!=null)?+j.delta[0]:null,bid:+bid||null,ask:+ask||null,iv:(j.iv&&j.iv[0]!=null)?+j.iv[0]:null};
-    okN++;
-    eod.push({user_id:ME.id,occ_symbol:occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,mid:Math.round(mid*10000)/10000,delta:POSD.marks[occ].delta,iv:POSD.marks[occ].iv,spot:POSD.spot[occ.replace(/\d{6}[CP]\d{8}$/,'')]||null,source:'marketdata',updated_at:new Date().toISOString()});
+    const sp=(j.underlyingPrice&&j.underlyingPrice[0])||null;if(sp>0)POSD.spot[L.und]=+sp;
+    POSD.marks[L.occ]={mid:+mid,delta:(j.delta&&j.delta[0]!=null)?+j.delta[0]:null,bid:+bid||null,ask:+ask||null,
+                       iv:(j.iv&&j.iv[0]!=null)?+j.iv[0]:null,src:'q',mdate:todayISO()};
+    okQ++;
+    eod.push({user_id:ME.id,occ_symbol:L.occ,mark_date:todayISO(),bid:+bid||null,ask:+ask||null,
+      mid:Math.round(mid*10000)/10000,delta:POSD.marks[L.occ].delta,iv:POSD.marks[L.occ].iv,
+      spot:POSD.spot[L.und]||null,source:'marketdata',updated_at:new Date().toISOString()});
    }catch(e){}
   }
+  for(const L of plan.m){
+   const mm=mdModel(L);if(!mm)continue;
+   POSD.marks[L.occ]={...mm,mdate:todayISO()};okM++;
+   eod.push({user_id:ME.id,occ_symbol:L.occ,mark_date:todayISO(),bid:null,ask:null,mid:mm.mid,
+     delta:mm.delta,iv:mm.iv,spot:POSD.spot[L.und]||null,source:'model',updated_at:new Date().toISOString()});
+  }
  }finally{POSD.mdBusy=false;}
- await mdMeterAdd(occs.length); /* billed per symbol requested */
+ await mdMeterAdd(plan.q.length); /* billed per symbol requested */
+ if(anchorAll&&okQ)localStorage.setItem(anchorKey,todayISO());
  if(eod.length)try{await sb.from('eod_marks').upsert(eod,{onConflict:'user_id,occ_symbol,mark_date'});}catch(e){}
- POSD.markTs=okN?new Date():POSD.markTs;
- const st=q('mdStamp');if(st)st.textContent=okN?('marked '+new Date().toTimeString().slice(0,5)):'no usable quotes (market closed?)';
- posStatusMsg('marked '+okN+'/'+occs.length+' legs','ok');
+ POSD.markTs=(okQ||okM)?new Date():POSD.markTs;
+ POSD.markMix={q:okQ,m:okM};
+ const st=q('mdStamp');
+ if(st)st.textContent=(okQ||okM)?('marked '+new Date().toTimeString().slice(0,5)+' \u00b7 '+okQ+' quoted / '+okM+' modelled'+(anchorAll?' \u00b7 full anchor':''))
+   :'no usable quotes (market closed?)';
+ posStatusMsg('marked '+okQ+' quoted + '+okM+' modelled of '+rows.length+' legs','ok');
  renderPositions();markCheck();
 }
 function tCtx(t){
@@ -4854,20 +4995,12 @@ function markCheck(){
  });
 }
 /* ---------------- attach: route new fills onto an existing open trade ---------------- */
-async function attachCampaign(i){
- const c=POSD.inbox[i];if(!c)return;
- const host=POSD.list.find(t=>t.row.status==='open'&&t.row.underlying===c.und);
- if(!host){posStatusMsg('no open trade on '+c.und+' to attach to','err');return;}
- const plan=attachPlan(c,host.legs,cashOf,feeCostOf);
- if(plan.err){posStatusMsg('attach: '+plan.err+' - use Confirm import or Split instead','err');return;}
- const bits=[plan.closes.filter(x=>x.leg).length+' leg close(s)',plan.rollOpens.length+' roll-open(s)',plan.adds.length+' add(s)','realized '+money(plan.realizedDelta)];
- if(plan.netDelta)bits.push('entry adj '+money(plan.netDelta));
- if(!confirm('Attach to the open '+host.row.underlying+' '+host.strat.name+'? '+bits.join(', ')))return;
+async function attachApply(host,plan){
  for(const cl of plan.closes){
   if(!cl.leg)continue;const l=cl.leg,fc=feeCostOf(cl.fills);
   const realized=(l.open_price!=null)?Math.round(((l.side==='sell'?(+l.open_price-cl.px):(cl.px-+l.open_price))*100*(+l.qty)-fc)*100)/100:null;
   const {error}=await sb.from('trade_legs').update({status:'closed',close_price:Math.round(cl.px*10000)/10000,close_date:cl.date,realized_pnl:realized,fees:Math.round(((+l.fees||0)+feesOf(cl.fills))*100)/100}).eq('id',l.id);
-  if(error){posStatusMsg(error.message,'err');return;}
+  if(error){posStatusMsg(error.message,'err');return false;}
  }
  const news=plan.rollOpens.concat(plan.adds);
  const rows=news.map(s=>({trade_id:host.row.id,user_id:ME.id,occ_symbol:s.occ,cp:s.cp,strike:s.strike,expiry:s.expiry,
@@ -4875,7 +5008,7 @@ async function attachCampaign(i){
   open_date:s.openDate,status:'open',fees:Math.round((s.fees||0)*100)/100}));
  let legIns=[];
  if(rows.length){const {data,error}=await sb.from('trade_legs').insert(rows).select();
-  if(error){posStatusMsg(error.message,'err');return;}legIns=data||[];}
+  if(error){posStatusMsg(error.message,'err');return false;}legIns=data||[];}
  const closedIds=new Set(plan.closes.filter(x=>x.leg).map(x=>x.leg.id));
  const openExp=[...host.legs.filter(l=>l.status==='open'&&!closedIds.has(l.id)).map(l=>String(l.expiry)),...rows.map(r2=>String(r2.expiry))].sort()[0]||null;
  let fired=host.row.alerts_fired||{};
@@ -4885,7 +5018,7 @@ async function attachCampaign(i){
   alerts_fired:fired,
   notes:(((host.row.notes||'')+(plan.rolls.length?'; '+plan.rolls.map(e=>'roll '+e.date+' '+e.from+' -> '+e.to+' '+money(e.cash)).join('; '):''))||null)};
  const {error:e3}=await sb.from('trades').update(patch).eq('id',host.row.id);
- if(e3){posStatusMsg(e3.message,'err');return;}
+ if(e3){posStatusMsg(e3.message,'err');return false;}
  for(const cl of plan.closes){
   if(!cl.fills.length)continue;
   await sb.from('bank_fills').update({status:'matched',trade_id:host.row.id,leg_id:cl.leg?cl.leg.id:null}).in('fill_id',cl.fills.map(f=>f.id));
@@ -4894,22 +5027,33 @@ async function attachCampaign(i){
   const ids=news[k2].openF.map(f=>f.id);
   if(ids.length)await sb.from('bank_fills').update({status:'matched',trade_id:host.row.id,leg_id:legIns[k2]?legIns[k2].id:null}).in('fill_id',ids);
  }
+ return true;
+}
+async function attachCampaign(i){
+ const c=POSD.inbox[i];if(!c)return;
+ const host=POSD.list.find(t=>t.row.status==='open'&&t.row.underlying===c.und);
+ if(!host){posStatusMsg('no open trade on '+c.und+' to attach to','err');return;}
+ const plan=attachPlan(c,host.legs,cashOf,feeCostOf);
+ if(plan.err){posStatusMsg('attach: '+plan.err+' - use Confirm import or Split instead','err');return;}
+ const bits=[plan.closes.filter(x=>x.leg).length+' leg close(s)',plan.rollOpens.length+' roll-open(s)',plan.adds.length+' add(s)','realized '+money(plan.realizedDelta)];
+ if(plan.netDelta)bits.push('entry adj '+money(plan.netDelta));
+ if(!confirm('Attach to the open '+host.row.underlying+' '+host.strat.name+'? '+bits.join(', ')))return;
+ if(!(await attachApply(host,plan)))return;
  posStatusMsg('Attached to '+host.row.underlying+' - realized '+money(plan.realizedDelta)+' booked.','ok');
  POSD.inbox.splice(i,1);renderInbox();refreshInboxCount();loadPositions();
 }
 
 /* ---------------- away-check: replay daily bars missed since last look ---------------- */
-async function posGapCheck(){
+async function posGapCheck(quiet){
  const open=POSD.list.filter(t=>t.row.status==='open');
- if(!open.length){posStatusMsg('no open trades to check','');return;}
+ if(!open.length){if(!quiet)posStatusMsg('no open trades to check','');return;}
  const key=($('#keyInput').value||'').trim();
  const canProxy=!!GROUP.token&&!!GROUP.url&&GROUP.url.indexOf('PASTE_')!==0;
- if(!key&&!canProxy){posStatusMsg('gap check needs your Twelve Data key or group token (top of page)','err');return;}
+ if(!key&&!canProxy){if(!quiet)posStatusMsg('gap check needs your Twelve Data key or group token (top of page)','err');return;}
  if(FETCH_BUSY){posStatusMsg('another fetch is running - try again shortly','err');return;}
  const today=todayISO();
  const syms=[...new Set(open.map(t=>t.row.underlying))].filter(sym=>!POSD.spot[sym]||open.some(t=>t.row.underlying===sym&&t.fired._gap!==today));
- if(!syms.length){posStatusMsg('missed-bar check: already up to date','ok');return;}
- POSD.gapAuto=1;
+ if(!syms.length){if(!quiet)posStatusMsg('missed-bar check: already up to date','ok');return;}
  FETCH_BUSY=true;let hits=0;
  try{
   for(const sym of syms){
@@ -5094,6 +5238,9 @@ setInterval(()=>{if(POSD.list.length)dteCheck();},6*3600*1000);
  q('mdKey').value=localStorage.getItem(MD_KEY_LS)||'';
  q('mdKey').oninput=()=>{localStorage.setItem(MD_KEY_LS,q('mdKey').value.trim());};
  q('mdMarkBtn').onclick=()=>mdFetchMarks(true);
+ q('posAutoChk').checked=POSD.autoApply;
+ q('posAutoChk').onchange=()=>{POSD.autoApply=q('posAutoChk').checked;localStorage.setItem('pam_auto_apply',POSD.autoApply?'1':'0');};
+ q('posDailyBtn').onclick=()=>dailyUpdate(true);
  q('posInboxBtn').onclick=loadInbox;
  q('posGapBtn').onclick=posGapCheck;
  q('posUidCopy').onclick=()=>{try{navigator.clipboard.writeText(q('posUid').textContent);posStatusMsg('user id copied','ok');}catch(e){}};
