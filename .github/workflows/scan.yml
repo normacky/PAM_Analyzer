@@ -8,8 +8,13 @@ name: PAM daily refresh
 on:
   schedule:
     # 21:30 UTC = 05:30 SGT next morning, 30 min after the 05:00 SGT BankSync sheet refresh.
-    # Sun-Thu in UTC == Mon-Fri in Singapore.
-    - cron: '30 21 * * 0-4'
+    #
+    # Mon-Fri in UTC == Tue-Sat in Singapore. Schedule by US SESSION, not by Singapore weekday:
+    # each run lands the morning after the session it is marking, so Friday's US close (which
+    # happens ~04:00 SGT Saturday) is marked at 05:30 SGT Saturday rather than waiting for Monday.
+    # The old '0-4' left Friday's close unmarked all weekend, which is why the app showed Thursday
+    # prices until you pressed Refresh Marks by hand.
+    - cron: '30 21 * * 1-5'
   workflow_dispatch:
 
 permissions:
