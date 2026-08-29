@@ -14,11 +14,23 @@ on:
     # happens ~04:00 SGT Saturday) is marked at 05:30 SGT Saturday rather than waiting for Monday.
     # The old '0-4' left Friday's close unmarked all weekend, which is why the app showed Thursday
     # prices until you pressed Refresh Marks by hand.
-    - cron: '30 21 * * 1-5'
+    # Moved off :30. GitHub's scheduler drops the most runs on the hour and half-hour,
+    # so an odd minute is measurably more reliable.
+    - cron: '47 21 * * 1-5'   # main run,     05:47 Singapore
+    - cron: '47 23 * * 1-5'   # catch-up run, 07:47 Singapore
   workflow_dispatch:
 
 permissions:
   contents: write
+
+# Only one run of this workflow at a time. GitHub's scheduler is best-effort and
+# sometimes fires the nightly cron hours late; when that late run overlapped a manual
+# run on 2026-08-27 the two of them raced to push the same generated files and run #82
+# died on a rebase conflict. With this block the second run simply waits in the queue
+# until the first has finished (and therefore checks out an up-to-date main).
+concurrency:
+  group: pam-daily-refresh
+  cancel-in-progress: false
 
 jobs:
   refresh:
@@ -26,17 +38,46 @@ jobs:
     timeout-minutes: 360
     steps:
       - name: Get the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
 
+      # There are two scheduled crons: the main one and a catch-up two hours later.
+      # Whichever fires first does the work; the other one lands here, sees that the
+      # results are already fresh, and exits in a few seconds. A manual run never skips.
+      - name: Skip if the refresh already happened
+        id: guard
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "not a scheduled run - always proceed"
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          DECISION=$(node -e "
+            const fs = require('fs');
+            let hours = 999;
+            try {
+              const g = JSON.parse(fs.readFileSync('scan_results.json','utf8')).generated_at;
+              hours = (Date.now() - Date.parse(g)) / 3600000;
+            } catch (e) {}
+            console.error('last scan was ' + hours.toFixed(1) + ' hours ago');
+            console.log(hours < 12 ? 'false' : 'true');
+          ")
+          echo "run=$DECISION" >> "$GITHUB_OUTPUT"
+          if [ "$DECISION" = "false" ]; then
+            echo "Results are already fresh - skipping this run."
+          else
+            echo "Results are stale - running the full refresh."
+          fi
+
       # ---------- 1. BankSync sheet -> bank_fills ----------
       - name: Pull BankSync transactions
+        if: steps.guard.outputs.run == 'true'
         continue-on-error: true
         env:
           BANKSYNC_URL: ${{ secrets.BANKSYNC_URL }}
@@ -49,6 +90,7 @@ jobs:
 
       # ---------- 2. mark every open leg ----------
       - name: Mark open option legs
+        if: steps.guard.outputs.run == 'true'
         continue-on-error: true
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -59,6 +101,7 @@ jobs:
 
       # ---------- 3. whole-market scan (slowest, runs last) ----------
       - name: Run the market scan
+        if: steps.guard.outputs.run == 'true'
         env:
           ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
           ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
@@ -67,34 +110,68 @@ jobs:
           PAM_LIMIT: '0'
           PAM_OPT_MIN_MC: '2000000000'
         run: |
-          # By the time the fills+marks steps finish we are well past 16:25 New York, so this
-          # loop normally passes immediately. It stays as a guard for manual runs.
+          # Only wait if we are genuinely inside the live session (09:30-16:25 New York).
+          # The old version waited whenever the clock read earlier than 16:25, which meant a
+          # run starting at 01:31 New York sat waiting for 15 hours and got killed by the
+          # 6-hour job cap (run #84). At 01:31 the previous session has long since closed and
+          # its daily bar is final, so there is nothing to wait for.
           if [ "${{ github.event_name }}" = "schedule" ]; then
+            WAITED=0
             while :; do
-              ET=$(TZ=America/New_York date +%H%M)
-              [ "$((10#$ET))" -ge 1625 ] && break
-              echo "Market still open - waiting (now $(TZ=America/New_York date '+%H:%M') New York)..."
+              ETN=$((10#$(TZ=America/New_York date +%H%M)))
+              if [ "$ETN" -lt 930 ] || [ "$ETN" -ge 1625 ]; then
+                break
+              fi
+              if [ "$WAITED" -ge 2400 ]; then
+                echo "Still mid-session after 40 minutes. Stopping cleanly rather than"
+                echo "burning the job budget - the catch-up cron will handle this."
+                exit 0
+              fi
+              echo "Session in progress - waiting (now $(TZ=America/New_York date '+%H:%M') New York)..."
               sleep 120
+              WAITED=$((WAITED + 120))
             done
           fi
           echo "Running scan at $(TZ=America/New_York date '+%H:%M') New York"
           node pam_scan.js
 
       - name: Publish scan_results.json
+        if: steps.guard.outputs.run == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scan_results.json 2>/dev/null || true
-          git add iv_history.json 2>/dev/null || true
-          git add enrichment_cache.json 2>/dev/null || true
-          git add earnings.json 2>/dev/null || true
-          git add earnings_backfill.json 2>/dev/null || true
-          git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]" || { echo "nothing to commit"; exit 0; }
+          OUTPUTS="scan_results.json iv_history.json enrichment_cache.json earnings.json earnings_backfill.json"
+
+          # Park the freshly generated files outside the git tree so that resetting the
+          # working copy below cannot destroy them.
+          mkdir -p /tmp/pam_out
+          for f in $OUTPUTS; do
+            [ -f "$f" ] && cp "$f" /tmp/pam_out/
+          done
+
+          # Never rebase. A rebase of one generated JSON blob onto a different generated
+          # JSON blob is guaranteed to conflict, and a conflict leaves the repo mid-rebase
+          # so every retry fails too - that is what killed run #82. Instead: take the very
+          # latest main, drop our results on top of it, commit, push. Our results always win.
           for attempt in 1 2 3 4 5; do
-            if git pull --rebase origin main && git push origin HEAD:main; then
+            git fetch origin main
+            git reset --hard origin/main
+            cp -f /tmp/pam_out/*.json ./ 2>/dev/null || true
+
+            for f in $OUTPUTS; do
+              [ -f "$f" ] && git add "$f"
+            done
+
+            if git diff --cached --quiet; then
+              echo "nothing to commit"; exit 0
+            fi
+
+            git commit -m "market scan $(date -u +%Y-%m-%d) [skip ci]"
+
+            if git push origin HEAD:main; then
               echo "pushed on attempt $attempt"; exit 0
             fi
-            echo "push attempt $attempt failed - refreshing latest main and retrying..."
+            echo "push attempt $attempt failed - somebody pushed to main first, retrying..."
             sleep 5
           done
           echo "could not push results after 5 attempts"; exit 1
