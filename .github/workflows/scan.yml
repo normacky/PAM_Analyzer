@@ -16,8 +16,23 @@ on:
     # prices until you pressed Refresh Marks by hand.
     # Moved off :30. GitHub's scheduler drops the most runs on the hour and half-hour,
     # so an odd minute is measurably more reliable.
-    - cron: '47 21 * * 1-5'   # main run,     05:47 Singapore
-    - cron: '47 23 * * 1-5'   # catch-up run, 07:47 Singapore
+    #
+    # 2026-09-01: two crons was not enough. GitHub dropped both the 2026-08-28 and the
+    # 2026-08-31 runs outright, and was 1-9 hours late on most of the ones before that.
+    # There is no setting that fixes this - GitHub's cron is best-effort and gives free
+    # public repos the lowest priority. So instead of one or two attempts we now make
+    # five, spread over four hours. The freshness guard below means only the first one
+    # that actually fires does any work; the rest see results under 12 hours old and
+    # exit in a few seconds. Extra attempts are therefore close to free.
+    #
+    # Note the day-of-week fields differ. Anything before midnight UTC is the previous
+    # UTC day, so 1-5 (Mon-Fri UTC) lands Tue-Sat Singapore. Anything after midnight UTC
+    # is the same Singapore day, so those need 2-6 to land on the same Tue-Sat.
+    - cron: '47 21 * * 1-5'   # attempt 1, 05:47 Singapore
+    - cron: '23 22 * * 1-5'   # attempt 2, 06:23 Singapore
+    - cron: '47 23 * * 1-5'   # attempt 3, 07:47 Singapore
+    - cron: '19 1 * * 2-6'    # attempt 4, 09:19 Singapore
+    - cron: '11 3 * * 2-6'    # attempt 5, 11:11 Singapore
   workflow_dispatch:
 
 permissions:
