@@ -3,7 +3,7 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-09-03T00:50:56.947Z",
+ "generated_at": "2026-09-03T03:23:37.419Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
@@ -73155,7 +73155,7 @@
    "name": "Bit Origin Limited Class A Ordinary Shares",
    "px": 2.32,
    "industry": "Technology",
-   "mc": 1930239.9999999998
+   "mc": 9651200
   },
   "BTOT": {
    "name": "iShares Total USD Fixed Income Market ETF",
@@ -73515,7 +73515,7 @@
    "name": "CalciMedica, Inc. Common Stock",
    "px": 2.1,
    "industry": "Pharmaceuticals",
-   "mc": 12910800
+   "mc": 64554000
   },
   "CALI": {
    "name": "BlackRock ETF Trust II iShares Short-Term California Muni Active ETF",
@@ -81465,7 +81465,7 @@
    "name": "Galmed Pharmaceuticals Ltd. Ordinary Shares",
    "px": 4.119,
    "industry": "Biotechnology",
-   "mc": 4252867.5
+   "mc": 34022940
   },
   "GLNG": {
    "name": "Golar Lng Ltd",
@@ -82277,7 +82277,7 @@
    "name": "Haoxi Health Technology Limited Class A Ordinary Shares",
    "px": 3.135,
    "industry": "Media",
-   "mc": 1147410
+   "mc": 22948200
   },
   "HAPN": {
    "name": "Happen, Inc. Common Stock",
@@ -85589,7 +85589,7 @@
    "name": "Jupiter Neurosciences, Inc. Common Stock",
    "px": 3.43,
    "industry": "Pharmaceuticals",
-   "mc": 2584848
+   "mc": 193863600
   },
   "JUNT": {
    "name": "AllianzIM U.S. Equity Buffer10 Jun ETF",
@@ -85639,7 +85639,7 @@
    "name": "Kairos Pharma, Ltd.",
    "px": 1.58,
    "industry": "Biotechnology",
-   "mc": 4832542.857142856
+   "mc": 33827800
   },
   "KAPR": {
    "name": "Innovator U.S. Small Cap Power Buffer ETF - April",
@@ -86811,7 +86811,7 @@
    "name": "Liminatus Pharma, Inc. Class A Common Stock",
    "px": 3.84,
    "industry": "Biotechnology",
-   "mc": 5157888
+   "mc": 257894400
   },
   "LIMNW": {
    "name": "Liminatus Pharma, Inc. Warrants",
@@ -87623,7 +87623,7 @@
    "name": "MBody AI Ltd. Ordinary Share",
    "px": 6.48,
    "industry": "Health Care",
-   "mc": 6498514.285714286
+   "mc": 45489600
   },
   "MBB": {
    "name": "iShares MBS ETF",
@@ -88915,7 +88915,7 @@
    "name": "Masonglory Limited Class A Ordinary Shares",
    "px": 1.87,
    "industry": "Construction",
-   "mc": 3323925
+   "mc": 26591400
   },
   "MSI": {
    "name": "Motorola Solutions, Inc. New",
@@ -90681,7 +90681,7 @@
    "name": "NOVONIX Limited American Depository Shares",
    "px": 2.875,
    "industry": "Electrical Equipment",
-   "mc": 286812875
+   "mc": 2868128750
   },
   "NWBI": {
    "name": "Northwest Bancshares, Inc. Common Stock",
@@ -90741,7 +90741,7 @@
    "name": "Nexalin Technology, Inc. Common Stock",
    "px": 6.19,
    "industry": "Health Care",
-   "mc": 4541396.666666667
+   "mc": 136241900
   },
   "NXP": {
    "name": "NUVEEN SELECT TAX-FREE INC",
@@ -94247,7 +94247,7 @@
    "name": "Recon Technology, Ltd. Class A Ordinary Shares",
    "px": 1.54,
    "industry": "Energy",
-   "mc": 697851
+   "mc": 139570200
   },
   "RCS": {
    "name": "PIMCO STRATEGIC INCOME FUND, INC.",
@@ -95251,7 +95251,7 @@
    "name": "Rush Enterprises, Inc. Class B",
    "px": 49.26,
    "industry": "Trading Companies & Distributors",
-   "mc": 5741991900
+   "mc": 3827994600
   },
   "RVER": {
    "name": "Trenchless Fund ETF",
@@ -96161,7 +96161,7 @@
    "name": "ServisFirst Bancshares Inc.",
    "px": 42.3,
    "industry": "Banking",
-   "mc": 4625082000
+   "mc": 2312541000
   },
   "SFD": {
    "name": "Smithfield Foods, Inc. Common Stock",
@@ -98979,7 +98979,7 @@
    "name": "TryHard Holdings Limited Ordinary Shares",
    "px": 1.68,
    "industry": "Media",
-   "mc": 8408400
+   "mc": 84084000
   },
   "THIR": {
    "name": "THOR Index Rotation ETF",
@@ -100983,7 +100983,7 @@
    "name": "Valion Bio, Inc. Common Stock",
    "px": 3.12,
    "industry": "Health Care",
-   "mc": 517920.0000000001
+   "mc": 12948000.000000002
   },
   "VBK": {
    "name": "Vanguard Morningstar Small-Cap Growth ETF",
@@ -104253,7 +104253,7 @@
    "name": "BRC Inc.",
    "px": 8.4,
    "industry": "Food Products",
-   "mc": 209580000
+   "mc": 2095800000
   },
   "BREZ": {
    "name": "Breeze Acquisition Corp. II Ordinary Shares",
@@ -106279,7 +106279,7 @@
    "name": "Longeveron Inc. Class A Common Stock",
    "px": 6.78,
    "industry": "Biotechnology",
-   "mc": 21424800
+   "mc": 214248000
   },
   "LINC": {
    "name": "Lincoln Educational Services Corporation Common Stock",
@@ -107323,7 +107323,7 @@
    "name": "Real REMAX Group Inc. Common Stock",
    "px": 18.03,
    "industry": "Real Estate",
-   "mc": 392945820
+   "mc": 3929458200.0000005
   },
   "REFR": {
    "name": "Research Frontiers Incorporated Common Stock",
@@ -193168,7 +193168,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3565,
+    "atm_iv": 0.3566,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -193297,7 +193297,7 @@
       43
      ]
     ],
-    "atm_iv": 0.7603,
+    "atm_iv": 0.7602,
     "iv_pctl": null,
     "iv_obs": 35,
     "flags": {
@@ -201657,7 +201657,7 @@
       43
      ]
     ],
-    "atm_iv": 0.483,
+    "atm_iv": 0.4829,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -207800,7 +207800,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2451,
+    "atm_iv": 0.245,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -208670,6 +208670,66 @@
      }
     }
    },
+   "BRCC": {
+    "has_options": true,
+    "px": 8.4,
+    "expiry": "2026-10-16",
+    "dte": 43,
+    "expiries": [
+     [
+      "2026-10-16",
+      43
+     ]
+    ],
+    "atm_iv": 0.8928,
+    "iv_pctl": null,
+    "iv_obs": 1,
+    "flags": {
+     "iv_high": true,
+     "iv_low": false,
+     "earnings_inside": false,
+     "earnings_date": null,
+     "mc_20b": false,
+     "spy_bear": false,
+     "stock_sma20": 8.61,
+     "stock_sma50": 10.3,
+     "stock_trend_up": false,
+     "stock_adx": 8.2
+    },
+    "spreads": {
+     "bps": {
+      "short_k": 7,
+      "long_k": 6,
+      "short_delta": -0.24,
+      "credit": 0.11,
+      "width": 1,
+      "max_loss": 0.89,
+      "breakeven": 6.89,
+      "ok": {
+       "credit_4x": false,
+       "liquidity": false
+      },
+      "expiry": "2026-10-16",
+      "dte": 43,
+      "earnings_inside": false
+     },
+     "bear_put": {
+      "long_k": 9,
+      "short_k": 6,
+      "long_delta": -0.51,
+      "debit": 1.11,
+      "width": 3,
+      "max_profit": 1.89,
+      "breakeven": 7.89,
+      "ok": {
+       "rr_1to2": false,
+       "liquidity": false
+      },
+      "expiry": "2026-10-16",
+      "dte": 43
+     }
+    }
+   },
    "BRKL": {
     "has_options": false
    },
@@ -209249,7 +209309,7 @@
       43
      ]
     ],
-    "atm_iv": 0.4498,
+    "atm_iv": 0.4497,
     "iv_pctl": null,
     "iv_obs": 31,
     "flags": {
@@ -212337,7 +212397,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3196,
+    "atm_iv": 0.3197,
     "iv_pctl": null,
     "iv_obs": 31,
     "flags": {
@@ -225022,7 +225082,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2516,
+    "atm_iv": 0.2517,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -230972,7 +231032,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2177,
+    "atm_iv": 0.2178,
     "iv_pctl": null,
     "iv_obs": 36,
     "flags": {
@@ -231181,7 +231241,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2939,
+    "atm_iv": 0.294,
     "iv_pctl": null,
     "iv_obs": 29,
     "flags": {
@@ -234696,7 +234756,7 @@
       43
      ]
     ],
-    "atm_iv": 0.4901,
+    "atm_iv": 0.4902,
     "iv_pctl": null,
     "iv_obs": 33,
     "flags": {
@@ -238801,7 +238861,7 @@
       43
      ]
     ],
-    "atm_iv": 0.4514,
+    "atm_iv": 0.4515,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -242300,7 +242360,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2765,
+    "atm_iv": 0.2766,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -243877,7 +243937,7 @@
       43
      ]
     ],
-    "atm_iv": 0.5998,
+    "atm_iv": 0.5999,
     "iv_pctl": null,
     "iv_obs": 38,
     "flags": {
@@ -244153,7 +244213,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3419,
+    "atm_iv": 0.342,
     "iv_pctl": null,
     "iv_obs": 38,
     "flags": {
@@ -245479,7 +245539,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2583,
+    "atm_iv": 0.2584,
     "iv_pctl": null,
     "iv_obs": 23,
     "flags": {
@@ -247542,7 +247602,7 @@
       43
      ]
     ],
-    "atm_iv": 0.5898,
+    "atm_iv": 0.5899,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -252154,7 +252214,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3843,
+    "atm_iv": 0.3844,
     "iv_pctl": null,
     "iv_obs": 25,
     "flags": {
@@ -254776,7 +254836,7 @@
       43
      ]
     ],
-    "atm_iv": 0.4195,
+    "atm_iv": 0.4196,
     "iv_pctl": null,
     "iv_obs": 35,
     "flags": {
@@ -256256,7 +256316,7 @@
       43
      ]
     ],
-    "atm_iv": 0.5636,
+    "atm_iv": 0.5635,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -260411,7 +260471,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3288,
+    "atm_iv": 0.3289,
     "iv_pctl": null,
     "iv_obs": 25,
     "flags": {
@@ -262505,7 +262565,7 @@
       43
      ]
     ],
-    "atm_iv": 0.4406,
+    "atm_iv": 0.4407,
     "iv_pctl": null,
     "iv_obs": 33,
     "flags": {
@@ -264242,7 +264302,7 @@
       43
      ]
     ],
-    "atm_iv": 0.2877,
+    "atm_iv": 0.2878,
     "iv_pctl": null,
     "iv_obs": 27,
     "flags": {
@@ -266827,7 +266887,7 @@
       43
      ]
     ],
-    "atm_iv": 0.4893,
+    "atm_iv": 0.4892,
     "iv_pctl": null,
     "iv_obs": 31,
     "flags": {
@@ -273747,6 +273807,34 @@
      }
     }
    },
+   "NVX": {
+    "has_options": true,
+    "px": 2.875,
+    "expiry": "2026-10-16",
+    "dte": 43,
+    "expiries": [
+     [
+      "2026-10-16",
+      43
+     ]
+    ],
+    "atm_iv": 1.4165,
+    "iv_pctl": null,
+    "iv_obs": 1,
+    "flags": {
+     "iv_high": true,
+     "iv_low": false,
+     "earnings_inside": false,
+     "earnings_date": null,
+     "mc_20b": false,
+     "spy_bear": false,
+     "stock_sma20": 3.97,
+     "stock_sma50": 4.15,
+     "stock_trend_up": false,
+     "stock_adx": 21
+    },
+    "spreads": {}
+   },
    "NWBI": {
     "has_options": true,
     "px": 15.43,
@@ -280448,7 +280536,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3526,
+    "atm_iv": 0.3525,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -285893,6 +285981,81 @@
       "expiry": "2026-10-09",
       "dte": 36,
       "earnings_inside": false
+     }
+    }
+   },
+   "REAX": {
+    "has_options": true,
+    "px": 18.03,
+    "expiry": "2026-10-16",
+    "dte": 43,
+    "expiries": [
+     [
+      "2026-10-16",
+      43
+     ]
+    ],
+    "atm_iv": 0.8493,
+    "iv_pctl": null,
+    "iv_obs": 1,
+    "flags": {
+     "iv_high": true,
+     "iv_low": false,
+     "earnings_inside": false,
+     "earnings_date": null,
+     "mc_20b": false,
+     "spy_bear": false,
+     "stock_sma20": 23.42,
+     "stock_sma50": 20.83,
+     "stock_trend_up": true,
+     "stock_adx": 25.8
+    },
+    "spreads": {
+     "bps": {
+      "short_k": 15,
+      "long_k": 12.5,
+      "short_delta": -0.19,
+      "credit": 0.31,
+      "width": 2.5,
+      "max_loss": 2.19,
+      "breakeven": 14.69,
+      "ok": {
+       "credit_4x": false,
+       "liquidity": false
+      },
+      "expiry": "2026-10-16",
+      "dte": 43,
+      "earnings_inside": false
+     },
+     "bull_call": {
+      "long_k": 17.5,
+      "short_k": 22.5,
+      "long_delta": 0.63,
+      "debit": 1.86,
+      "width": 5,
+      "max_profit": 3.14,
+      "breakeven": 19.36,
+      "ok": {
+       "rr_1to2": false,
+       "liquidity": false
+      },
+      "expiry": "2026-10-16",
+      "dte": 43
+     },
+     "bear_put": {
+      "long_k": 20,
+      "short_k": 12.5,
+      "long_delta": -0.54,
+      "debit": 2.93,
+      "width": 7.5,
+      "max_profit": 4.57,
+      "breakeven": 17.07,
+      "ok": {
+       "rr_1to2": false,
+       "liquidity": false
+      },
+      "expiry": "2026-10-16",
+      "dte": 43
      }
     }
    },
@@ -297225,7 +297388,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3706,
+    "atm_iv": 0.3707,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -297339,7 +297502,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3501,
+    "atm_iv": 0.35,
     "iv_pctl": null,
     "iv_obs": 36,
     "flags": {
@@ -299743,12 +299906,12 @@
       43
      ]
     ],
-    "atm_iv": 0.3,
+    "atm_iv": 0.2999,
     "iv_pctl": null,
     "iv_obs": 32,
     "flags": {
      "iv_high": false,
-     "iv_low": false,
+     "iv_low": true,
      "earnings_inside": false,
      "earnings_date": null,
      "mc_20b": false,
@@ -308788,7 +308951,7 @@
       43
      ]
     ],
-    "atm_iv": 0.1957,
+    "atm_iv": 0.1956,
     "iv_pctl": null,
     "iv_obs": 37,
     "flags": {
@@ -310482,7 +310645,7 @@
       43
      ]
     ],
-    "atm_iv": 0.7865,
+    "atm_iv": 0.7866,
     "iv_pctl": null,
     "iv_obs": 42,
     "flags": {
@@ -318067,7 +318230,7 @@
       43
      ]
     ],
-    "atm_iv": 0.3431,
+    "atm_iv": 0.3432,
     "iv_pctl": null,
     "iv_obs": 32,
     "flags": {
@@ -319278,7 +319441,7 @@
      "bear_put": {
       "long_k": 95,
       "short_k": 75,
-      "long_delta": -0.5,
+      "long_delta": -0.51,
       "debit": 6.65,
       "width": 20,
       "max_profit": 13.35,
