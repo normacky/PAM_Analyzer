@@ -115,8 +115,21 @@ function loadEngine(htmlPath) {
   block = block.slice(0, block.lastIndexOf('}') + 1);          // trim back to analyse()'s closing brace
   // scan() calls fmt() only to build a cosmetic "why" string — give it a tiny stand-in.
   const fmtDef = 'function fmt(x,d){return x==null?"-":Number(x).toFixed(d==null?2:d);}\n';
-  const factory = new Function(fmtDef + block + '\nreturn { aggregate, enrich, scan, buildTrade };');
-  return factory();   // isolated scope, no globals, no DOM
+  // v0.31 — also lift ENGINE_VERSION out, plus where the file came from and when it changed.
+  // main() prints all of it at startup and it is written into scan_results.json, so a scan
+  // run against a stale analyzer copy announces itself instead of failing silently.
+  const factory = new Function(fmtDef + block +
+    '\nreturn { aggregate, enrich, scan, buildTrade, ENGINE_VERSION: (typeof ENGINE_VERSION === "string" ? ENGINE_VERSION : null) };');
+  const eng = factory();   // isolated scope, no globals, no DOM
+  if (!eng.ENGINE_VERSION) {                      // constant sits outside the extracted block? read it from the raw HTML
+    const m = /const\s+ENGINE_VERSION\s*=\s*['"]([^'"]+)['"]/.exec(html);
+    eng.ENGINE_VERSION = m ? m[1] : null;
+  }
+  let st = null; try { st = fs.statSync(htmlPath); } catch (e) {}
+  eng.source = require('path').resolve(htmlPath);
+  eng.bytes  = st ? st.size : null;
+  eng.mtime  = st ? st.mtime.toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : null;
+  return eng;
 }
 
 /* ---- 2. shape an Alpaca bar array into what aggregate() expects ------------- */
@@ -134,7 +147,9 @@ function detectFresh(sym, series, eng, cfg) {
   // need ~60 bars IN the aggregated timeframe to warm scan(); 2-Day eats 2 daily bars each, so require 60*aggMult raw bars
   if (!series || !series.close || series.close.length < 60 * (cfg.aggMult || 1)) return [];
   let bars;
-  try { bars = eng.enrich(eng.aggregate(series, cfg.aggMult)); }
+  // v0.31 — carry volDays into enrich() so SCR-11's volume average is per DAY on every
+  // timeframe (native weekly bars arrive with days = 1, so the weekly pass sets volDays: 5).
+  try { const agg = eng.aggregate(series, cfg.aggMult); if (cfg.volDays) agg.volDays = cfg.volDays; bars = eng.enrich(agg); }
   catch (e) { return []; }
   if (!bars || bars.length < 2) return [];
 
@@ -147,7 +162,11 @@ function detectFresh(sym, series, eng, cfg) {
     if (!fresh(t.i)) continue;
     let smelly = false;
     try { smelly = !!eng.buildTrade(bars, t).smelly; } catch (e) {}   // price already ran >=1R past entry
-    rows.push({ t: sym, trig: t.label, dir: t.dir, bar: t.date, ago: last - t.i, smelly });
+    // v0.31 — the engine's trade-quality flags, so the Scan panel can show them. NEITHER
+    // filters a row out: wide = entry-to-structure-stop exceeds 1 ATR (WID-01/03);
+    // illiq = 50-bar average volume under 100,000 (SCR-11, annotation not a gate).
+    rows.push({ t: sym, trig: t.label, dir: t.dir, bar: t.date, ago: last - t.i, smelly,
+                wide: !!t.wide, illiq: !!t.illiq });
   }
   // Turtle long (S1/S2) + reverse-short (S1s/S2s): entries (unit 1) AND pyramid adds (units 2-4) inside the fresh window
   for (let k = last; k >= 0 && (last - k) < cfg.freshWithin; k--) {
@@ -989,7 +1008,24 @@ async function fetchBars(symbols, cfg, timeframe, startDays) {
 async function main() {
   if (!KEY || !SECRET) { console.error('Set ALPACA_KEY and ALPACA_SECRET in the environment first.'); process.exit(1); }
   const eng = loadEngine(CFG.htmlPath);
-  console.error('Engine loaded from ' + CFG.htmlPath + '. Fetching universe…');
+  // v0.31 — engine provenance banner. The engine is lifted out of the analyzer HTML at run
+  // time, so the ONLY thing that decides which ruleset this scan uses is which file was read.
+  // Print it loudly: a silent scan against a stale copy is the one failure with no symptom.
+  const _bar = '\u2500'.repeat(74);
+  console.error(_bar);
+  console.error('  Engine     ' + (eng.ENGINE_VERSION || 'UNKNOWN'));
+  console.error('  Source     ' + eng.source);
+  if (eng.mtime) console.error('  Modified   ' + eng.mtime + '   \u00b7   ' + eng.bytes.toLocaleString() + ' bytes');
+  if (!process.env.PAM_HTML) {
+    console.error('  !  PAM_HTML is not set, so the built-in default was used. If a stale copy of');
+    console.error('  !  the analyzer is sitting in this folder, THIS SCAN IS RUNNING THE WRONG ENGINE.');
+  }
+  if (!eng.ENGINE_VERSION) {
+    console.error('  !  No ENGINE_VERSION constant found - this HTML predates it, or the engine');
+    console.error('  !  block was not extracted correctly. Check the file before trusting the output.');
+  }
+  console.error(_bar);
+  console.error('Fetching universe\u2026');
   const { syms, names } = await fetchUniverse(CFG);
 
   // earnings calendar for the whole universe (bulk pull + accumulator) — runs FIRST so the
@@ -1041,7 +1077,7 @@ async function main() {
       const a = acc['W'];
       a.scanned++;
       if (lastDate > a.asof) a.asof = lastDate;
-      const fired = detectFresh(sym, series, eng, { ...CFG, aggMult: 1 });   // weekly bars are already the base timeframe
+      const fired = detectFresh(sym, series, eng, { ...CFG, aggMult: 1, volDays: 5 });   // weekly bars are already the base timeframe; volDays: 5 keeps SCR-11 per-day
       if (fired.length) { for (const r of fired) r.tf = 'W'; a.rows.push(...fired); noteFire(sym, series); }
     }
     delete weekly[sym];
@@ -1073,6 +1109,9 @@ async function main() {
     // ---- top level === the 1-Day view (back-compatible with the old single-timeframe file) ----
     asof: acc['1'].asof, timeframe: '1day', agg_mult: 1, fresh_within: CFG.freshWithin,
     generated_at: new Date().toISOString(), provider: 'alpaca', feed: CFG.feed, adjustment: CFG.adjustment,
+    // v0.31 - which engine produced this file, and from where. Lets you audit a scan after
+    // the fact instead of guessing whether it predates an engine change.
+    engine_version: eng.ENGINE_VERSION || null, engine_source: eng.source, engine_mtime: eng.mtime || null,
     fundamentals: FINNHUB_KEY ? 'finnhub' : 'none',
     universe: syms.length, scanned: acc['1'].scanned, fired: acc['1'].firedCount,
     trigger_types: TRIGGER_TYPES, counts: acc['1'].counts, rows: acc['1'].rows, meta,
