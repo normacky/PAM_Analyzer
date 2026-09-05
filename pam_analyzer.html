@@ -1027,6 +1027,7 @@ let NVDA_DAILY = PAM_DATA.daily, NVDA_WEEKLY = PAM_DATA.weekly;   // mutable: li
    ============================================================ */
 function aggregate(daily,n){
   const {open:o,high:h,low:l,close:c,time:t,volume:v}=daily,bars=[];
+  bars.aggN=n;   // v0.32 — how many source bars per output bar; sizes the BAR-13 assessment window
   const mk=(i,j)=>({date:t[j-1],open:o[i],high:Math.max(...h.slice(i,j)),low:Math.min(...l.slice(i,j)),
       close:c[j-1],vol:v.slice(i,j).reduce((a,b)=>a+b,0),days:j-i});   // days = source bars folded into this bar (SCR-11 volume screen divides by it)
   if(n<=1){for(let i=0;i<c.length;i++)bars.push(mk(i,i+1));return bars;}
@@ -1118,10 +1119,12 @@ function stochSlow(b,kLook,dSmooth){                                   // TOS St
     return hh===ll?50:100*(b[i].close-ll)/(hh-ll);});
   const k=smaN(raw,dSmooth); return {k, d:smaN(k,dSmooth)};}
 function atrWilder(b,n){const tr=b.map((x,i)=>i===0?x.high-x.low:Math.max(x.high-x.low,Math.abs(x.high-b[i-1].close),Math.abs(x.low-b[i-1].close)));return rma(tr,n);}
-function classifyBar(b,avg){
+function classifyBar(b,flushTh){
+  // v0.32 — flushTh is the ABSOLUTE range a bar must reach to be "outstanding" (BAR-13/14).
+  // enrich() computes it; BAR-15's body >= 2/3 prerequisite is enforced here as before.
   const o=b.open,h=b.high,l=b.low,c=b.close,rng=h-l;
   if(rng<=0)return{type:'doji',dir:null,flush:false,bf:0};
-  const bf=Math.abs(c-o)/rng,top3=l+rng*2/3,bot3=l+rng/3,flush=(bf>=2/3)&&avg&&(rng>=2*avg);
+  const bf=Math.abs(c-o)/rng,top3=l+rng*2/3,bot3=l+rng/3,flush=(bf>=2/3)&&flushTh>0&&(rng>=flushTh);
   if(o>=top3&&c>=top3)return{type:'PIN',dir:'bull',flush,bf};
   if(o<=bot3&&c<=bot3)return{type:'PIN',dir:'bear',flush,bf};
   if(bf>=2/3){if(c>o)return{type:flush?'FLUSH-UP':'MARK-UP',dir:'bull',flush,bf};
@@ -1158,8 +1161,25 @@ function enrich(bars){
   // Multi-day bars carry `days` from aggregate(); a caller can pin bars.volDays instead (the
   // chart's weekly view sets 5, since native weekly bars arrive with days=1).
   const vd=bars.volDays||null, vpd=bars.map(b=>{const d=vd||b.days||1;const v=+b.vol;return isFinite(v)?v/d:0;}), v50=sma(vpd,50);
-  bars.forEach((b,i)=>{const w=rg.slice(Math.max(0,i-10),i),avg=w.length?w.reduce((x,y)=>x+y,0)/w.length:0;
-    b.cls=classifyBar(b,avg);b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;b.volAvg50=v50[i];});
+  // v0.32 — BAR-13/14 comparator (owner call, 5 Sep 2026). Until v0.31 a flush bar was
+  // "range >= 2x the MEAN range of the previous 10 bars". Two faults: the mean is inflated by
+  // the very outlier it exists to detect (one huge bar raises the bar and hides the next), and
+  // a 10-bar window re-bases so fast that a whole volatile stretch normalises itself away.
+  // Now: a flush bar sits in the TOP DECILE of its assessment period — range/close at or above
+  // the 90th percentile of range/close over the trailing window (1 year for 1-Day and 2-Day,
+  // 3 years for Weekly; a caller may pin bars.flushWin, as sourceBars does for the weekly view).
+  // NORMALISED by close deliberately: on a name that tripled inside the window, absolute ranges
+  // from the cheap end are not comparable with today's. Measured on DELL 2-Day (window start
+  // $127 -> $524) the absolute variant put only 35% of its flush bars in the older half of the
+  // history; normalised puts 47% there, i.e. it stays a like-for-like comparison.
+  // BAR-15 still binds first (body >= 2/3). NS-06 stays the engine's own call: the ruleset
+  // settles the 2x multiple but never the lookback, the statistic, or the normalisation.
+  const FW=bars.flushWin||(bars.aggN>1?Math.max(30,Math.round(252/bars.aggN)):252);
+  const nrm=bars.map((b,i)=>b.close>0?rg[i]/b.close:0);
+  const pctl=(arr,q)=>{if(!arr.length)return 0;const z=arr.slice().sort((x,y)=>x-y);
+    const t=(z.length-1)*q,lo2=Math.floor(t),hi2=Math.ceil(t);return lo2===hi2?z[lo2]:z[lo2]+(z[hi2]-z[lo2])*(t-lo2);};
+  bars.forEach((b,i)=>{const w=nrm.slice(Math.max(0,i-FW),i),th=w.length>=20?pctl(w,FLUSH_PCTL)*b.close:0;
+    b.cls=classifyBar(b,th);b.flushTh=th;b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;b.volAvg50=v50[i];});
   // LP (Left Precedence) level lists over the FULL loaded history — a swing level is only an LP
   // while it stays un-breached, so record the FIRST bar whose CLOSE crossed it ("breach").
   // findForce() then treats a level as alive at bar i unless it was close-breached before the
@@ -1241,12 +1261,14 @@ function enrich(bars){
    earnings (SCR-09/10), regime veto (SCR-13), no-man's-land uplift (COM-10),
    FSB-25 reclassification, UR2-18/19 swallowed rule, FS as the EXE inside UC/DR (FSB-19).
    ============================================================ */
-const ENGINE_VERSION='v0.30';
+const ENGINE_VERSION='v0.32';
 const WIN_REV=5;          // D-01: UR1 / DR1 / UR2 / DR2 — EXE must close back within bars 1-5
 const WIN_CONT=6;         // D-01: UC1 / DC1 / UC2 / DC2 — bars 1-6
 const WIN_FS=6;           // D-02: Force Strike — mother bar = bar 1, EXE by bar 6 (min 3 bars)
 const MF_FAST=5;          // D-03 route (c): leg start -> LP pierce in <= 5 bars (owner call, 5 Sep 2026)
-const LIQ_MIN_VOL=100000; // SCR-11: 50-SMA of daily volume must be > 100,000
+const FLUSH_PCTL=0.90;    // BAR-13/14 (v0.32): a flush bar's range/close sits at/above this percentile of the assessment window
+const CONSTIP=3;          // MOM-05 / W-04: 3 OR MORE sideways bars is constipation; 2 is not
+const LIQ_MIN_VOL=100000; // SCR-11: 50-SMA of daily volume. v0.31: an ANNOTATION, not a gate (owner call)
 const TICK=0.01;          // SL-07: one-tick buffer beyond the structure extreme
 function findForce(bars,i,FW=WIN_CONT,prefer=null){
   // Nominates the LP being forced at bar i. The pierce may sit on any of the last FW bars
@@ -1293,24 +1315,68 @@ function majorityFlush(bars,i,f){
   //        with no single flush bar). MF_FAST = 5 is the owner's number (5 Sep 2026); the
   //        notes give none (NS-08 closed by decision, not by a course figure).
   const LEG=12,W=WIN_REV;
-  if(f.f==='bottom'){
-    let yHi=-1e9;for(let t=f.j+1;t<=i;t++)yHi=Math.max(yHi,bars[t].high);
-    const fifty=f.lv+(yHi-f.lv)/2;
-    let pj=i,pLo=1e9;for(let t=Math.max(0,i-W+1);t<=i;t++)if(bars[t].low<pLo){pLo=bars[t].low;pj=t;}
-    let ls=-1;for(let t=pj;t>=Math.max(0,pj-LEG);t--)if(bars[t].high>=fifty){ls=t;break;}
-    if(ls<0)return{ok:false,fifty,legStart:null,legBar:null,yExt:yHi,route:null,nBars:null,pj};
-    let a=false,g=false;for(let t=ls;t<=pj;t++){if(bars[t].cls.type==='FLUSH-DOWN')a=true;if(t>ls&&bars[t].open<bars[t-1].low)g=true;}
-    const n=pj-ls,c=n<=MF_FAST,route=a?'flush bar':g?'gap':c?'fast run':null;
-    return{ok:route!=null,fifty,legStart:bars[ls].high,legBar:ls,yExt:yHi,route,nBars:n,pj};
+  const down=f.f==='bottom';
+  let yExt=down?-1e9:1e9;                                   // MF-03: Y, the opposite extreme right of X
+  for(let t=f.j+1;t<=i;t++)yExt=down?Math.max(yExt,bars[t].high):Math.min(yExt,bars[t].low);
+  const fifty=down?f.lv+(yExt-f.lv)/2:f.lv-(f.lv-yExt)/2;   // MF-04: the 50% line
+  let pj=i,pe=down?1e9:-1e9;                                 // the pierce: extreme of the last WIN_REV bars
+  for(let t=Math.max(0,i-W+1);t<=i;t++){const v=down?bars[t].low:bars[t].high; if(down?v<pe:v>pe){pe=v;pj=t;}}
+  const beyond=t=>down?bars[t].high>=fifty:bars[t].low<=fifty;
+  const out=(ok,ls,route,n,note)=>({ok,fifty,yExt,pj,route,nBars:n,note:note||null,
+    legBar:(ls==null?null:ls), legStart:(ls==null?null:(down?bars[ls].high:bars[ls].low))});
+  // MF-08 — the leg origin is the LATEST bar STRICTLY BEFORE the pierce that still sits beyond
+  // the 50% line. v0.32: the search used to start AT pj, so origin and pierce could be the SAME
+  // bar — a zero-bar "leg" measured inside one candle, which then satisfied route (c) trivially
+  // (15% of reversal triggers). A move that begins and ends in one bar is not a flush MOVE; if
+  // that single bar really is the flush it has to say so through route (a) or (b) below.
+  let ls=-1;for(let t=pj-1;t>=Math.max(0,pj-LEG);t--)if(beyond(t)){ls=t;break;}
+  let single=false;
+  if(ls<0){ if(beyond(pj)){ls=pj;single=true;} else return out(false,null,null,null,'no leg origin beyond the 50% line'); }
+  // ---- MOM-04 / MOM-05 / MOM-12 / H-13 — constipation (v0.32) ----
+  // A "sideways" bar makes NO PROGRESS in the flush direction: no new low in a flush down, no
+  // new high in a flush up. Colour is ignored on purpose, per MOM-04 — "bearish bars, dojis and
+  // normal bars inside a flush up do not disqualify it" — so a red bar that still makes a new
+  // low counts as progress, not consolidation. NS-09 leaves "consolidation bar" undefined; this
+  // reading is the engine's own and is documented as such.
+  if(!single){
+    const sw=t=>down?!(bars[t].low<bars[t-1].low):!(bars[t].high>bars[t-1].high);
+    // MOM-12 (W1 00:21:34 / W2 p115) with W-04: CONSTIP or more sideways bars is a "constipate
+    // flush". It stays a flush — but the move is re-measured FROM THE POINT WHERE THE
+    // CONSTIPATION ENDED, and that new start must still sit beyond the 50% line. That is what
+    // fails a stodgy move, not a hard veto: the deck never disqualifies it outright.
+    let run=0,lastEnd=-1;
+    for(let t=ls+1;t<=pj;t++){ if(sw(t)){run++; if(run>=CONSTIP)lastEnd=t;} else run=0; }
+    if(lastEnd>=pj) return out(false,null,null,null,'constipated — the sideways patch runs into the pierce, no flush leg is left (MOM-05)');
+    if(lastEnd>=0){
+      ls=lastEnd+1;
+      if(!beyond(ls)) return out(false,null,null,null,'constipated — re-measured from the end of the '+CONSTIP+'-bar sideways patch, the leg no longer starts beyond the 50% line (MOM-12)');
+      if(ls===pj) single=true;
+    }
+    // H-13 — a 2-bar pause is NOT constipation (W-04), but it is tolerated only if the NEXT bar
+    // breaks DECISIVELY beyond the pair's range; otherwise the move "lacks the necessary
+    // momentum of a true flushdown" and the flush is VOID. He skipped FRSH on exactly this test.
+    // "Decisively" is read here as: the next bar CLOSES beyond the pair's extreme. The hunt
+    // gives no figure, so the close (not a wick) is the engine's documented standard.
+    for(let t=ls+1;t<=pj;t++){
+      if(!sw(t))continue;
+      let e=t; while(e+1<=pj&&sw(e+1))e++;
+      if(e-t+1===2&&e+1<=pj){
+        const lim=down?Math.min(bars[t].low,bars[e].low):Math.max(bars[t].high,bars[e].high);
+        if(!(down?bars[e+1].close<lim:bars[e+1].close>lim))
+          return out(false,null,null,null,'2-bar pause was not followed by a decisive break beyond it — lacks the momentum of a true flush (H-13)');
+      }
+      t=e;
+    }
   }
-  let yLo=1e9;for(let t=f.j+1;t<=i;t++)yLo=Math.min(yLo,bars[t].low);
-  const fifty=f.lv-(f.lv-yLo)/2;
-  let pj=i,pHi=-1e9;for(let t=Math.max(0,i-W+1);t<=i;t++)if(bars[t].high>pHi){pHi=bars[t].high;pj=t;}
-  let ls=-1;for(let t=pj;t>=Math.max(0,pj-LEG);t--)if(bars[t].low<=fifty){ls=t;break;}
-  if(ls<0)return{ok:false,fifty,legStart:null,legBar:null,yExt:yLo,route:null,nBars:null,pj};
-  let a=false,g=false;for(let t=ls;t<=pj;t++){if(bars[t].cls.type==='FLUSH-UP')a=true;if(t>ls&&bars[t].open>bars[t-1].high)g=true;}
-  const n=pj-ls,c=n<=MF_FAST,route=a?'flush bar':g?'gap':c?'fast run':null;
-  return{ok:route!=null,fifty,legStart:bars[ls].low,legBar:ls,yExt:yLo,route,nBars:n,pj};
+  // ---- D-03 steepness: (a) a flush bar, (b) a gap, or (c) a fast run ----
+  const want=down?'FLUSH-DOWN':'FLUSH-UP';
+  const gapAt=t=>t>0&&(down?bars[t].open<bars[t-1].low:bars[t].open>bars[t-1].high);
+  let rA=false,rG=false;
+  for(let t=ls;t<=pj;t++){ if(bars[t].cls.type===want)rA=true; if(t>ls&&gapAt(t))rG=true; }
+  if(single&&gapAt(pj))rG=true;
+  const n=pj-ls, rC=(n>=1&&n<=MF_FAST);
+  const route=rA?'flush bar':rG?'gap':rC?'fast run':null;
+  return out(route!=null,ls,route,n,null);
 }
 function biggerRetracement(bars,i,f,yExt){
   // UR2-03 / DR2-03 entry rule 1: the current retracement (|Y - X|) must be BIGGER than the
@@ -1548,10 +1614,14 @@ function scan(bars){
   const out=[];
   for(let i=50;i<bars.length;i++){
     const b=bars[i],cls=b.cls;
-    // SCR-11 (v0.30): hard liquidity screen BEFORE any structural test — 50-bar average of
-    // daily-equivalent volume must be > 100,000 (the TOS scan's first condition, H-04). A
-    // series with no volume data (average 0) is treated as unknown and passes.
-    if(b.volAvg50>0&&b.volAvg50<LIQ_MIN_VOL)continue;
+    // SCR-11 — v0.31: liquidity is an ANNOTATION, not a gate (owner call, 5 Sep 2026).
+    // The ruleset runs the 50-SMA-volume screen BEFORE any structural test (H-04), and v0.30
+    // implemented it that way. On a single-symbol chart that made the tool unreadable: a
+    // silent scan could mean "no setup" or "screened out" and you could not tell which. The
+    // label is now always issued and carries `illiq`; the trade panel, the log and the scan
+    // row say so, and the decision stays with the trader (same treatment as WIDE).
+    // A series with no volume data (average 0 / null) is UNKNOWN, not illiquid.
+    const illiq=(b.volAvg50>0&&b.volAvg50<LIQ_MIN_VOL);
     const flow=b.close>b.sma50?'up':'down';
     const fRes=findForce(bars,i,WIN_CONT,cls.dir==='bull'?'bottom':cls.dir==='bear'?'top':null);
     const {f:force,lv}=fRes;
@@ -1629,13 +1699,15 @@ function scan(bars){
       const sx=structExtreme(bars,r.j0,i,long);
       const trig={i,date:b.date,label:r.label,dir:r.dir,why:r.why,price:b.close,level:r.level,exe:cls.type,
                   div:r.div==null?null:r.div,aSub:r.aSub==null?null:r.aSub,late:r.late==null?null:r.late,
-                  also:r.also||null,ctx:r.ctx||null,bar:r.bar||null,structLo:long?sx:null,structHi:long?null:sx};
+                  also:r.also||null,ctx:r.ctx||null,bar:r.bar||null,structLo:long?sx:null,structHi:long?null:sx,
+                  illiq,volAvg50:(b.volAvg50==null?null:b.volAvg50)};
       // WID-01/03 at scan time: entry (50% of the EXE bar) minus the structure stop vs ATR(14).
       // The label is KEPT and flagged (owner call, 5 Sep 2026): exec=false means "valid but
       // not executable — skip or re-price" (WID-10).
       const tr=buildTrade(bars,trig);
       trig.sl=tr.sl;trig.risk=tr.risk;trig.wide=tr.wide;trig.exec=!tr.wide;
       if(tr.wide)trig.why+=` · <b>WIDE</b> — entry ${fmt(tr.entry)} to structure stop ${fmt(tr.sl)} is ${fmt(tr.risk)} > 1 ATR ${fmt(tr.atr)}: not executable as structured (WID-01/03); re-price the entry lower or pass`;
+      if(illiq)trig.why+=` · <b>THIN</b> — 50-bar average volume ${Math.round(b.volAvg50).toLocaleString()} is under the ${LIQ_MIN_VOL.toLocaleString()} liquidity screen (SCR-11); the course screens these out before any structural test, so treat the fill and the spread with care`;
       out.push(trig);
     }
   }
@@ -1700,7 +1772,7 @@ function fmt(x,d=2){return x==null?'—':Number(x).toFixed(d);}
 function tfLabel(){return S.tf==='W'?'WEEKLY · 3-YEAR':S.tf==='2'?'2-DAY · 1-YEAR':'DAILY';}
 function sourceBars(){
   if(S.src==='PASTE')return enrich(aggregate(S.paste, S.tf==='2'?2:1));
-  if(S.tf==='W' && NVDA_WEEKLY){const wb=aggregate(NVDA_WEEKLY,1);wb.volDays=5;return enrich(wb);}   // native weekly bars: SCR-11 screen on volume/5
+  if(S.tf==='W' && NVDA_WEEKLY){const wb=aggregate(NVDA_WEEKLY,1);wb.volDays=5;wb.flushWin=156;return enrich(wb);}   // native weekly: SCR-11 volume/5, BAR-13 window = 3 years
   const n = (S.tf==='2' || (S.tf==='W' && !NVDA_WEEKLY)) ? 2 : 1;  // weekly missing -> fall back to 2-Day
   return enrich(aggregate(NVDA_DAILY,n));
 }
@@ -1732,11 +1804,10 @@ function renderSteps(){
   const a=A;
   const flushNote=a.flushUp?`${a.flushUp} flush-up bar(s) recently — <b>bearish</b> to the trader`
     :a.flushDn?`${a.flushDn} flush-down bar(s) recently — <b>bullish</b> to the trader`:'wave-like, no recent flush bars';
-  const setupTxt=ACTIVE?`<b>${ACTIVE.label}</b> <span class="tag ${ACTIVE.dir==='long'?'long':'short'}">${ACTIVE.dir}</span>${ACTIVE.wide?' <span class="tag short">WIDE · not executable</span>':''} — ${ACTIVE.why}.`
-    :(!a.liqOK?`<b>Liquidity screen failed</b> — the scan is silent on this stock (SCR-11).`
-    :TRIGS.length?`No trigger on the latest bar. Most recent was <b>${TRIGS[TRIGS.length-1].label}</b> on ${TRIGS[TRIGS.length-1].date}.`:'No triggers found in this window.');
+  const setupTxt=ACTIVE?`<b>${ACTIVE.label}</b> <span class="tag ${ACTIVE.dir==='long'?'long':'short'}">${ACTIVE.dir}</span>${ACTIVE.wide?' <span class="tag short">WIDE · not executable</span>':''}${ACTIVE.illiq?' <span class="tag short">THIN</span>':''} — ${ACTIVE.why}.`
+    :(TRIGS.length?`No trigger on the latest bar. Most recent was <b>${TRIGS[TRIGS.length-1].label}</b> on ${TRIGS[TRIGS.length-1].date}.`:'No triggers found in this window.');
   const liqTxt=a.volAvg50==null?'Not enough bars for the 50-bar volume average yet.'
-    :a.volAvg50>0?`50-bar average daily volume <b>${Math.round(a.volAvg50).toLocaleString()}</b> ${a.liqOK?'→ <b>passes</b>':'→ <b>FAILS</b>'} the ${a.liqMin.toLocaleString()} screen (SCR-11)${a.liqOK?'':' — no PAM label is issued on this stock'}.`
+    :a.volAvg50>0?`50-bar average daily volume <b>${Math.round(a.volAvg50).toLocaleString()}</b> ${a.liqOK?'→ <b>passes</b>':'→ <b>below</b>'} the ${a.liqMin.toLocaleString()} screen (SCR-11)${a.liqOK?'':' — labels are still issued and tagged <b>THIN</b>; the course would screen this stock out, so mind the fill and the spread'}.`
     :'No volume data in this series — the liquidity screen is skipped.';
   const steps=[
     ['0','Liquidity screen',liqTxt],
@@ -1760,6 +1831,7 @@ function renderTrade(){
   if(!t){$('#trade').innerHTML=`<div class="note">No trade structured — the latest bar isn’t a trigger. The log below shows the most recent ones and the reason each fired, so you can see what the chart is reacting to.</div>`;return;}
   const width=t.wide?`<span class="pill no">WIDE — NOT EXECUTABLE</span>`:`<span class="pill ok">NOT WIDE — within 1 ATR</span>`;
   const wideNote=t.wide?`<div class="note">⛔ Wide trade (WID-01/03): entry − stop is ${fmt(t.risk)} against an ATR of ${fmt(t.atr)}. The framework skips this 99% of the time. Remedy (WID-02): move the entry ${t.dir==='long'?'lower':'higher'} so it sits within 1 ATR of the stop (ideally 0.80–0.90 ATR, WID-11) — never move the stop inside the structure.</div>`:'';
+  const thin=(ACTIVE&&ACTIVE.illiq)?`<div class="note">💧 Thin volume: the 50-bar average is ${Math.round(ACTIVE.volAvg50).toLocaleString()}, under the ${(100000).toLocaleString()} liquidity screen (SCR-11). The label still stands — the course screens these out before looking at structure, so expect a wider spread and a harder fill.</div>`:'';
   const smelly=t.smelly?`<div class="note">⚠ Smelly trade: price has already run ≥1R from the planned entry — the framework would <b>cancel</b> the order; the edge is gone.</div>`:'';
   $('#trade').innerHTML=`<table>
     <tr><td>Trigger</td><td>${ACTIVE.label} <span class="tag ${t.dir==='long'?'long':'short'}">${t.dir}</span></td></tr>
@@ -1768,14 +1840,14 @@ function renderTrade(){
     <tr><td>Risk (entry→SL)</td><td>${fmt(t.risk)}</td></tr>
     <tr><td>Current ATR(14)</td><td>${fmt(t.atr)}</td></tr>
     <tr><td>Width check</td><td>${width}</td></tr>
-    <tr><td>Target (1 : 1.7)</td><td>${fmt(t.tgt)}</td></tr></table>${wideNote}${smelly}`;
+    <tr><td>Target (1 : 1.7)</td><td>${fmt(t.tgt)}</td></tr></table>${wideNote}${thin}${smelly}`;
 }
 
 function renderLog(){
   if(!TRIGS.length){$('#log').innerHTML=`<div class="empty">No triggers in this window — the framework is sitting out.</div>`;return;}
   const rows=TRIGS.slice().reverse().slice(0,10).map(t=>{
     const cl=t.dir==='long'?'long':'short';
-    return `<div class="logrow"${t.wide?' style="opacity:.6"':''}><div class="dt">${t.date}</div><div class="lab ${cl}">${t.label}${t.wide?' ⛔':''}</div><div class="why">${t.why}.</div></div>`;
+    return `<div class="logrow"${t.wide?' style="opacity:.6"':''}><div class="dt">${t.date}</div><div class="lab ${cl}">${t.label}${t.wide?' ⛔':''}${t.illiq?' 💧':''}</div><div class="why">${t.why}.</div></div>`;
   });
   $('#log').innerHTML=rows.join('');
 }
@@ -2687,16 +2759,25 @@ function scanRenderList(){
     const m=SCAN.meta[r.t]||{};
     const row=document.createElement('div'); row.className='sctr'; row.style.gridTemplateColumns=gt; row.title='Load '+r.t;
     row.onclick=()=>{ if(window.pamExpandChart)window.pamExpandChart(); $('#tkInput').value=r.t; fetchSymbol(r.t); };
-    const fresh=r.ago===0, warn=(r.unit>1||r.smelly);
+    const fresh=r.ago===0, warn=(r.unit>1||r.smelly||r.wide||r.illiq);
     const dot=document.createElement('span'); dot.className='scdot'; dot.style.background='var(--'+(warn?'force':fresh?'long':'faint')+')';
     const ageTxt=r.ago===0?'latest bar':(r.ago+' bar'+(r.ago===1?'':'s')+' back');
     const extra=[]; if(r.sys)extra.push(r.sys===2?'55-day':'20-day'); if(r.unit>1)extra.push('+'+r.unit+' add'); else if(r.smelly)extra.push('past entry');
+    if(r.wide)extra.push('WIDE \u2014 not executable at the 50% entry'); if(r.illiq)extra.push('thin volume');
     dot.title=ageTxt+(extra.length?' \u00b7 '+extra.join(' \u00b7 '):'');
     row.appendChild(dot);
     const tk=document.createElement('div'); tk.className='sccell-tk';
     const s=document.createElement('div'); s.className='s'; s.textContent=r.t; s.style.color='var(--'+(r.dir==='long'?'long':'short')+')';
     tk.appendChild(s);
     if(m.name){ const n=document.createElement('div'); n.className='n'; n.textContent=m.name; n.title=m.name; tk.appendChild(n); }
+    // v0.31 — trade-quality flags carried by the scan: WIDE (not executable at the 50% entry,
+    // WID-01/03) and THIN (under the SCR-11 volume screen). Neither filters the row out.
+    if(r.wide||r.illiq){ const fl=document.createElement('div'); fl.className='n';
+      fl.style.cssText='font-family:var(--mono);font-size:10px;color:var(--force);letter-spacing:.02em';
+      fl.textContent=[r.wide?'\u26D4 WIDE':null,r.illiq?'\uD83D\uDCA7 thin':null].filter(Boolean).join('  \u00b7  ');
+      fl.title=[r.wide?'Entry to structure stop exceeds 1 ATR — skip or re-price the entry (WID-01/03)':null,
+                r.illiq?'50-bar average volume is under 100,000 — the course screens these out (SCR-11)':null].filter(Boolean).join(' \u00b7 ');
+      tk.appendChild(fl); }
     row.appendChild(tk);
     if(hasUnit){ const uc=document.createElement('div'); uc.className='sccell-unit'; const u=r.unit; uc.textContent=(u!=null)?(u+(['th','st','nd','rd'][(u%10<4&&!(u%100>10&&u%100<14))?u%10:0])):'–'; if(u!=null&&u>1)uc.style.color='var(--force)'; uc.title=(u!=null)?('unit '+u+' of the pyramid'):''; row.appendChild(uc); }
     if(hasPx){ const px=document.createElement('div'); px.className='sccell-px'; px.textContent=(m.px!=null)?('$'+(+m.px).toFixed(2)):'\u2013'; row.appendChild(px); }

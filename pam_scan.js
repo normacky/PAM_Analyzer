@@ -149,7 +149,10 @@ function detectFresh(sym, series, eng, cfg) {
   let bars;
   // v0.31 — carry volDays into enrich() so SCR-11's volume average is per DAY on every
   // timeframe (native weekly bars arrive with days = 1, so the weekly pass sets volDays: 5).
-  try { const agg = eng.aggregate(series, cfg.aggMult); if (cfg.volDays) agg.volDays = cfg.volDays; bars = eng.enrich(agg); }
+  try { const agg = eng.aggregate(series, cfg.aggMult);
+        if (cfg.volDays)  agg.volDays  = cfg.volDays;
+        if (cfg.flushWin) agg.flushWin = cfg.flushWin;   // v0.32 — BAR-13 assessment window; 1D/2D fall back to aggN
+        bars = eng.enrich(agg); }
   catch (e) { return []; }
   if (!bars || bars.length < 2) return [];
 
@@ -1077,7 +1080,7 @@ async function main() {
       const a = acc['W'];
       a.scanned++;
       if (lastDate > a.asof) a.asof = lastDate;
-      const fired = detectFresh(sym, series, eng, { ...CFG, aggMult: 1, volDays: 5 });   // weekly bars are already the base timeframe; volDays: 5 keeps SCR-11 per-day
+      const fired = detectFresh(sym, series, eng, { ...CFG, aggMult: 1, volDays: 5, flushWin: 156 });   // weekly: volDays 5 keeps SCR-11 per-day, flushWin 156 = the 3-year BAR-13 window
       if (fired.length) { for (const r of fired) r.tf = 'W'; a.rows.push(...fired); noteFire(sym, series); }
     }
     delete weekly[sym];
