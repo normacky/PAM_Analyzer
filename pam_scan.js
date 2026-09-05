@@ -187,11 +187,37 @@ function detectFresh(sym, series, eng, cfg) {
 }
 
 /* ---- 4. Alpaca calls (universe + batched, paginated, paced bar pulls) ------- */
+/* v0.33 — RETRY TRANSPORT FAILURES, not just HTTP 429.
+ * A dropped connection arrives as a THROWN TypeError from fetch(), with no HTTP status at all,
+ * so the 429 branch below never saw it and the exception escaped all the way out of main().
+ * The common cause: Node reuses keep-alive sockets, and a socket that sits idle through a long
+ * CPU-bound stretch — the ~2 minutes the engine spends scanning 12k symbols between Phase 1 and
+ * Phase 2 — gets closed by Alpaca's side. The pool does not notice; the next request writes to a
+ * dead socket and undici reports UND_ERR_SOCKET "other side closed" instantly. Retrying opens a
+ * fresh connection and succeeds. The 05 Sep 2026 run died exactly this way and discarded a
+ * completed Phase 1 with it. 5xx is retried too — those are transient on Alpaca's side. */
+const RETRYABLE = new Set(['UND_ERR_SOCKET', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT',
+                           'UND_ERR_BODY_TIMEOUT', 'ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT',
+                           'EPIPE', 'EAI_AGAIN', 'ENOTFOUND', 'ERR_STREAM_PREMATURE_CLOSE']);
+const netCode = e => (e && (e.code || (e.cause && e.cause.code))) || '';
+const isRetryable = e => RETRYABLE.has(netCode(e));
+
 async function alpacaGet(url, tries = 0) {
-  const r = await fetch(url, { headers: HEADERS });
+  const again = async (e, why) => {
+    if (tries >= 6) { console.error('  ' + why + ' - giving up after 6 attempts'); throw e; }
+    const wait = Math.min(30000, 1000 * Math.pow(2, tries));      // 1s, 2s, 4s, 8s, 16s, 30s
+    console.error('  ' + why + ' - retrying in ' + (wait / 1000) + 's (attempt ' + (tries + 1) + ' of 6)');
+    await sleep(wait);
+    return alpacaGet(url, tries + 1);
+  };
+  let r;
+  try { r = await fetch(url, { headers: HEADERS }); }
+  catch (e) { if (isRetryable(e)) return again(e, 'network ' + (netCode(e) || 'error')); throw e; }
   if (r.status === 429 && tries < 6) { await sleep(2000); return alpacaGet(url, tries + 1); }  // rate-limited → wait
+  if (r.status >= 500) return again(new Error('Alpaca ' + r.status), 'Alpaca ' + r.status);    // transient server error
   if (!r.ok) throw new Error('Alpaca ' + r.status + ': ' + (await r.text()).slice(0, 200));
-  return r.json();
+  try { return await r.json(); }
+  catch (e) { if (isRetryable(e)) return again(e, 'body ' + (netCode(e) || 'error')); throw e; }
 }
 
 async function fetchUniverse(cfg) {
@@ -1071,7 +1097,16 @@ async function main() {
 
   /* ---- Phase 2: a separate NATIVE WEEKLY pull (Alpaca 1Week) for the weekly timeframe ---- */
   console.error(`Phase 2/2 — pulling native weekly bars (~${Math.round(CFG.weeklyDays / 7)} weeks) for the weekly timeframe…`);
-  let weekly = await fetchBars(syms, CFG, '1Week', CFG.weeklyDays);
+  // v0.33 — a Phase 2 failure must NOT throw away Phase 1. If the weekly pull dies we publish the
+  // 1-Day and 2-Day results anyway, and carry the PREVIOUS run's weekly block forward rather than
+  // writing an empty one (an empty block reads as "no weekly setups", which is a silent lie).
+  let weekly = {}, weeklyOk = true, weeklyErr = '';
+  try { weekly = await fetchBars(syms, CFG, '1Week', CFG.weeklyDays); }
+  catch (e) {
+    weeklyOk = false; weeklyErr = e.message || String(e);
+    console.error('Phase 2 FAILED (' + weeklyErr + ')');
+    console.error('  publishing the 1-Day and 2-Day results without a fresh weekly scan.');
+  }
   for (const sym of syms) {
     const arr = weekly[sym];
     if (arr && arr.length >= 60) {
@@ -1108,6 +1143,23 @@ async function main() {
     a.firedCount = new Set(a.rows.map(r => r.t)).size;
   }
 
+  // v0.33 — build the weekly block: fresh when Phase 2 succeeded, otherwise the previous run's
+  // block re-published with stale:true so the panel and you can both tell it was not rescanned.
+  let wBlock = { timeframe: '1week', agg_mult: 1, fresh_within: CFG.freshWithin, asof: acc['W'].asof,
+                 scanned: acc['W'].scanned, fired: acc['W'].firedCount, counts: acc['W'].counts, rows: acc['W'].rows };
+  if (!weeklyOk) {
+    let prev = null;
+    try { prev = JSON.parse(fs.readFileSync(CFG.out, 'utf8')); } catch (e) {}
+    const pw = prev && prev.tf && prev.tf.W;
+    if (pw && pw.rows) {
+      wBlock = Object.assign({}, pw, { stale: true, error: weeklyErr.slice(0, 200) });
+      console.error('  weekly block carried forward from the previous run (asof ' + (pw.asof || '?') + '), marked stale.');
+    } else {
+      wBlock = Object.assign(wBlock, { stale: true, error: weeklyErr.slice(0, 200) });
+      console.error('  no previous weekly block to carry forward - the weekly timeframe will be empty this run.');
+    }
+  }
+
   const result = {
     // ---- top level === the 1-Day view (back-compatible with the old single-timeframe file) ----
     asof: acc['1'].asof, timeframe: '1day', agg_mult: 1, fresh_within: CFG.freshWithin,
@@ -1116,6 +1168,7 @@ async function main() {
     // the fact instead of guessing whether it predates an engine change.
     engine_version: eng.ENGINE_VERSION || null, engine_source: eng.source, engine_mtime: eng.mtime || null,
     fundamentals: FINNHUB_KEY ? 'finnhub' : 'none',
+    weekly_ok: weeklyOk,   // v0.33 — false means the weekly block is carried forward, not rescanned
     universe: syms.length, scanned: acc['1'].scanned, fired: acc['1'].firedCount,
     trigger_types: TRIGGER_TYPES, counts: acc['1'].counts, rows: acc['1'].rows, meta,
     // ---- NEW: the extra timeframes; the panel reads '1' from the top level and '2'/'W' from here ----
@@ -1123,8 +1176,7 @@ async function main() {
     tf: {
       '2': { timeframe: '2day',  agg_mult: 2, fresh_within: CFG.freshWithin, asof: acc['2'].asof,
              scanned: acc['2'].scanned, fired: acc['2'].firedCount, counts: acc['2'].counts, rows: acc['2'].rows },
-      'W': { timeframe: '1week', agg_mult: 1, fresh_within: CFG.freshWithin, asof: acc['W'].asof,
-             scanned: acc['W'].scanned, fired: acc['W'].firedCount, counts: acc['W'].counts, rows: acc['W'].rows },
+      'W': wBlock,
     },
     // ---- NEW: options block — vertical-spread candidates keyed by ticker; the panel ignores unknown keys, so this is back-compatible ----
     opt,
