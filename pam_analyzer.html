@@ -1028,7 +1028,7 @@ let NVDA_DAILY = PAM_DATA.daily, NVDA_WEEKLY = PAM_DATA.weekly;   // mutable: li
 function aggregate(daily,n){
   const {open:o,high:h,low:l,close:c,time:t,volume:v}=daily,bars=[];
   const mk=(i,j)=>({date:t[j-1],open:o[i],high:Math.max(...h.slice(i,j)),low:Math.min(...l.slice(i,j)),
-      close:c[j-1],vol:v.slice(i,j).reduce((a,b)=>a+b,0)});
+      close:c[j-1],vol:v.slice(i,j).reduce((a,b)=>a+b,0),days:j-i});   // days = source bars folded into this bar (SCR-11 volume screen divides by it)
   if(n<=1){for(let i=0;i<c.length;i++)bars.push(mk(i,i+1));return bars;}
   /* v0.20 — TOS-style fixed grid for multi-day bars.
      The old loop paired from whatever bar happened to sit first in the fetched window, so every
@@ -1126,11 +1126,13 @@ function classifyBar(b,avg){
   if(o<=bot3&&c<=bot3)return{type:'PIN',dir:'bear',flush,bf};
   if(bf>=2/3){if(c>o)return{type:flush?'FLUSH-UP':'MARK-UP',dir:'bull',flush,bf};
               return{type:flush?'FLUSH-DOWN':'MARK-DOWN',dir:'bear',flush,bf};}
-  // Ice Cream: body ≈ 1/2 of range, close in the correct third. The window runs up to the
-  // Mark boundary (2/3) — the old 0.4–0.6 cap left a dead zone (body 60–66.7% of range
-  // classified as "neutral"), which silently disqualified real reclaim bars as EXEs.
-  if(bf>=0.4&&bf<2/3){if(c>=top3)return{type:'ICE-CREAM',dir:'bull',flush:false,bf};
-                      if(c<=bot3)return{type:'ICE-CREAM',dir:'bear',flush:false,bf};}
+  // Ice Cream (BAR-07/08, ruleset v5): body 40-60% of the range, close in the correct third.
+  // v0.30 restores the 60% cap. The v0.2x engine had widened it to 66.7% to close the
+  // "dead zone" between Ice Cream and Mark; the ruleset (W-08 adopted, H-32 confirmed:
+  // handwritten "40%-60%" on the slide) keeps the band at 40-60%, so a bar with a 60-66.7%
+  // body is neither — COM-09's rule of doubt: if you have to ask, it does not qualify.
+  if(bf>=0.4&&bf<=0.6){if(c>=top3)return{type:'ICE-CREAM',dir:'bull',flush:false,bf};
+                       if(c<=bot3)return{type:'ICE-CREAM',dir:'bear',flush:false,bf};}
   return{type:'neutral',dir:null,flush:false,bf};
 }
 function pivots(b,kl,kr){
@@ -1152,8 +1154,12 @@ function pivots(b,kl,kr){
 function enrich(bars){
   const c=bars.map(b=>b.close),s50=sma(c,50),s20=sma(c,20),s200=sma(c,200),a=atr(bars,14),{hi,lo}=pivots(bars,3,1);
   const rg=bars.map(b=>b.high-b.low);
+  // v0.30 — SCR-11 liquidity screen input: 50-bar simple average of DAILY-equivalent volume.
+  // Multi-day bars carry `days` from aggregate(); a caller can pin bars.volDays instead (the
+  // chart's weekly view sets 5, since native weekly bars arrive with days=1).
+  const vd=bars.volDays||null, vpd=bars.map(b=>{const d=vd||b.days||1;const v=+b.vol;return isFinite(v)?v/d:0;}), v50=sma(vpd,50);
   bars.forEach((b,i)=>{const w=rg.slice(Math.max(0,i-10),i),avg=w.length?w.reduce((x,y)=>x+y,0)/w.length:0;
-    b.cls=classifyBar(b,avg);b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;});
+    b.cls=classifyBar(b,avg);b.sma50=s50[i];b.sma20=s20[i];b.sma200=s200[i];b.atr=a[i];b.swingH=hi[i];b.swingL=lo[i];b.i=i;b.volAvg50=v50[i];});
   // LP (Left Precedence) level lists over the FULL loaded history — a swing level is only an LP
   // while it stays un-breached, so record the FIRST bar whose CLOSE crossed it ("breach").
   // findForce() then treats a level as alive at bar i unless it was close-breached before the
@@ -1211,62 +1217,57 @@ function enrich(bars){
 }
 
 /* ---- trigger scanner (ported from scan.py) ---- */
-const ENGINE_VERSION='v0.26';
-function findForce(bars,i,FW=5,prefer=null){
-  // v0.23 note — the lessons count the EXE window from the FIRST bar that crossed the LP
-  // (L9 Pt1 @04:19 "the first bar closing above the LP ... as number one"); this
-  // implementation uses a rolling FW-bar pierce window instead. Equivalent in the normal
-  // case; diverges only when a false break drags on past the window. Documented deviation.
-  // FW=5 is the owner's override of the decks' 4, explicitly sanctioned by the trainer
-  // (L9 Pt1 @11:46 "If you find that 5 bars work better for you, then go ahead").
-  // Force detection, v0.15 rules (v0.18: also returns j — the LP entry's own bar index,
-  // which is point X for the majority-flush geometry):
-  //  - LP levels come from the FULL loaded history (weekly 3Y window scans 3Y back, 2-Day 1Y
-  //    window scans 1Y back), not a 15-bar peephole — but only levels still un-breached count:
-  //    a level is dead once any bar CLOSED through it BEFORE the current force window.
-  //  - MULTI-BAR force: the pierce may happen on any of the last FW(=5) bars (the panic bar is
-  //    often a long-tailed neutral candle); bar i just has to be the one closing back on the
-  //    correct side of the LP. Matches the course's "EXE closes at/above the LP within ~5 bars".
+/* ============================================================
+   ENGINE v0.30 — realigned to PAM_Ruleset_from_Notes_v5 (5 Sep 2026).
+   Every change below cites the ruleset ID it implements. The decisions log
+   (D-01 … D-10) takes precedence over everything else in that file.
+     D-01  EXE window: 5 bars UR/DR, 6 bars UC/DC        -> WIN_REV / WIN_CONT
+     D-02  Force Strike cluster: max 6 bars, min 3        -> forceStrike()
+     D-03  Majority-flush steepness is STRUCTURAL         -> majorityFlush() routes a/b/c
+     D-04  FS pullback context: up-leg >= pullback        -> fsContext()
+     D-05  FS with no valid context is SILENT             -> scan()
+     D-06  200 SMA route recorded, NOT coded              -> (absent by design)
+     D-07  FSB-24 power-move test NOT coded               -> (absent by design)
+     D-08  LP anchor = most EXTREME breached LP           -> findForce(), fsAtLP()
+     SL-01/06  stop = structure low/high - 1 tick         -> buildTrade()
+     WID-03    wide = not executable (label kept, flagged)-> scan(), buildTrade()
+     SCR-11    50-SMA volume > 100,000 hard screen        -> scan()
+     BAR-07/08 Ice Cream 40-60%                            -> classifyBar() above
+     FSB-04    strike bar and EXE bar may differ           -> forceStrike()
+     C-28      UC1-11 / DC1-11 quality flag, not a gate    -> contGates()
+     DIV-05    nearest left swing only                     -> divergence()
+     UR2-03    bigger than the preceding one OR two        -> biggerRetracement()
+   Still uncoded, on purpose (ruleset says so): exits (EXT-*), re-entry (REN-*),
+   earnings (SCR-09/10), regime veto (SCR-13), no-man's-land uplift (COM-10),
+   FSB-25 reclassification, UR2-18/19 swallowed rule, FS as the EXE inside UC/DR (FSB-19).
+   ============================================================ */
+const ENGINE_VERSION='v0.30';
+const WIN_REV=5;          // D-01: UR1 / DR1 / UR2 / DR2 — EXE must close back within bars 1-5
+const WIN_CONT=6;         // D-01: UC1 / DC1 / UC2 / DC2 — bars 1-6
+const WIN_FS=6;           // D-02: Force Strike — mother bar = bar 1, EXE by bar 6 (min 3 bars)
+const MF_FAST=5;          // D-03 route (c): leg start -> LP pierce in <= 5 bars (owner call, 5 Sep 2026)
+const LIQ_MIN_VOL=100000; // SCR-11: 50-SMA of daily volume must be > 100,000
+const TICK=0.01;          // SL-07: one-tick buffer beyond the structure extreme
+function findForce(bars,i,FW=WIN_CONT,prefer=null){
+  // Nominates the LP being forced at bar i. The pierce may sit on any of the last FW bars
+  // (a rolling window — the family-specific freshness gates in reclaimAt() do the strict
+  // bar-1 counting). FW defaults to the WIDER window (6, UC/DC) so a 6th-bar UC reclaim can
+  // still be nominated; UR/DR's 5-bar rule is enforced downstream by reclaimAt(...,WIN_REV).
+  //  - LP levels come from the FULL loaded history; a level is dead once any bar CLOSED
+  //    through it BEFORE the current window (LP-11). A close-through DURING the window is
+  //    part of the trap (LP-08: a touch starts the count; the EXE close decides).
+  //  - v0.30 / D-08: when several LPs were breached, the anchor is the MOST EXTREME breached
+  //    level (LP-05: "use the most extreme one that has been breached"). This retires the
+  //    v0.25/v0.26 "nearest clean LP" ruling; the ruleset wins.
   const b=bars[i],w0=Math.max(0,i-FW+1);
   let pHi=-1e9,pLo=1e9;for(let t=w0;t<=i;t++){pHi=Math.max(pHi,bars[t].high);pLo=Math.min(pLo,bars[t].low);}
-  const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=w0);   // formed ≥3 bars back, not close-breached earlier
+  const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=w0);   // formed >=3 bars back, not close-breached earlier
   const top=(bars.lpHighs||[]).filter(e=>alive(e)&&e.lv<pHi&&e.lv>=b.close);
   const bot=(bars.lpLows||[]).filter(e=>alive(e)&&e.lv>pLo&&e.lv<=b.close);
-  // v0.25 — ANCHOR TO THE NEAREST LP (owner ruling, 13 Aug 2026). Until v0.24 each side
-  // anchored to the FARTHEST pierced level (lowest LP low / highest LP high), so a violent
-  // false break through several stacked LPs handed the anchor to the deepest — often oldest —
-  // level, and majorityFlush's X/Y geometry then stretched across that level's whole lifetime
-  // and failed. (Real case: LHX 2-Day, Aug 2026 — the 30 Jul crash low 262.68 kept the
-  // Sep-2025 LP 268.60 "pierced", burying the live 270.32 line the chart itself draws; the
-  // DR2 could only fire on 12 Aug, once the crash bar aged out of the 5-bar window.)
-  // The anchor is now the level NEAREST the EXE bar's close — the line the bar is actually
-  // reacting to, the same closeness rule the cross-side tie-break below has always used.
-  // "Nearest" is operationalised as price-nearest to bar i's close (judgment call: the
-  // owner's word was "nearest LP".) v0.26 resolves the remaining ambiguity via the owner's
-  // DR1 slide + chart reading (13 Aug 2026): the candidate SET was wrong, not the metric.
-  // A level price has CLOSED through during the episode is a broken shelf — the chart even
-  // stops drawing it — not "the" LP being falsely broken, so long as a clean level remains.
-  // Nearest is therefore taken over CLEAN candidates first (pierced intrabar, no
-  // close-through up to bar i); episode-close-breached levels stay eligible only as a
-  // FALLBACK when no clean candidate exists. The fallback preserves the decks' own
-  // multi-bar trap, where the trap bar and its dojis close through THE level and the EXE
-  // reclaims it. breach>i counts as clean: breach is precomputed over the full series, so a
-  // future close-through must not disqualify a level today (no lookahead).
-  // (LHX 2-Day, Aug 2026: the crash CLOSED through 273.04 / 272.14 — dead shelves — leaving
-  // 270.32 as the nearest clean LP: the line the chart draws and the slide's point X.)
-  const cleanAt=e=>e.breach===null||e.breach>i;
-  const pick=(arr,better)=>{const cl=arr.filter(cleanAt);return (cl.length?cl:arr).reduce(better);};
-  const bT=top.length?pick(top,(a,c)=>c.lv<a.lv?c:a):null;
-  const bB=bot.length?pick(bot,(a,c)=>c.lv>a.lv?c:a):null;
-  // v0.21 — PRECEDENCE FIX. Until v0.20 the top list was tested first and returned
-  // unconditionally, so any live overhead LP within the force window suppressed a genuine
-  // force BOTTOM on the same bar. The bias was directional: it could only ever silence the
-  // bullish family (UC / DR), never DC / UR. Measured on CRWD + FBNC (daily and 2-Day):
-  // both sides were live on ~7% of scanned bars, the top won every single time, and five of
-  // those bars carried a valid bullish EXE that was discarded unseen.
-  // Now: honour the caller's preferred side when that side has a candidate — scan() passes
-  // the EXE bar's own direction — otherwise fall back to whichever level sits closer to the
-  // close, which is the level the bar is actually reacting to.
+  const bT=top.length?top.reduce((a,c)=>c.lv>a.lv?c:a):null;   // highest breached LP high
+  const bB=bot.length?bot.reduce((a,c)=>c.lv<a.lv?c:a):null;   // lowest breached LP low
+  // v0.21 precedence: honour the caller's preferred side (the EXE bar's own direction);
+  // otherwise whichever level sits closer to the close.
   if(prefer==='top'&&bT)return{f:'top',lv:bT.lv,j:bT.j};
   if(prefer==='bottom'&&bB)return{f:'bottom',lv:bB.lv,j:bB.j};
   if(bT&&bB)return (bT.lv-b.close)<=(b.close-bB.lv)
@@ -1276,80 +1277,65 @@ function findForce(bars,i,FW=5,prefer=null){
   return{f:null,lv:null,j:null};
 }
 function majorityFlush(bars,i,f){
-  // v0.18 — the decks' "majority flush" MOVE test (Lessons 9/19), two parts:
-  //  GEOMETRY (deck-exact): X = the LP's own level (entry bar j); Y = the opposite
-  //  extreme to the RIGHT of X's bar; 50% line = midpoint of X–Y; the FINAL leg into
-  //  the LP must START at/beyond that 50% line — i.e. the leg traversed the majority
-  //  of the X–Y distance.
-  //  STEEPNESS (framework, skill §2.2): a flush move is the steep >70° run vs the ~45°
-  //  wave; per the owner-confirmed framework a flush MOVE needn't contain any single
-  //  flush BAR, so impulsiveness is measured as speed: the leg's per-bar traverse must
-  //  be ≥ 1.5× ATR(14). Without this test every ordinary pullback would pass geometry
-  //  trivially (its leg starts at Y itself). 1.5× is a documented judgment call.
-  //  Leg origin is operationalised as the opposite extreme over the 12 bars before the
-  //  force window's pierce bar (judgment call, documented).
-  // Implementation note: the leg origin is chosen to MAXIMISE steepness among the
-  // candidate bars beyond the 50% line within the 12 bars before the pierce — i.e. the
-  // test asks "does there exist a start point at/beyond the midpoint from which the
-  // move into the pierce averaged ≥ 1.5×ATR per bar?" Anchoring the origin to the
-  // absolute extreme instead would dilute a fast strike across any plateau before it.
-  // v0.23 — the steepness requirement is now confirmed by the LESSON TRANSCRIPTS, not just
-  // the framework: L9 Pt2 @01:45 "as long as the price movement angle is steep we consider
-  // this a majority flush down" — a series of ordinary bars qualifies, no single flush BAR
-  // needed — and @16:43 "a gap up is considered a flush up": gaps count, which the per-bar
-  // traverse speed below handles naturally (a gap inflates the traverse). @23:21 accepts a
-  // "marginal" 50% start, matching the >= boundary here. The 1.5x ATR threshold remains our
-  // operationalisation of "steep"; the transcripts give the requirement, not a number.
-  const LEG=12,atr=bars[i].atr||1e-9,TH=1.5*atr;
+  // Majority Flush (MF-02..MF-08), ruleset v5.
+  //  GEOMETRY (unchanged, deck-exact): X = the LP's level (its own bar j); Y = the opposite
+  //  extreme to the RIGHT of X's bar; 50% line = midpoint of X-Y. The FINAL leg into X must
+  //  START at/beyond the 50% line (MF-05, inclusive per MF-06 / C-18).
+  //  LEG ORIGIN (MF-08): the origin of the final leg = the LATEST bar before the pierce bar
+  //  that still sits at/beyond the 50% line. A bounce back over the line restarts the leg
+  //  (the MS example: bounce above the 50% line, dip, then the flush).
+  //  STEEPNESS — D-03 (v5): STRUCTURAL, not angular. The v0.18-v0.26 "leg speed >= 1.5 x ATR
+  //  per bar" test is RETIRED (W-06 rejects normalising the slope by ATR). The leg is a flush
+  //  if ANY of:
+  //    (a) it contains a bar classified FLUSH-DOWN / FLUSH-UP (BAR-13/14, the 2x test);
+  //    (b) it contains a gap in the leg's direction (MOM-04, MF-11 — the earnings-gap trap);
+  //    (c) it is a fast run: leg origin -> pierce in <= MF_FAST bars (BAR-17: a flush move
+  //        with no single flush bar). MF_FAST = 5 is the owner's number (5 Sep 2026); the
+  //        notes give none (NS-08 closed by decision, not by a course figure).
+  const LEG=12,W=WIN_REV;
   if(f.f==='bottom'){
     let yHi=-1e9;for(let t=f.j+1;t<=i;t++)yHi=Math.max(yHi,bars[t].high);
     const fifty=f.lv+(yHi-f.lv)/2;
-    let pj=i,pLo=1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].low<pLo){pLo=bars[t].low;pj=t;}
-    let best=-1,ls=null;
-    for(let t=Math.max(0,pj-LEG);t<pj;t++){if(bars[t].high<fifty)continue;
-      const sp=(bars[t].high-pLo)/(pj-t);if(sp>best){best=sp;ls=bars[t].high;}}
-    return{ok:ls!=null&&best>=TH,fifty,legStart:ls,yExt:yHi,speed:best,steep:best>=TH};
+    let pj=i,pLo=1e9;for(let t=Math.max(0,i-W+1);t<=i;t++)if(bars[t].low<pLo){pLo=bars[t].low;pj=t;}
+    let ls=-1;for(let t=pj;t>=Math.max(0,pj-LEG);t--)if(bars[t].high>=fifty){ls=t;break;}
+    if(ls<0)return{ok:false,fifty,legStart:null,legBar:null,yExt:yHi,route:null,nBars:null,pj};
+    let a=false,g=false;for(let t=ls;t<=pj;t++){if(bars[t].cls.type==='FLUSH-DOWN')a=true;if(t>ls&&bars[t].open<bars[t-1].low)g=true;}
+    const n=pj-ls,c=n<=MF_FAST,route=a?'flush bar':g?'gap':c?'fast run':null;
+    return{ok:route!=null,fifty,legStart:bars[ls].high,legBar:ls,yExt:yHi,route,nBars:n,pj};
   }
   let yLo=1e9;for(let t=f.j+1;t<=i;t++)yLo=Math.min(yLo,bars[t].low);
   const fifty=f.lv-(f.lv-yLo)/2;
-  let pj=i,pHi=-1e9;for(let t=Math.max(0,i-4);t<=i;t++)if(bars[t].high>pHi){pHi=bars[t].high;pj=t;}
-  let best=-1,ls=null;
-  for(let t=Math.max(0,pj-LEG);t<pj;t++){if(bars[t].low>fifty)continue;
-    const sp=(pHi-bars[t].low)/(pj-t);if(sp>best){best=sp;ls=bars[t].low;}}
-  return{ok:ls!=null&&best>=TH,fifty,legStart:ls,yExt:yLo,speed:best,steep:best>=TH};
+  let pj=i,pHi=-1e9;for(let t=Math.max(0,i-W+1);t<=i;t++)if(bars[t].high>pHi){pHi=bars[t].high;pj=t;}
+  let ls=-1;for(let t=pj;t>=Math.max(0,pj-LEG);t--)if(bars[t].low<=fifty){ls=t;break;}
+  if(ls<0)return{ok:false,fifty,legStart:null,legBar:null,yExt:yLo,route:null,nBars:null,pj};
+  let a=false,g=false;for(let t=ls;t<=pj;t++){if(bars[t].cls.type==='FLUSH-UP')a=true;if(t>ls&&bars[t].open>bars[t-1].high)g=true;}
+  const n=pj-ls,c=n<=MF_FAST,route=a?'flush bar':g?'gap':c?'fast run':null;
+  return{ok:route!=null,fifty,legStart:bars[ls].low,legBar:ls,yExt:yLo,route,nBars:n,pj};
 }
 function biggerRetracement(bars,i,f,yExt){
-  // v0.18 — UR2/DR2 entry rule 1: the current retracement must be BIGGER than the prior
-  // one in the same trend. Current = |Y − X|. Prior = the last completed counter-trend
-  // pivot swing strictly before X's bar (swingH→swingL pair via the k=3 pivot flags).
-  // If no prior pair exists in loaded history the rule is unverifiable — reported as
-  // unmeasurable and the label proceeds with a caveat (highlight-not-filter).
-  const cur=Math.abs(yExt-f.lv);
-  let a=-1,b2=-1;
-  if(f.f==='bottom'){ // downtrend: prior retracement = last swingH before X, and the swingL before it
-    for(let t=f.j-1;t>=0;t--)if(bars[t].swingH){a=t;break;}
-    if(a>=0)for(let t=a-1;t>=0;t--)if(bars[t].swingL){b2=t;break;}
-    if(a<0||b2<0)return{ok:false,unmeasurable:true,cur,prev:null};
-    const prev=bars[a].high-bars[b2].low;
-    return{ok:cur>prev,unmeasurable:false,cur,prev};
+  // UR2-03 / DR2-03 entry rule 1: the current retracement (|Y - X|) must be BIGGER than the
+  // preceding ONE OR TWO smaller retracements (ruleset v5 corrects the engine's one-pair test).
+  // Reading used: bigger than EACH of the last two measurable counter-trend swing pairs
+  // strictly before X's bar; falls back to one pair when only one exists. No pair at all =
+  // unmeasurable, the label stays at the "1" tier (L19: "you only know there is a bigger
+  // retracement when there is a smaller retracement before").
+  const cur=Math.abs(yExt-f.lv),up=f.f!=='bottom';   // bottom = downtrend (DR2), top = uptrend (UR2)
+  const A=up?'swingL':'swingH',B=up?'swingH':'swingL';   // a retracement in an uptrend runs swingH -> swingL
+  const prevs=[];let t=f.j-1;
+  while(prevs.length<2&&t>=0){
+    let a=-1;for(;t>=0;t--)if(bars[t][A]){a=t;break;} if(a<0)break;
+    let b2=-1;for(t=a-1;t>=0;t--)if(bars[t][B]){b2=t;break;} if(b2<0)break;
+    prevs.push(up?bars[b2].high-bars[a].low:bars[a].high-bars[b2].low);
+    t=b2-1;
   }
-  for(let t=f.j-1;t>=0;t--)if(bars[t].swingL){a=t;break;}
-  if(a>=0)for(let t=a-1;t>=0;t--)if(bars[t].swingH){b2=t;break;}
-  if(a<0||b2<0)return{ok:false,unmeasurable:true,cur,prev:null};
-  const prev=bars[b2].high-bars[a].low;
-  return{ok:cur>prev,unmeasurable:false,cur,prev};
+  if(!prevs.length)return{ok:false,unmeasurable:true,cur,prev:null,prevs:[]};
+  return{ok:prevs.every(p=>cur>p),unmeasurable:false,cur,prev:Math.max(...prevs),prevs};
 }
 function nearSMA(bars,i,from){
-  // v0.18 — UC/DC entry rule 2: "structure forms near or test 20/50 SMA".
-  // v0.24 SCOPE FIX (item 2). Until v0.23 this looked at a fixed 5-bar window ending at the
-  // EXE bar, so a structure whose only SMA contact happened back at point B or C — the
-  // normal case, since the retracement is what reaches the average — failed the gate and the
-  // scan went silent. The deck is explicit that the whole shape counts: L16 @11:59 "as long
-  // as the entire ABCD structure, ANY PARTS of the ABCD structure touch or is near to the
-  // 20 or 50 SMA is good to go". `from` is the structure's leftmost pivot (contWalk p0, or
-  // p1 when p0 is unavailable). Callers passing no `from` keep the old 5-bar behaviour.
-  // Tested = any bar in the structure straddles the 20 or 50 SMA; near = current close
-  // within 1 ATR of either (owner-ratified tolerance).
+  // UC1-10 / DC1-10 / UC2-08 / DC2-08 and FSB-09 (d): "near or test the 20 or 50 SMA",
+  // measured across the WHOLE structure (from `from` to bar i). Tested = any bar straddles
+  // the 20 or 50 SMA; near = current close within 1 ATR of either (NS-30: the 1-ATR
+  // tolerance is the engine's own, the notes give no distance).
   const b=bars[i],atr=b.atr||0,s0=(from==null)?Math.max(0,i-4):Math.max(0,from);
   for(let t=s0;t<=i;t++){const x=bars[t];
     for(const s of [x.sma20,x.sma50])if(s!=null&&x.low<=s&&x.high>=s)return true;}
@@ -1357,42 +1343,19 @@ function nearSMA(bars,i,from){
   return false;
 }
 function contWalk(bars,i,dir){
-  // v0.21 — the deck's A-B-C(-D) structure, WALKED BACKWARDS from the EXE bar, replacing
-  // v0.18-v0.20's "trend-side extreme over the last 12 bars" origin.
-  //
-  // WHY THIS HAD TO CHANGE. UC1 (Lesson 16) and UC2 (Lesson 17) carry IDENTICAL rule text;
-  // every letter is simply shifted one place. UC1's A / B / C are UC2's B / C / D:
+  // The deck's A-B-C(-D) structure, WALKED BACKWARDS from the EXE bar (v0.21, unchanged).
+  // UC1 (Lesson 13A) and UC2 (Lesson 14) carry the same rule text shifted one letter:
   //      first peak (no flush into it)   A (UC1)   B (UC2)
   //      the LP line the EXE reclaims    B (UC1)   C (UC2)
   //      the EXE must close beyond       C (UC1)   D (UC2)
-  // The slides differ in exactly one way: in UC2 the SECOND peak exceeds the first (HON,
-  // AJG, LYV, MS all draw D above B); in UC1 it fails short of it (BA, LMT, APPS, EC all
-  // draw C below A). Mirrored on the down side — GE and VALE put D below B for DC2, OXY and
-  // DHI put C above A for DC1.
-  // A max-high origin cannot express that: whenever the second peak is the higher one, the
-  // max IS the second peak and the first peak never enters the calculation at all.
-  // Real case that exposed it — CRWD 2-Day, Jul 2026: the origin was read as 217.50 on
-  // 07-16, which is point D. The real point B is 209.50 on 07-06, so the "no flush bar into
-  // B" gate was being tested against the wrong three bars and killed a valid UC2.
-  //
-  // Up case:  p2 = most recent swingH before i     (deck C in UC1 / D in UC2)
-  //           lp = most recent swingL before p2    (deck B in UC1 / C in UC2)  <- THE LP LINE
-  //           p1 = most recent swingH before lp    (deck A in UC1 / B in UC2)
-  // Down case is the exact mirror; verified by reflecting real CRWD/FBNC bars and confirming
-  // the down path reproduces the up path bar-for-bar (19/19 candidates, matching tiers).
-  //
-  // Returns null when fewer than three pivots exist. A continuation with no identifiable
-  // first peak is not a continuation, so the scan stays SILENT rather than guessing
-  // (owner call, 08 Aug 2026). Measured at 0.6% of bars on the validation sample.
+  // Up case:  p2 = most recent swingH before i; lp = most recent swingL before p2 (THE LP
+  // LINE); p1 = most recent swingH before lp; p0 = the swing before p1 (deck point A in the
+  // UC2 lettering — anchors the SMA/divergence scans and the A-line fallback). Returns null
+  // when fewer than three pivots exist: no first peak = no continuation, stay silent.
   const up=dir==='up',A=up?'swingH':'swingL',B=up?'swingL':'swingH';
   let p2=-1;for(let t=i-1;t>=0;t--)if(bars[t][A]){p2=t;break;}   if(p2<0)return null;
   let lp=-1;for(let t=p2-1;t>=0;t--)if(bars[t][B]){lp=t;break;}  if(lp<0)return null;
   let p1=-1;for(let t=lp-1;t>=0;t--)if(bars[t][A]){p1=t;break;}  if(p1<0)return null;
-  // v0.24 — walk back ONE further pivot, to the deck's point A in the UC2/DC2 lettering
-  // (the swing that precedes the first peak). Two uses: it anchors the left edge of the
-  // structure for the SMA-proximity and divergence scans, and it supplies the stand-in LP
-  // line for the UC2/DC2 overshoot case. -1 when history runs out; both features simply
-  // fall back to p1 / become unavailable, never throw.
   let p0=-1;for(let t=p1-1;t>=0;t--)if(bars[t][B]){p0=t;break;}
   return{p0,p1,lp,p2,first:up?bars[p1].high:bars[p1].low,
                   line: up?bars[lp].low :bars[lp].high,
@@ -1400,41 +1363,25 @@ function contWalk(bars,i,dir){
                   aLine: p0<0?null:(up?bars[p0].low:bars[p0].high)};
 }
 function contTier(bars,i,w,dir){
-  // v0.21 — UC1 vs UC2 (DC1 vs DC2). The decks give NO mechanical rule; the rule text is the
-  // same for both lessons. The only discriminator the slides actually show is whether the
-  // second peak exceeds the first. Owner-ratified, 08 Aug 2026. This REPLACES v0.18-v0.20's
-  // legsInPullback() pivot count, which was not a deck rule and ran backwards: on a textbook
-  // A-B-C-D the most recent swing high IS point D, so C never got counted and the shape the
-  // deck draws as UC2 came out as UC1, while the shape that scored "2" was a shallow double
-  // dip whose intervening bounce was too small to register as a swing high at all.
-  //
-  // TIE BAND: 0.10 x ATR(14), defaulting to the "1" label. Deliberately narrow. The
-  // reference UC2 (FBNC 2-Day, Aug 2026) separates its two peaks by only 0.21 ATR, so a
-  // wider band would swallow the very case this rule exists to catch.
-  // KNOWN LIMITATION: on a 19-candidate validation sample the 1/2 verdict flipped for ~10%
-  // of setups when the pivot definition was varied (both flips sat at 0.30 ATR separation,
-  // i.e. above any band narrow enough to preserve FBNC). Accepted as cosmetic: the tier is
-  // descriptive only — direction, LP line, entry and stop are identical for "1" and "2".
+  // UC1 vs UC2 (DC1 vs DC2): the only discriminator the slides show is whether the second
+  // peak exceeds the first (UC2-04: D > B). Tie band 0.10 x ATR, defaulting to "1" (NS-27,
+  // engine's own number). Descriptive only — direction, LP line, entry and stop are the same.
   const band=0.10*(bars[i].atr||0),d=w.second-w.first;
   if(Math.abs(d)<=band)return{tier:1,tie:true};
   return{tier:((dir==='up')?d>0:d<0)?2:1,tie:false};
 }
-function reclaimAt(bars,i,up,line){
-  // v0.24 (item 8) — deck bar counting at the LP line. Bar 1 is the FIRST bar that crosses
-  // or breaches the line, whether or not it closes through: L16 @08:11 "even if it never
-  // closes below, but it crosses, I still count it as number one". By bar 5 an EXE must
-  // close back at or above (UC) / at or below (DC) the line.
-  // v0.23 used a rolling "did any of the last 5 bars pierce" test, which is equivalent for a
-  // short false break but lets a break that drags on for 8+ bars still fire on a late
-  // reclaim — the deck expires that setup. Episode start = the run of piercing bars ending
-  // at, or immediately before, bar i.
-  // Known leniency, documented: a mid-episode bar sitting entirely clear of the line ends
-  // the run, so the count restarts from the next pierce. That is more permissive than the
-  // deck (the trainer counts his dojis straight through), never stricter, so it cannot cause
-  // a valid setup to be dropped. Lookback capped at 10 bars.
+function reclaimAt(bars,i,up,line,win){
+  // Deck bar counting at the LP line (UR1-04, DR1-04, UC1-06, DC1-06, W-14): bar 1 is the
+  // FIRST bar that touches/crosses the line, whether or not it closes through. By the end of
+  // the window an EXE must close back at/above (long) or at/below (short) the line.
+  // `win` = WIN_REV (5) for UR/DR, WIN_CONT (6) for UC/DC — D-01. Episode start = the run of
+  // piercing bars ending at, or immediately before, bar i. Known leniency (documented): a
+  // mid-episode bar sitting entirely clear of the line ends the run, so the count restarts
+  // from the next pierce — never stricter than the deck. Lookback capped at win+4 bars.
+  if(win==null)win=WIN_REV;
   const pierce=t=>up?bars[t].low<line:bars[t].high>line;
   if(!(up?bars[i].close>=line:bars[i].close<=line))return{ok:false,j:-1};
-  const back=Math.max(0,i-9);
+  const back=Math.max(0,i-(win+4));
   let s=i;
   for(let t=i-1;t>=back;t--){if(pierce(t))s=t;else break;}
   if(!pierce(s)){                       // bar i never pierced — find the run just before it
@@ -1442,80 +1389,54 @@ function reclaimAt(bars,i,up,line){
     if(e<0)return{ok:false,j:-1};
     s=e;for(let t=e-1;t>=back;t--){if(pierce(t))s=t;else break;}
   }
-  return{ok:(i-s)<=4,j:s};
+  return{ok:(i-s)<=win-1,j:s,bar:i-s+1};
 }
 function divergence(bars,i,dir,w){
-  // v0.24 (item 1) — Lesson 18, "Divergence for Continuation Structures". Applies to UC/DC
-  // ONLY, never to UR/DR (@03:39 "divergence is only for UCDC structures ... your URDR does
-  // not need to check").
-  // A structure is DIVERGENT when a prior swing on the LEFT of it sits at a price level
-  // strictly inside the band spanned by the structure's two peaks. The deck states this as
-  // "between A and C" for UC1/DC1 and "between B and D" for UC2/DC2 (@19:52, @20:12) — which
-  // are the same two points in both cases, because the UC1 and UC2 letterings are the same
-  // structure shifted one place. They are exactly contWalk's `first` and `second`, so one
-  // test covers all four labels.
-  // Direction: for UC the offending swing is a swing HIGH (slide 2: "double top forced UC1
-  // or UC2 divergence"); for DC it is a swing LOW ("double bottom forced DC1 and DC2").
-  // Reasoning per the trainer: a false top immediately followed by a false bottom is a
-  // conflict in market-maker positioning, so the structure is less clean.
-  // STRICTLY inside: the SQ (@14:21) and BAM (@15:27) examples both turn on a swing high
-  // sitting BELOW point C and are ruled convergent.
-  // No-man's-land needs no special case (@09:15) — with no price action on the left there is
-  // no swing to find, so the scan returns false naturally.
-  // FLAG, NOT FILTER: the trainer treats this as his own preference, not a rule ("if you
-  // still want to take on is your choice", @06:45). This function must never change which
-  // bars carry a label; it only annotates them.
+  // Lesson 15 divergence check, UC/DC ONLY (DIV-02). Band = the structure's two peaks
+  // (A-C for UC1/DC1, B-D for UC2/DC2 — the same two points, DIV-03/04, C-37). For UC the
+  // offending swing is a swing HIGH; for DC a swing LOW.
+  // v0.30 / DIV-05: only the NEAREST left swing is tested (15 p22-23, EC: "this is the nearest
+  // swing high that you see"). The v0.24 engine scanned past nearer swings that sat outside
+  // the band and flagged the first one found inside it — that is corrected here.
+  // STRICTLY inside the band (SQ / BAM examples: a swing below point C is convergent).
+  // FLAG, NOT FILTER (DIV-06, C-38): never changes which bars carry a label.
   const up=dir==='up',K=up?'swingH':'swingL';
   const lo=Math.min(w.first,w.second),hi=Math.max(w.first,w.second);
   const start=((w.p0!=null&&w.p0>=0)?w.p0:w.p1)-1;
   for(let t=start;t>=0;t--){
     if(!bars[t][K])continue;
     const lv=up?bars[t].high:bars[t].low;
-    if(lv>lo&&lv<hi)return{div:true,lv};
+    return{div:lv>lo&&lv<hi,lv,t};          // nearest swing decides, whichever way
   }
-  return{div:false,lv:null};
+  return{div:false,lv:null,t:-1};
 }
 function contGates(bars,i,dir){
-  // v0.21 — the UC/DC deck gates (Lessons 16/17), now measured against contWalk()'s
-  // structural points instead of a windowed extreme:
-  //  (1) no flush bar in the TREND direction among the 3 bars ending at the FIRST peak
-  //      ("no flush up bar within 3 preceding bars leading to point A/B").
-  //  (2) near/test the 20 or 50 SMA (nearSMA above).
-  //  (3) the EXE closes beyond the SECOND peak (deck "bullish EXE below point C/D").
-  //  (4) NEW HERE: deck entry rule 1 — the LP line was pierced within the last 5 bars and
-  //      the EXE closes back on the correct side of it. Checking this against the walk's own
-  //      line means the UC/DC path no longer depends on findForce's global level search.
-  //      Validated: on every UC candidate in the sample the walk's line and findForce's level
-  //      were identical (14/14, zero disagreements).
+  // UC/DC deck gates (Lessons 13A/14), measured against contWalk()'s structural points:
+  //  (1) no flush bar in the TREND direction among the 3 bars strictly BEFORE the first peak
+  //      (UC1-01 / DC1-01 / UC2-02, NS-28 — the DC1 walkthrough counts the three bars before);
+  //  (2) near/test the 20 or 50 SMA across the structure (nearSMA, C-29);
+  //  (3) deck entry rule 1: the LP line was pierced and the EXE closed back on the correct
+  //      side within the 6-bar window (D-01), with the UC2/DC2 A-line fallback (UC2-10/DC2-10)
+  //      when the pullback overshoots the C line and turns at A (restricted to the "2" tier).
+  //  QUALITY FLAG, not a gate (v0.30, C-28 / UC1-11 / DC1-11): the EXE closing beyond the
+  //      second peak. The instructor's words: "technically valid but no longer optimal". The
+  //      v0.2x engine gated on it; now it is carried as `late` and written into the reason.
   const b=bars[i],up=dir==='up',w=contWalk(bars,i,dir);
   if(!w)return{ok:false,noFlush:false,near:false,early:false,reclaim:false,w:null,
-               lineUsed:null,aSub:false,div:false,divLv:null};
+               lineUsed:null,aSub:false,div:false,divLv:null,j:-1};
   const bad=up?'FLUSH-UP':'FLUSH-DOWN';
-  // v0.24 (item 7) — the deck says "3 preceding bars LEADING TO point A", and the DC1
-  // walkthrough counts them explicitly as the three bars BEFORE the pivot (L16 Pt1 @15:36
-  // "three bars before point A"). v0.23 checked p1-2..p1 inclusive, i.e. the pivot bar
-  // itself plus two. Now p1-3..p1-1: the three bars strictly before it.
   let noFlush=true;for(let t=Math.max(0,w.p1-3);t<w.p1;t++)if(bars[t].cls.type===bad)noFlush=false;
-  // v0.24 (items 8 + 3) — deck bar counting at the LP line, with the UC2/DC2 overshoot
-  // fallback. When the pullback runs straight past the C line and only turns at the A line,
-  // the trainer re-anchors the setup to A: L17 @20:19 (DC2, GE) "sometimes price may go
-  // beyond the C line and go to the A point — you use the A point as the reference, it
-  // becomes the C line", and again @22:29 for the UC2 case. Two of his six worked examples
-  // are this shape, so it is not a corner case. Restricted to the "2" tier, which is where
-  // he demonstrates it and the only lettering in which a point A sits beyond the LP.
-  const rc=reclaimAt(bars,i,up,w.line);
-  let reclaim=rc.ok,lineUsed=w.line,aSub=false;
+  const rc=reclaimAt(bars,i,up,w.line,WIN_CONT);
+  let reclaim=rc.ok,lineUsed=w.line,aSub=false,j=rc.j,bar=rc.bar;
   if(!reclaim&&w.aLine!=null&&contTier(bars,i,w,dir).tier===2){
-    const ra=reclaimAt(bars,i,up,w.aLine);
-    if(ra.ok){reclaim=true;lineUsed=w.aLine;aSub=true;}
+    const ra=reclaimAt(bars,i,up,w.aLine,WIN_CONT);
+    if(ra.ok){reclaim=true;lineUsed=w.aLine;aSub=true;j=ra.j;bar=ra.bar;}
   }
-  // v0.24 (item 2) — SMA proximity now measured across the whole structure, not the last
-  // 5 bars. See nearSMA.
   const near=nearSMA(bars,i,(w.p0!=null&&w.p0>=0)?w.p0:w.p1);
   const early=up?b.close<w.second:b.close>w.second;
-  const dv=divergence(bars,i,dir,w);   // v0.24 (item 1) — annotation only, never gates `ok`
-  return{ok:noFlush&&near&&early&&reclaim,noFlush,near,early,reclaim,w,
-         lineUsed,aSub,div:dv.div,divLv:dv.lv};
+  const dv=divergence(bars,i,dir,w);   // annotation only, never gates `ok`
+  return{ok:noFlush&&near&&reclaim,noFlush,near,early,reclaim,w,
+         lineUsed,aSub,div:dv.div,divLv:dv.lv,j,bar};
 }
 // RETIRED in v0.21 — superseded by contTier(). Kept only so any external replay harness that
 // imported it does not break; nothing in the engine calls it any more.
@@ -1527,197 +1448,219 @@ function legsInPullback(bars,i,dir,win=14){
 }
 function isInside(m,b){return b.high<=m.high&&b.low>=m.low;}
 function fsAtLP(bars,i,dir,pierceExtreme){
-  // v0.17 — deck's "force bottom/top SCENARIO" check for a confirmed inside-bar Force Strike:
-  // did the strike ALSO false-break a live Left Precedence level, with the EXE (bar i)
-  // closing back at/on the correct side of it? If yes, that LP is returned and the trigger
-  // is the standalone-tradeable case per the course; if not, the FS is formation-only.
-  // Breach tolerance mirrors findForce: a close-through during the strike cluster itself
-  // is part of the trap, but a close-breach BEFORE it kills the level.
+  // Force Bottom / Force Top context for a Force Strike (FSB-13/14, FSS-07/08): did the
+  // cluster's strike ALSO false-break a live LP, with the EXE (bar i) closing back at/on the
+  // correct side of it? Returns that LP or null. Breach tolerance mirrors findForce: a
+  // close-through inside the cluster is part of the trap; a close-breach BEFORE it kills the
+  // level. v0.30 / D-08: with several breached levels, the MOST EXTREME one is the anchor.
   const b=bars[i];
-  const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=Math.max(0,i-4));
-  // v0.25 — nearest-LP anchoring here too, mirroring findForce (same owner ruling).
-  // v0.26 — and the same clean-first candidate tiering: levels close-breached during the
-  // episode count only when no clean level remains. Only the reported/entry level can
-  // change; whether an FS fires does not.
-  const cleanAt=e=>e.breach===null||e.breach>i;
-  const pick=(arr,better)=>{const cl=arr.filter(cleanAt);return (cl.length?cl:arr).reduce(better).lv;};
+  const alive=e=>e.j<i-2&&(e.breach===null||e.breach>=Math.max(0,i-WIN_FS+1));
   if(dir==='bull'){
     const c=(bars.lpLows||[]).filter(e=>alive(e)&&pierceExtreme<e.lv&&b.close>=e.lv);
-    return c.length?pick(c,(a,x)=>x.lv>a.lv?x:a):null;
+    return c.length?c.reduce((a,x)=>x.lv<a.lv?x:a).lv:null;
   }
   const c=(bars.lpHighs||[]).filter(e=>alive(e)&&pierceExtreme>e.lv&&b.close<=e.lv);
-  return c.length?pick(c,(a,x)=>x.lv<a.lv?x:a):null;
+  return c.length?c.reduce((a,x)=>x.lv>a.lv?x:a).lv:null;
 }
 function forceStrike(bars,i){
-  // Force Strike, v0.17 — realigned to the course deck (Lesson 8, Alson Chew), per the
-  // owner's clarifications (11 Jul 2026) on how the deck's rules attach:
-  //  - the mother/baby inside-bar pair is MANDATORY and CONSECUTIVE: the baby is the
-  //    single bar immediately after the mother, inside (or equal to) the mother's range.
-  //    v0.16's "LP route" (FS without an inside pair) is RETIRED: per the deck the LP is
-  //    an ADDITIONAL condition ("force bottom/top scenario"), never a substitute.
-  //  - the false break and the EXE close are ONE AND THE SAME BAR: the Force Strike bar
-  //    itself pierces the mother's extreme intrabar and closes back inside, and is a
-  //    same-direction EXE (PIN / Ice Cream / Mark Up-Down; never flush or neutral).
-  //    Only bar i's own extreme and close are tested — earlier bars' behaviour is
-  //    irrelevant to the check.
-  //  - that strike bar must occur within 3 bars of the baby ("Max cluster of 3 Bars"):
-  //    i - (m+1) <= 3.
-  //  - judgment call retained from v0.15: "returns within Mother Bar range" is enforced
-  //    on the trapped side only (bull: close ≥ mother low). An EXE strong enough to
-  //    close ABOVE the mother high is more bullish, not disqualifying.
-  //  - lp field: non-null when the strike bar also pierced a live LP and closed back
-  //    at/on the correct side of it — the deck's force-bottom/top scenario, the
-  //    standalone-tradeable case. Null = valid formation, but no LP involved.
+  // Force Strike formation (Lessons 7/8), ruleset v5:
+  //  - Mother bar (bar 1) + Baby bar (bar 2) IMMEDIATELY after it, whole range inside the
+  //    mother's range, equality allowed (BAR-18, FSB-01, FSS-01).
+  //  - The STRIKE: price breaks beyond the mother's extreme on ANY bar after the baby — one
+  //    bar, several bars, or a gap; a wick breach is enough (FSB-02, FSS-02).
+  //  - The RETURN: bar i is a same-direction EXE (PIN / Ice Cream / Mark; never flush or
+  //    neutral) that closes back inside the mother range on the trapped side (FSB-03, FSS-03).
+  //    v0.30 / FSB-04, FSB-16: the strike bar and the EXE bar MAY be different bars — the
+  //    BABA 5-bar case (TC-25) the v0.17-v0.26 same-bar rule could never fire.
+  //  - Cluster: mother = bar 1, EXE by bar 6, i.e. i - m <= 5; minimum 3 bars falls out of
+  //    the structure (strike is bar 3 at the earliest). D-02 / FSB-05 / FSS-04 / W-10.
+  //  - Any bar may be designated the mother (FSB-08): the earliest workable mother is used.
+  //  - tooWide: the EXE closed beyond the far side of the mother range — FSB-06 / FSS-05
+  //    "too wide, still considerable, not optimal". Quality flag, not a filter.
+  //  - lp: the Force Bottom / Force Top LP when the strike also false-broke one (fsAtLP).
   const b=bars[i],cls=b.cls;
-  if(cls.flush||cls.type==='neutral'||!cls.dir)return{d:null,lv:null,lp:null};
-  for(let m=Math.max(0,i-4);m<i-1;m++){        // strike bar within 3 bars of baby: i-(m+1)<=3
+  const none={d:null,lv:null,lp:null};
+  if(cls.flush||cls.type==='neutral'||!cls.dir)return none;
+  for(let m=Math.max(0,i-(WIN_FS-1));m<=i-2;m++){
     if(!isInside(bars[m],bars[m+1]))continue;  // baby = the bar right after the mother
     const mom=bars[m];
     if(cls.dir==='bull'){
-      if(b.low<mom.low&&b.close>=mom.low)
-        return{d:'bull',lv:mom.low,lp:fsAtLP(bars,i,'bull',b.low)};
+      let pe=1e9,sb=-1;for(let t=m+2;t<=i;t++)if(bars[t].low<mom.low&&bars[t].low<pe){pe=bars[t].low;sb=t;}
+      if(sb<0||!(b.close>=mom.low))continue;
+      return{d:'bull',lv:mom.low,momHi:mom.high,momLo:mom.low,m,sb,pe,bars:i-m+1,
+             tooWide:b.close>mom.high,lp:fsAtLP(bars,i,'bull',pe)};
     }else{
-      if(b.high>mom.high&&b.close<=mom.high)
-        return{d:'bear',lv:mom.high,lp:fsAtLP(bars,i,'bear',b.high)};
+      let pe=-1e9,sb=-1;for(let t=m+2;t<=i;t++)if(bars[t].high>mom.high&&bars[t].high>pe){pe=bars[t].high;sb=t;}
+      if(sb<0||!(b.close<=mom.high))continue;
+      return{d:'bear',lv:mom.high,momHi:mom.high,momLo:mom.low,m,sb,pe,bars:i-m+1,
+             tooWide:b.close<mom.low,lp:fsAtLP(bars,i,'bear',pe)};
     }
   }
-  return{d:null,lv:null,lp:null};
+  return none;
+}
+function fsContext(bars,i,fs){
+  // v0.30 — FSB-18 / FSS-11 / D-05: a Force Strike is never traded as a bare pattern. Two
+  // contexts are coded (D-06 — the two the instructor uses live, H-23):
+  //   'lp'       Force Bottom / Force Top at a tested LP (FSB-13/14, FSS-07/08). Any 50 SMA
+  //              position (LP-07). fsAtLP() already found the level.
+  //   'pullback' Uptrend (downtrend) retracement test of the 20/50 SMA (FSB-09/10/11,
+  //              FSS-06), with D-04's ratio:
+  //     (a) flow: the EXE closes on the trend side of the 50 SMA (FSB-10: rising but still
+  //         below the 50 SMA is not a valid uptrend — skip);
+  //     start = the first CLOSE on the trend side of the 50 SMA in the current run (D-04 /
+  //         NS-24); its close price is the 'start' level;
+  //     (b) a prior sell-down (rally), even one bar (FSB-11): the pre-pullback peak sits
+  //         BEFORE the mother bar and the pullback is > 0;
+  //     (c) the pullback stays on the trend side of the 'start' (FSB-10: returning to the
+  //         start voids the uptrend — TC-19);
+  //     (d) D-04: the leg from the start to the peak is AT LEAST AS LARGE as the pullback;
+  //     (e) the pullback reaches / rests near the 20 or 50 SMA (FSB-09 b/d, nearSMA).
+  //   The 200 SMA route (FSB-12) is NOT coded (D-06); the power-move test (FSB-24/FSS-16)
+  //   is NOT coded (D-07); FSB-25's reclassification is not coded.
+  // Returns {ctx:'lp'|'pullback'|null, fail, ...}. ctx null => the FS is SILENT (D-05).
+  if(fs.lp!=null)return{ctx:'lp'};
+  const b=bars[i],bull=fs.d==='bull';
+  if(b.sma50==null)return{ctx:null,fail:'no 50 SMA yet'};
+  const side=t=>bull?bars[t].close>bars[t].sma50:bars[t].close<bars[t].sma50;
+  if(!side(i))return{ctx:null,fail:bull?'price below the 50 SMA — not a valid uptrend (FSB-10)':'price above the 50 SMA — not a valid downtrend (FSS-06)'};
+  let s0=i;while(s0-1>=0&&bars[s0-1].sma50!=null&&side(s0-1))s0--;
+  if(s0>=fs.m)return{ctx:null,fail:'the run past the 50 SMA only began inside the FS cluster — no clear prior move (FSB-09 a)'};
+  const startLv=bars[s0].close;
+  let pk=s0,pkLv=bull?-1e9:1e9;
+  for(let t=s0;t<=fs.m;t++){const v=bull?bars[t].high:bars[t].low;if(bull?v>pkLv:v<pkLv){pkLv=v;pk=t;}}
+  let pb=bull?1e9:-1e9;for(let t=pk;t<=i;t++){const v=bull?bars[t].low:bars[t].high;pb=bull?Math.min(pb,v):Math.max(pb,v);}
+  const leg=Math.abs(pkLv-startLv),pull=Math.abs(pkLv-pb);
+  if(!(pk<fs.m&&pull>0))return{ctx:null,fail:bull?'no prior sell-down — price went straight up into the FS (FSB-11)':'no prior rally — price went straight down into the FS (FSS-06 b)'};
+  if(!(bull?pb>startLv:pb<startLv))return{ctx:null,fail:'the pullback returned to the start of the move ('+fmt(startLv)+') — trend void (FSB-10)'};
+  if(!(leg>=pull))return{ctx:null,fail:'move from the start ('+fmt(leg)+') is smaller than the pullback ('+fmt(pull)+') — no clear prior move (D-04)'};
+  if(!nearSMA(bars,i,pk))return{ctx:null,fail:'pullback did not reach or rest near the 20 / 50 SMA (FSB-09 d)'};
+  return{ctx:'pullback',startLv,startBar:s0,peak:pkLv,peakBar:pk,pull,leg,pullExt:pb};
+}
+function structExtreme(bars,j0,i,long){
+  // SL-06: the stop anchors to the lowest (highest) point of the STRUCTURE — the false-break
+  // episode from bar 1 (first touch of the level / the mother bar) to the EXE bar — not the
+  // EXE bar's own extreme. Matches every setup-specific stop in SL-09: DR1 immediate swing
+  // low, DR2 flush low, UR2 top of the structure, UC the D dip, FS the formation low.
+  let v=long?1e9:-1e9;for(let t=Math.max(0,j0);t<=i;t++)v=long?Math.min(v,bars[t].low):Math.max(v,bars[t].high);
+  return v;
 }
 function scan(bars){
   const out=[];
   for(let i=50;i<bars.length;i++){
     const b=bars[i],cls=b.cls;
+    // SCR-11 (v0.30): hard liquidity screen BEFORE any structural test — 50-bar average of
+    // daily-equivalent volume must be > 100,000 (the TOS scan's first condition, H-04). A
+    // series with no volume data (average 0) is treated as unknown and passes.
+    if(b.volAvg50>0&&b.volAvg50<LIQ_MIN_VOL)continue;
     const flow=b.close>b.sma50?'up':'down';
-    // v0.21 — ask findForce for the side that matches this bar's own EXE direction, so a
-    // live overhead LP can no longer bury a force bottom under a bullish EXE (and vice versa).
-    const fRes=findForce(bars,i,5,cls.dir==='bull'?'bottom':cls.dir==='bear'?'top':null);
+    const fRes=findForce(bars,i,WIN_CONT,cls.dir==='bull'?'bottom':cls.dir==='bear'?'top':null);
     const {f:force,lv}=fRes;
     const eB=cls.dir==='bull'&&!cls.flush&&cls.type!=='neutral';
     const eS=cls.dir==='bear'&&!cls.flush&&cls.type!=='neutral';
-    let label=null,dir=null,why=null,level=lv,divFlag=null,aSubFlag=null;
+    // ---- the UC / DR / DC / UR tree, as a function so an FS bar can also report it (COM-14) ----
+    const tree=()=>{
+      let r=null;
+      if(force==='bottom'&&eB){
+        // The "1" family is the superset (COM-07): DR1 is valid anywhere vs the 50 SMA
+        // (DR1-01); DR2 = DR1 + down flow + verified bigger retracement (DR2-01/03). Where the
+        // families compete (up flow) the UC deck gates take precedence (v0.21 routing).
+        const mf=majorityFlush(bars,i,fRes);
+        const g=flow==='up'?contGates(bars,i,'up'):null;
+        if(g&&g.ok){
+          const t=contTier(bars,i,g.w,'up');
+          r={label:'UC'+t.tier,dir:'long',level:g.lineUsed,div:g.div,aSub:g.aSub,late:!g.early,j0:g.j,bar:g.bar,
+             why:`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA across the structure · bullish EXE reclaimed the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} on bar ${g.bar} of ${WIN_CONT} · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}${g.early?' · EXE closed below the second peak (optimal)':' · <b>EXE closed ABOVE the second peak</b> — valid but not optimal: wide stop (UC1-11 quality flag)'}${g.div?` · <b>DIVERGENCE</b> — nearest prior swing high ${fmt(g.divLv)} sits between the two peaks; the course prefers to skip these (flag only, not a filter)`:' · convergent (nearest prior swing high is outside the two peaks)'}`};
+        }else if(flow==='up'&&!mf.ok){                 // up flow, gates failing, no majority flush — silent
+        }else if(mf.ok){
+          const rc=reclaimAt(bars,i,true,lv,WIN_REV);   // DR1-05 / DR2-07: recover the LP within bars 1-5 (D-01)
+          if(rc.ok){
+            const br=(flow==='down')?biggerRetracement(bars,i,fRes,mf.yExt):null;
+            const mfTxt=`majority flush-down into ${fmt(lv)} (final leg from ${fmt(mf.legStart)}, beyond the 50% line ${fmt(mf.fifty)}; steep by ${mf.route}${mf.route==='fast run'?` — ${mf.nBars} bar${mf.nBars===1?'':'s'} to the pierce`:''})`;
+            if(br&&br.ok)r={label:'DR2',dir:'long',level:lv,j0:rc.j,bar:rc.bar,
+              why:`down flow · ${mfTxt} · retracement ${fmt(br.cur)} > prior ${br.prevs.map(fmt).join(' / ')} · bullish EXE recovered the LP on bar ${rc.bar} of ${WIN_REV}`};
+            else r={label:'DR1',dir:'long',level:lv,j0:rc.j,bar:rc.bar,
+              why:`${mfTxt} · bullish EXE recovered the LP on bar ${rc.bar} of ${WIN_REV} · ${br?(br.unmeasurable?'prior retracement unmeasurable — the "2" promotion cannot be verified, stays DR1':'retracement '+fmt(br.cur)+' not bigger than prior '+br.prevs.map(fmt).join(' / ')+' — DR1, not DR2'):flow+' flow — DR1 is valid anywhere on the chart (DR1-01)'}`};
+          }
+        }
+      }else if(force==='top'&&eS){
+        const mf=majorityFlush(bars,i,fRes);
+        const g=flow==='down'?contGates(bars,i,'down'):null;
+        if(g&&g.ok){
+          const t=contTier(bars,i,g.w,'down');
+          r={label:'DC'+t.tier,dir:'short',level:g.lineUsed,div:g.div,aSub:g.aSub,late:!g.early,j0:g.j,bar:g.bar,
+             why:`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA across the structure · bearish EXE rejected the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} on bar ${g.bar} of ${WIN_CONT} · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}${g.early?' · EXE closed above the second trough (optimal)':' · <b>EXE closed BELOW the second trough</b> — valid but not optimal: wide stop (DC1-11 quality flag)'}${g.div?` · <b>DIVERGENCE</b> — nearest prior swing low ${fmt(g.divLv)} sits between the two troughs; the course prefers to skip these (flag only, not a filter)`:' · convergent (nearest prior swing low is outside the two troughs)'}`};
+        }else if(flow==='down'&&!mf.ok){
+        }else if(mf.ok){
+          const rc=reclaimAt(bars,i,false,lv,WIN_REV);
+          if(rc.ok){
+            const br=(flow==='up')?biggerRetracement(bars,i,fRes,mf.yExt):null;
+            const mfTxt=`majority flush-up into ${fmt(lv)} (final leg from ${fmt(mf.legStart)}, beyond the 50% line ${fmt(mf.fifty)}; steep by ${mf.route}${mf.route==='fast run'?` — ${mf.nBars} bar${mf.nBars===1?'':'s'} to the pierce`:''})`;
+            if(br&&br.ok)r={label:'UR2',dir:'short',level:lv,j0:rc.j,bar:rc.bar,
+              why:`up flow · ${mfTxt} · retracement ${fmt(br.cur)} > prior ${br.prevs.map(fmt).join(' / ')} · bearish EXE rejected the LP on bar ${rc.bar} of ${WIN_REV}`};
+            else r={label:'UR1',dir:'short',level:lv,j0:rc.j,bar:rc.bar,
+              why:`${mfTxt} · bearish EXE rejected the LP on bar ${rc.bar} of ${WIN_REV} · ${br?(br.unmeasurable?'prior retracement unmeasurable — the "2" promotion cannot be verified, stays UR1':'retracement '+fmt(br.cur)+' not bigger than prior '+br.prevs.map(fmt).join(' / ')+' — UR1, not UR2'):flow+' flow — UR1 is valid anywhere on the chart (UR1-01)'}`};
+          }
+        }
+      }
+      return r;
+    };
+    // ---- Force Strike first (label precedence unchanged, NS-42), but ONLY with a context (D-05) ----
+    let r=null;
     const fs=forceStrike(bars,i);
-    if(fs.d==='bull'){label='Bull-FS';dir='long';level=fs.lp!=null?fs.lp:fs.lv;
-      why=fs.lp!=null
-        ?`force-bottom scenario — strike bar pierced below LP ${fmt(fs.lp)} and closed back at/above it (standalone-tradeable per course)`
-        :'inside-bar trap — strike bar pierced below mother low and closed back inside (formation only, no LP involved)';}
-    else if(fs.d==='bear'){label='Bear-FS';dir='short';level=fs.lp!=null?fs.lp:fs.lv;
-      why=fs.lp!=null
-        ?`force-top scenario — strike bar pierced above LP ${fmt(fs.lp)} and closed back at/below it (standalone-tradeable per course)`
-        :'inside-bar trap — strike bar pierced above mother high and closed back inside (formation only, no LP involved)';}
-    else if(force==='bottom'&&eB){
-      // v0.19 — the "1" family is the SUPERSET, not a sibling. The deck (Lesson 19) gives DR1's
-      // flow as "above &/or below 50 SMA" and states DR2 is a SUBSET of DR1; v0.18 inverted that,
-      // making a majority flush a precondition for the whole reversal family, so a force bottom in
-      // DOWN flow with no majority flush had no reachable label at all and the scan went silent.
-      // (Real case: DXYZ weekly, Jul 2026 — live LP 23.81, bullish ice-cream EXE reclaiming it,
-      // down flow: a textbook DR1 that fell off the end of the tree.)
-      //
-      // v0.19 tree: the approach leg still decides FAMILY, but only where the two families actually
-      // compete — up flow, where a force bottom could be either a UC retracement or a DR reversal.
-      // A minority pullback in up flow -> continuation (deck gates as before; gates failing stays
-      // silent, since with no majority down move there is nothing for a reversal to reverse).
-      // EVERYTHING ELSE that is a genuine force bottom with a bullish EXE at a live LP is at least
-      // a DR1. DR2 is then the refined subset: down flow + majority flush MOVE + bigger retracement.
-      // EXE window remains 5 bars for both families (owner override of the reversal decks' 4).
-      // v0.21 ROUTING CHANGE. Until v0.20 majorityFlush() decided the family, and a "majority
-      // flush" verdict sent the bar to the reversal branch BEFORE the deck gates were even
-      // consulted. That test has no basis in the UC/DC lessons — their only flush rule is
-      // "no flush BAR in the 3 bars into the first peak", which contGates already enforces.
-      // Worse, it was a knife edge: on a textbook UC1 structure, moving the approach bar's
-      // high by 40 cents flipped the label from UC1 to DR1 with nothing else changed, because
-      // the leg-speed test sits right inside the normal range of a healthy retest.
-      // (Real case: FBNC 2-Day 03 Aug 2026 — valid bullish ice-cream EXE, all three deck
-      //  gates passing, routed to DR1 purely on leg speed 4.16 vs threshold 3.45.)
-      // Now the deck gates take precedence: if the structure IS a continuation, label it one.
-      // majorityFlush survives only where the decks actually use it — refining DR1 into DR2.
-      // The v0.20 silence is preserved for up flow with no majority flush and failing gates:
-      // with no majority down move there is still nothing for a reversal to reverse.
-      const mf=majorityFlush(bars,i,fRes);
-      const g=flow==='up'?contGates(bars,i,'up'):null;
-      if(g&&g.ok){                                   // continuation family (UC)
-        const t=contTier(bars,i,g.w,'up');label='UC'+t.tier;dir='long';level=g.lineUsed;divFlag=g.div;aSubFlag=g.aSub;
-        why=`up flow · deck structure: first peak ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second peak ${fmt(g.w.second)} · no flush-up into the first peak · near/testing 20/50 SMA across the structure · bullish EXE reclaimed the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} and closed below the second peak · second peak ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to UC1)`:(t.tier===2?'ABOVE the first — UC2':'below the first — UC1')}${g.div?` · <b>DIVERGENCE</b> — prior swing high ${fmt(g.divLv)} sits between the two peaks; the course prefers to skip these (flag only, not a filter)`:' · convergent (no prior swing high between the two peaks)'}`;
-      }else if(flow==='up'&&!mf.ok){                 // v0.20 behaviour preserved — stay silent
-      }else if(mf.ok&&reclaimAt(bars,i,true,lv).ok){ // reversal family (DR)
-        // v0.26 — deck-exact freshness gate (owner, 13 Aug 2026): the flush forces the LP
-        // and price must RECOVER (close back at/above point X's level) within 5 bars,
-        // bar 1 = the first bar that forces the LP. findForce's rolling window only
-        // NOMINATES the level; this gate expires late reclaims the deck rules stale.
-        // (LHX 2-Day: force 30 Jul = bar 1, ice-cream recovery 03 Aug = bar 2 -> fires;
-        // 12 Aug = bar 6 -> stale, which the old rolling test wrongly let through.)
-        // v0.23 — routing realigned to the LESSON TRANSCRIPTS, which disambiguate the slides:
-        //  · Majority flush stays MANDATORY for every reversal label (v0.22's correction,
-        //    confirmed verbatim: L9 Pt1 @02:27 "all reversal structures, whether UR1 or DR1,
-        //    require you to check ... the majority flush").
-        //  · DR2 IS A SUBSET OF DR1 — L19 @00:29 "UR2 and DR2 is a subset of UR1 and DR1",
-        //    restated @03:41 and @09:39. v0.19's subset architecture was right all along;
-        //    only its optional-flush catch-all was wrong. v0.22's one-day "siblings"
-        //    restructure (DR1 gated on a flat 50 SMA) is REVERTED: L9 Pt2 @20:11-20:33 says
-        //    UR1/DR1 needs no SMA reference and "can happen anywhere in the chart", and the
-        //    Pt2 examples sit at downtrend bottoms and inside uptrends. The slide phrase
-        //    "sideways price action movement" describes the local false-break formation at
-        //    the LP, not a market regime — a regime reading would also make the stated
-        //    subset relation impossible (a sideways-only DR1 could not contain a
-        //    downtrend-only DR2).
-        //  · Promotion to DR2 needs down flow below the 50 SMA AND a VERIFIED bigger
-        //    retracement (current X->Y vs the last completed prior swing pair). When the
-        //    prior retracement is unmeasurable the bar stays DR1 — L19 @02:08 "You only know
-        //    that there is a bigger retracement when there is a smaller retracement before" —
-        //    replacing the old "DR2 UNVERIFIED" caveat label.
-        //  · The video also allows a force-strike formation as the reversal EXE (L19
-        //    @05:32); this engine still requires a single-bar EXE here. Known, deferred.
-        const br=(flow==='down')?biggerRetracement(bars,i,fRes,mf.yExt):null;
-        if(br&&br.ok){label='DR2';dir='long';
-          why=`down flow · majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bullish EXE recovered the LP`;}
-        else{label='DR1';dir='long';
-          why=`majority flush-down into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≥ 50% line ${fmt(mf.fifty)}) · bullish EXE recovered the LP · ${br?(br.unmeasurable?'prior retracement unmeasurable — the "2" promotion cannot be verified, stays DR1':'retracement '+fmt(br.cur)+' not bigger than prior '+fmt(br.prev)+' — DR1, not DR2'):flow+' flow — DR1 is valid anywhere on the chart (L9 Pt2 @20:11)'}`;}
+    if(fs.d){
+      const cx=fsContext(bars,i,fs);
+      if(cx.ctx){
+        const bull=fs.d==='bull';
+        const ctxTxt=cx.ctx==='lp'
+          ?`${bull?'force-bottom':'force-top'} context — strike pierced ${bull?'below':'above'} tested LP ${fmt(fs.lp)} and the EXE closed back ${bull?'at/above':'at/below'} it (FSB-13/14)`
+          :`${bull?'uptrend':'downtrend'} retracement context — ${bull?'up':'down'} move from the start ${fmt(cx.startLv)} to ${fmt(cx.peak)} (${fmt(cx.leg)}) ≥ pullback ${fmt(cx.pull)} (D-04) · pullback stayed ${bull?'above':'below'} the start · tested/near the 20/50 SMA (FSB-09)`;
+        r={label:bull?'Bull-FS':'Bear-FS',dir:bull?'long':'short',level:fs.lp!=null?fs.lp:fs.lv,j0:fs.m,bar:fs.bars,ctx:cx.ctx,
+           why:`${ctxTxt} · inside bar (mother ${fmt(fs.momLo)}–${fmt(fs.momHi)}) · strike ${bull?'below the mother low':'above the mother high'}${fs.sb===i?' on the EXE bar itself':` on bar ${fs.sb-fs.m+1}`} · ${cls.type} EXE closed back inside on bar ${fs.bars} of ${WIN_FS}${fs.tooWide?` · <b>EXE closed ${bull?'above the mother high':'below the mother low'}</b> — "too wide", still considerable, not optimal (FSB-06)`:''}`};
+        const also=tree();
+        if(also){r.also=also.label;r.why+=` · also qualifies as <b>${also.label}</b> — overlapping setups are more potent, not a conflict (COM-14)`;}
       }
+      // no context -> silent: the bar falls through to the UC/DR/DC/UR tree (FSB-18 / D-05)
     }
-    else if(force==='top'&&eS){
-      // v0.19 — exact mirror of the force-bottom tree above. UR1 is the superset (deck: flow
-      // "above &/or below 50 SMA"); UR2 is the subset needing up flow + majority flush + bigger
-      // retracement. A force top in UP flow with no majority flush was silent in v0.18; it is a UR1.
-      // v0.21 — exact mirror of the UC routing change above. See that comment block.
-      const mf=majorityFlush(bars,i,fRes);
-      const g=flow==='down'?contGates(bars,i,'down'):null;
-      if(g&&g.ok){                                   // continuation family (DC)
-        const t=contTier(bars,i,g.w,'down');label='DC'+t.tier;dir='short';level=g.lineUsed;divFlag=g.div;aSubFlag=g.aSub;
-        why=`down flow · deck structure: first trough ${fmt(g.w.first)} → LP ${fmt(g.w.line)} → second trough ${fmt(g.w.second)} · no flush-down into the first trough · near/testing 20/50 SMA across the structure · bearish EXE rejected the ${g.aSub?`A line ${fmt(g.lineUsed)} (pullback overshot the C line — deck re-anchors to A)`:'LP'} and closed above the second trough · second trough ${t.tie?`level with the first (inside the 0.10 ATR tie band, defaulted to DC1)`:(t.tier===2?'BELOW the first — DC2':'above the first — DC1')}${g.div?` · <b>DIVERGENCE</b> — prior swing low ${fmt(g.divLv)} sits between the two troughs; the course prefers to skip these (flag only, not a filter)`:' · convergent (no prior swing low between the two troughs)'}`;
-      }else if(flow==='down'&&!mf.ok){               // v0.20 behaviour preserved — stay silent
-      }else if(mf.ok&&reclaimAt(bars,i,false,lv).ok){ // reversal family (UR)
-        // v0.26 — exact mirror of the DR freshness gate above.
-        // v0.23 — exact mirror of the DR routing above; see that comment block for the
-        // transcript citations. UR2 = UR1 + up flow above the 50 SMA + verified bigger
-        // retracement; everything else with a majority flush is UR1, in any flow.
-        const br=(flow==='up')?biggerRetracement(bars,i,fRes,mf.yExt):null;
-        if(br&&br.ok){label='UR2';dir='short';
-          why=`up flow · majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · retracement ${fmt(br.cur)} > prior ${fmt(br.prev)} · bearish EXE rejected the LP`;}
-        else{label='UR1';dir='short';
-          why=`majority flush-up into ${fmt(lv)} (leg from ${fmt(mf.legStart)} ≤ 50% line ${fmt(mf.fifty)}) · bearish EXE rejected the LP · ${br?(br.unmeasurable?'prior retracement unmeasurable — the "2" promotion cannot be verified, stays UR1':'retracement '+fmt(br.cur)+' not bigger than prior '+fmt(br.prev)+' — UR1, not UR2'):flow+' flow — UR1 is valid anywhere on the chart (L9 Pt2 @20:11)'}`;}
-      }
-    }
-    if(label){
+    if(!r)r=tree();
+    if(r){
       const last=out[out.length-1];
-      if(last&&last.label===label&&(i-last.i)<=3)continue;   // dedupe adjacent repeats
-      // v0.24 — `div` and `aSub` are carried as machine-readable fields as well as being
-      // written into `why`, so the nightly scanner can surface the divergence flag in the
-      // Scan tab without another engine change. Both are null on non-UC/DC labels.
-      out.push({i,date:b.date,label,dir,why,price:b.close,level,exe:cls.type,div:divFlag,aSub:aSubFlag});
+      if(last&&last.label===r.label&&(i-last.i)<=3)continue;   // dedupe adjacent repeats
+      const long=r.dir==='long';
+      const sx=structExtreme(bars,r.j0,i,long);
+      const trig={i,date:b.date,label:r.label,dir:r.dir,why:r.why,price:b.close,level:r.level,exe:cls.type,
+                  div:r.div==null?null:r.div,aSub:r.aSub==null?null:r.aSub,late:r.late==null?null:r.late,
+                  also:r.also||null,ctx:r.ctx||null,bar:r.bar||null,structLo:long?sx:null,structHi:long?null:sx};
+      // WID-01/03 at scan time: entry (50% of the EXE bar) minus the structure stop vs ATR(14).
+      // The label is KEPT and flagged (owner call, 5 Sep 2026): exec=false means "valid but
+      // not executable — skip or re-price" (WID-10).
+      const tr=buildTrade(bars,trig);
+      trig.sl=tr.sl;trig.risk=tr.risk;trig.wide=tr.wide;trig.exec=!tr.wide;
+      if(tr.wide)trig.why+=` · <b>WIDE</b> — entry ${fmt(tr.entry)} to structure stop ${fmt(tr.sl)} is ${fmt(tr.risk)} > 1 ATR ${fmt(tr.atr)}: not executable as structured (WID-01/03); re-price the entry lower or pass`;
+      out.push(trig);
     }
   }
   return out;
 }
 
-/* trade structuring for a given EXE bar + direction */
+/* trade structuring for a given EXE bar + direction (ENT-01/02, SL-01/06/07, WID-01, TGT-01/03) */
 function buildTrade(bars,trig){
+  // Entry: the sweet spot is EXE high -> 50% of its range (long) / EXE low -> 50% (short);
+  //   the limit is priced at the 50% level (ENT-04; NS-35 — placement is a parameter).
+  // Stop (v0.30): SL-01 option 2, the preferred stop "99.9% of the time" — one tick beyond the
+  //   STRUCTURE extreme (SL-06), i.e. the lowest low / highest high from bar 1 of the false
+  //   break to the EXE bar. Replaces the v0.2x `min(EXE low - tick, EXE high - ATR)`, which
+  //   was neither of the ruleset's anchors and made the width test inert.
+  // Width: risk = entry - stop vs current ATR(14, simple) (WID-01/04/05). > 1 ATR = WIDE.
+  // Target: entry +/- 1.7 x risk, no exceptions (TGT-01). Smelly: price already >= 1R past
+  //   the planned entry without filling (ENT-08, 1R not 1 ATR).
   const e=bars[trig.i],atrv=e.atr||0,rng=e.high-e.low,mid=e.low+rng/2,dir=trig.dir;
   const px=bars[bars.length-1].close;
   if(dir==='long'){
-    const entry=mid,sl=Math.min(e.low-0.01,e.high-atrv),risk=entry-sl;
-    return{dir,entryLo:mid,entryHi:e.high,sl,risk,tgt:entry+1.7*risk,wide:risk>atrv,atr:atrv,smelly:(px-entry)>=risk};
+    const anchor=(trig.structLo!=null)?trig.structLo:e.low, sl=anchor-TICK, entry=mid, risk=entry-sl;
+    return{dir,entry,entryLo:mid,entryHi:e.high,sl,slBasis:`structure low ${fmt(anchor)} − ${TICK}`,risk,tgt:entry+1.7*risk,wide:risk>atrv,atr:atrv,smelly:(px-entry)>=risk};
   }
-  const entry=mid,sl=Math.max(e.high+0.01,e.low+atrv),risk=sl-entry;
-  return{dir,entryLo:e.low,entryHi:mid,sl,risk,tgt:entry-1.7*risk,wide:risk>atrv,atr:atrv,smelly:(entry-px)>=risk};
+  const anchor=(trig.structHi!=null)?trig.structHi:e.high, sl=anchor+TICK, entry=mid, risk=sl-entry;
+  return{dir,entry,entryLo:e.low,entryHi:mid,sl,slBasis:`structure high ${fmt(anchor)} + ${TICK}`,risk,tgt:entry-1.7*risk,wide:risk>atrv,atr:atrv,smelly:(entry-px)>=risk};
 }
 
 /* worksheet read for the latest bar */
@@ -1731,7 +1674,8 @@ function analyse(bars){
   const sh=(bars.lpHighs||[]).filter(aliveLP).map(e=>e.lv), sl=(bars.lpLows||[]).filter(aliveLP).map(e=>e.lv);
   const lpAbove=sh.filter(v=>v>px).sort((a,b)=>a-b)[0]||null, lpBelow=sl.filter(v=>v<px).sort((a,b)=>b-a)[0]||null;
   const {f:force,lv:forceLevel}=findForce(bars,bars.length-1);
-  return{last,px,flow,flushUp,flushDn,lpAbove,lpBelow,force,forceLevel,near20:last.sma20,near50:last.sma50,atr:last.atr};
+  const volAvg50=last.volAvg50==null?null:last.volAvg50, liqOK=!(volAvg50>0&&volAvg50<LIQ_MIN_VOL);
+  return{last,px,flow,flushUp,flushDn,lpAbove,lpBelow,force,forceLevel,near20:last.sma20,near50:last.sma50,atr:last.atr,volAvg50,liqOK,liqMin:LIQ_MIN_VOL};
 }
 
 /* ============================================================
@@ -1756,7 +1700,7 @@ function fmt(x,d=2){return x==null?'—':Number(x).toFixed(d);}
 function tfLabel(){return S.tf==='W'?'WEEKLY · 3-YEAR':S.tf==='2'?'2-DAY · 1-YEAR':'DAILY';}
 function sourceBars(){
   if(S.src==='PASTE')return enrich(aggregate(S.paste, S.tf==='2'?2:1));
-  if(S.tf==='W' && NVDA_WEEKLY) return enrich(aggregate(NVDA_WEEKLY,1));
+  if(S.tf==='W' && NVDA_WEEKLY){const wb=aggregate(NVDA_WEEKLY,1);wb.volDays=5;return enrich(wb);}   // native weekly bars: SCR-11 screen on volume/5
   const n = (S.tf==='2' || (S.tf==='W' && !NVDA_WEEKLY)) ? 2 : 1;  // weekly missing -> fall back to 2-Day
   return enrich(aggregate(NVDA_DAILY,n));
 }
@@ -1788,16 +1732,21 @@ function renderSteps(){
   const a=A;
   const flushNote=a.flushUp?`${a.flushUp} flush-up bar(s) recently — <b>bearish</b> to the trader`
     :a.flushDn?`${a.flushDn} flush-down bar(s) recently — <b>bullish</b> to the trader`:'wave-like, no recent flush bars';
-  const setupTxt=ACTIVE?`<b>${ACTIVE.label}</b> <span class="tag ${ACTIVE.dir==='long'?'long':'short'}">${ACTIVE.dir}</span> — ${ACTIVE.why}.`
-    :(TRIGS.length?`No trigger on the latest bar. Most recent was <b>${TRIGS[TRIGS.length-1].label}</b> on ${TRIGS[TRIGS.length-1].date}.`:'No triggers found in this window.');
+  const setupTxt=ACTIVE?`<b>${ACTIVE.label}</b> <span class="tag ${ACTIVE.dir==='long'?'long':'short'}">${ACTIVE.dir}</span>${ACTIVE.wide?' <span class="tag short">WIDE · not executable</span>':''} — ${ACTIVE.why}.`
+    :(!a.liqOK?`<b>Liquidity screen failed</b> — the scan is silent on this stock (SCR-11).`
+    :TRIGS.length?`No trigger on the latest bar. Most recent was <b>${TRIGS[TRIGS.length-1].label}</b> on ${TRIGS[TRIGS.length-1].date}.`:'No triggers found in this window.');
+  const liqTxt=a.volAvg50==null?'Not enough bars for the 50-bar volume average yet.'
+    :a.volAvg50>0?`50-bar average daily volume <b>${Math.round(a.volAvg50).toLocaleString()}</b> ${a.liqOK?'→ <b>passes</b>':'→ <b>FAILS</b>'} the ${a.liqMin.toLocaleString()} screen (SCR-11)${a.liqOK?'':' — no PAM label is issued on this stock'}.`
+    :'No volume data in this series — the liquidity screen is skipped.';
   const steps=[
+    ['0','Liquidity screen',liqTxt],
     ['1','Flow (50 SMA)',`Price ${fmt(a.px)} is <b>${a.flow==='up'?'above':'below'}</b> the 50 SMA (${fmt(a.near50)}) → <b>${a.flow} flow</b>. 20 SMA ${fmt(a.near20)}.`],
     ['2','Momentum',flushNote+'.'],
     ['3','LP levels',`Nearest un-breached swing levels — above <b>${fmt(a.lpAbove)}</b>, below <b>${fmt(a.lpBelow)}</b>.`],
     ['4','Force scenario',a.force?`A force <b>${a.force}</b> at ${fmt(a.forceLevel)} is in play on the latest bar — a ${a.force==='top'?'bull trap (bearish)':'bear trap (bullish)'}.`:'No force top/bottom on the latest bar.'],
     ['5','Latest EXE',`${a.last.cls.type}${a.last.cls.flush?' (flush)':''}, ${a.last.cls.dir||'neutral'} on ${a.last.date}.`],
     ['6','Setup',setupTxt],
-    ['7','Trade structure',TRADE?`Structured at right from the ${ACTIVE.label} bar — entry, stop, width vs ATR, 1:1.7 target.`:'No live structure — the framework waits for the latest bar to be a trigger.'],
+    ['7','Trade structure',TRADE?`Structured at right from the ${ACTIVE.label} bar — sweet-spot entry, structure stop, width vs ATR, 1:1.7 target.${TRADE.wide?' <b>WIDE — skip or re-price the entry.</b>':''}`:'No live structure — the framework waits for the latest bar to be a trigger.'],
     ['8','Exit watch',ACTIVE&&ACTIVE.dir==='long'?`If long: ≥2 flush-up bars, a flush into ${fmt(a.lpAbove)}, or a force-top forming → size out 40–60%.`
       :ACTIVE&&ACTIVE.dir==='short'?`If short: ≥2 flush-down bars, a flush into ${fmt(a.lpBelow)}, or a force-bottom forming → cover 40–60%.`
       :`In any trade: ≥2 flush bars against you, or a flush into the next LP, is the cue to scale out.`],
@@ -1809,23 +1758,24 @@ function renderSteps(){
 function renderTrade(){
   const t=TRADE;
   if(!t){$('#trade').innerHTML=`<div class="note">No trade structured — the latest bar isn’t a trigger. The log below shows the most recent ones and the reason each fired, so you can see what the chart is reacting to.</div>`;return;}
-  const width=t.wide?`<span class="pill no">WIDE — tighten entry/stop</span>`:`<span class="pill ok">NOT WIDE — within 1 ATR</span>`;
+  const width=t.wide?`<span class="pill no">WIDE — NOT EXECUTABLE</span>`:`<span class="pill ok">NOT WIDE — within 1 ATR</span>`;
+  const wideNote=t.wide?`<div class="note">⛔ Wide trade (WID-01/03): entry − stop is ${fmt(t.risk)} against an ATR of ${fmt(t.atr)}. The framework skips this 99% of the time. Remedy (WID-02): move the entry ${t.dir==='long'?'lower':'higher'} so it sits within 1 ATR of the stop (ideally 0.80–0.90 ATR, WID-11) — never move the stop inside the structure.</div>`:'';
   const smelly=t.smelly?`<div class="note">⚠ Smelly trade: price has already run ≥1R from the planned entry — the framework would <b>cancel</b> the order; the edge is gone.</div>`:'';
   $('#trade').innerHTML=`<table>
     <tr><td>Trigger</td><td>${ACTIVE.label} <span class="tag ${t.dir==='long'?'long':'short'}">${t.dir}</span></td></tr>
-    <tr><td>Sweet-spot entry</td><td>${fmt(Math.min(t.entryLo,t.entryHi))} – ${fmt(Math.max(t.entryLo,t.entryHi))}</td></tr>
-    <tr><td>Stop loss</td><td>${fmt(t.sl)}</td></tr>
+    <tr><td>Sweet-spot entry</td><td>${fmt(Math.min(t.entryLo,t.entryHi))} – ${fmt(Math.max(t.entryLo,t.entryHi))} · limit at 50% = <b>${fmt(t.entry)}</b></td></tr>
+    <tr><td>Stop loss</td><td>${fmt(t.sl)} <span style="color:var(--mut)">(${t.slBasis})</span></td></tr>
     <tr><td>Risk (entry→SL)</td><td>${fmt(t.risk)}</td></tr>
     <tr><td>Current ATR(14)</td><td>${fmt(t.atr)}</td></tr>
     <tr><td>Width check</td><td>${width}</td></tr>
-    <tr><td>Target (1 : 1.7)</td><td>${fmt(t.tgt)}</td></tr></table>${smelly}`;
+    <tr><td>Target (1 : 1.7)</td><td>${fmt(t.tgt)}</td></tr></table>${wideNote}${smelly}`;
 }
 
 function renderLog(){
   if(!TRIGS.length){$('#log').innerHTML=`<div class="empty">No triggers in this window — the framework is sitting out.</div>`;return;}
   const rows=TRIGS.slice().reverse().slice(0,10).map(t=>{
     const cl=t.dir==='long'?'long':'short';
-    return `<div class="logrow"><div class="dt">${t.date}</div><div class="lab ${cl}">${t.label}</div><div class="why">${t.why}.</div></div>`;
+    return `<div class="logrow"${t.wide?' style="opacity:.6"':''}><div class="dt">${t.date}</div><div class="lab ${cl}">${t.label}${t.wide?' ⛔':''}</div><div class="why">${t.why}.</div></div>`;
   });
   $('#log').innerHTML=rows.join('');
 }
@@ -1852,15 +1802,30 @@ function effLabel(m){ return m<12?(m+' months'):((m/12)+(m/12===1?' year':' year
 function effCutoff(months){ const last=EFF.bars[EFF.bars.length-1].date;
   const d=new Date(last); if(isNaN(d)){return '0000-01-01';} d.setMonth(d.getMonth()-months);
   return d.toISOString().slice(0,10); }
-// one PAM trigger -> {r, ex}: fractional P&L of a 1:1.7 trade risking 1 ATR from the trigger close, + exit bar index
+// one PAM trigger -> {r, ex, open}: fractional P&L of the trade the RULESET would place, + exit bar index.
+// v0.30 — trades the real plan, not "close entry / flat 1 ATR" (the audit's finding #7):
+//   entry  = a LIMIT at the 50% level of the EXE bar's range (ENT-01/04), working from the next bar;
+//   stop   = one tick beyond the structure extreme (SL-01/06), from buildTrade();
+//   target = entry +/- 1.7 x risk (TGT-01);
+//   WIDE   = skipped, no trade (WID-03);
+//   cancel = the order is pulled if price runs >= 1R away from the entry before filling (ENT-08),
+//            or is still unfilled after PEND bars (judgment call — a GTC limit is not left for ever);
+//   a bar that fills the limit and also reaches the stop is scored as a loss (conservative).
+// Returns null when no trade results (wide / cancelled / never filled) so it does not count as a trade.
 function simPam(bars,t){
-  const e=bars[t.i],atrv=e.atr; if(!atrv||atrv<=0)return null;
-  const entry=e.close,R=atrv,long=t.dir==='long';
-  const tgt=long?entry+1.7*R:entry-1.7*R, stop=long?entry-R:entry+R;
+  const tr=buildTrade(bars,t); if(!tr||!(tr.risk>0)||tr.wide)return null;
+  const long=t.dir==='long',entry=tr.entry,stop=tr.sl,tgt=tr.tgt,R=tr.risk,PEND=10;
   const cap=Math.min(bars.length-1,t.i+40);
+  let filled=false;
   for(let j=t.i+1;j<=cap;j++){const b=bars[j];
+    if(!filled){
+      const hit=long?b.low<=entry:b.high>=entry;
+      if(!hit){ const away=long?b.high>=entry+R:b.low<=entry-R; if(away||(j-t.i)>=PEND)return null; continue; }
+      filled=true;
+    }
     if(long){ if(b.low<=stop)return{r:(stop-entry)/entry,ex:j,open:false}; if(b.high>=tgt)return{r:(tgt-entry)/entry,ex:j,open:false}; }
     else    { if(b.high>=stop)return{r:(entry-stop)/entry,ex:j,open:false}; if(b.low<=tgt)return{r:(entry-tgt)/entry,ex:j,open:false}; } }
+  if(!filled)return null;
   const c=bars[cap].close, open=(cap===bars.length-1);   // ran to the last bar with no exit -> still open, marked at latest close
   return{r:long?(c-entry)/entry:(entry-c)/entry,ex:cap,open};
 }
@@ -1939,7 +1904,7 @@ function renderEffectiveness(){
     `<b>Total</b> is the like-for-like figure: each sleeve <b>compounded, trading one position at a time</b>, set against <b>Buy &amp; hold</b> over the same window. `+
     `N is now trades actually taken (overlapping signals are skipped, since you can't hold two at once). Tap a system row to expand it into its individual triggers; a group de-overlaps across all of them, so its N will not equal the sum of the rows beneath. `+
     `A position still running is <b>included and marked at the latest price</b> — shown as <b>(n open)</b> — so a winner you're still riding finally counts; being unrealised, its mark can still reverse before the trade closes. `+
-    `PAM = a 1:1.7 trade risking 1&nbsp;ATR from the trigger close; Turtle/Reverse = its own entry→exit. No costs modelled. `+
+    `PAM = the ruleset's own plan: limit at the 50% of the EXE bar, stop one tick beyond the structure low/high, 1:1.7 target; WIDE setups are skipped and an order that never fills (price runs 1R away, or 10 bars pass) is cancelled and not counted. Turtle/Reverse = its own entry→exit. No costs modelled. `+
     `<b>Read</b> = per-trade edge (robust = N≥8, Win≥55%). Small N isn't signal; setups fail; educational only.`;
 }
 function fmtAxis(d,withYear){const m=String(d).split('-');if(m.length<3)return d;
@@ -2114,14 +2079,16 @@ function drawCore(){
     ctx.font='600 9px IBM Plex Mono';
     const shown = S.recentOnly ? TRIGS.slice(-6) : TRIGS;
     shown.forEach(t=>{if(t.i<i0||t.i>=i0+n)return;const b=BARS[t.i],xc=x(t.i-i0),long=t.dir==='long',col=long?'#5fb89e':'#cf7a64';
-      const ay=long?y(b.low):y(b.high);
+      const ay=long?y(b.low):y(b.high), wide=!!t.wide;      // v0.30: WIDE (not executable) draws dimmed with a dashed chip
+      if(wide)ctx.globalAlpha=.45;
       ctx.fillStyle=col;ctx.textAlign='center';
       ctx.fillText(long?'▲':'▼',xc, long?ay+11:ay-11);
       // label chip
       const tw=ctx.measureText(t.label).width+8, ly=long?ay+24:ay-24;
-      ctx.fillStyle=TH.chipBg;ctx.strokeStyle=col;ctx.lineWidth=1;ctx.globalAlpha=.95;
-      roundRect(xc-tw/2,ly-7,tw,14,3);ctx.fill();ctx.stroke();ctx.globalAlpha=1;
-      ctx.fillStyle=col;ctx.fillText(t.label,xc,ly);});
+      ctx.fillStyle=TH.chipBg;ctx.strokeStyle=col;ctx.lineWidth=1;if(!wide)ctx.globalAlpha=.95;
+      if(wide)ctx.setLineDash([3,2]);
+      roundRect(xc-tw/2,ly-7,tw,14,3);ctx.fill();ctx.stroke();ctx.setLineDash([]);if(!wide)ctx.globalAlpha=1;
+      ctx.fillStyle=col;ctx.fillText(t.label,xc,ly);ctx.globalAlpha=1;});
   }
 
   // active trade overlay (only when the latest bar is in view)
@@ -2226,7 +2193,7 @@ function showTip(b,mx,my,rWidth,isTouch){   // rich OHLC card (shared by mouse +
   tip.innerHTML=`<div class="d">${b.date}</div>
     <div class="row"><span>O</span><b>${fmt(b.open)}</b></div><div class="row"><span>H</span><b>${fmt(b.high)}</b></div>
     <div class="row"><span>L</span><b>${fmt(b.low)}</b></div><div class="row"><span>C</span><b>${fmt(b.close)}</b></div>${volRow}
-    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger</b>`:''}</div>${indLine}`;
+    <div class="cls"><span style="color:var(--force)">${b.cls.type}</span> · ${dirw}${b.cls.flush?' · <span style="color:var(--force)">flush</span>':''}${trig?` · <b style="color:${trig.dir==='long'?'var(--long)':'var(--short)'}">${trig.label} trigger${trig.wide?' · WIDE':''}</b>`:''}</div>${indLine}`;
   tip.style.opacity=1;                                          // show first so offsetWidth/offsetHeight read its real size
   const ox=cv.offsetLeft, oy=cv.offsetTop, chartH=cv.clientHeight;
   const tw=tip.offsetWidth||196, th=tip.offsetHeight||120;
