@@ -3,17 +3,17 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-09-19T01:31:43.615Z",
+ "generated_at": "2026-09-19T03:28:30.393Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
  "engine_version": "v0.32",
  "engine_source": "/home/runner/work/PAM_Analyzer/PAM_Analyzer/pam_analyzer.html",
- "engine_mtime": "2026-09-18 23:34 UTC",
+ "engine_mtime": "2026-09-19 01:31 UTC",
  "fundamentals": "finnhub",
  "weekly_ok": true,
- "universe": 12645,
- "scanned": 12060,
+ "universe": 12644,
+ "scanned": 12059,
  "fired": 4874,
  "trigger_types": [
   "Bull-FS",
@@ -34,14 +34,14 @@
  "counts": {
   "S1s": 1149,
   "UC1": 343,
-  "DR1": 1077,
-  "Bull-FS": 807,
+  "DR1": 1078,
+  "Bull-FS": 806,
   "UC2": 392,
-  "DC2": 145,
+  "DC2": 144,
   "Bear-FS": 345,
   "DC1": 59,
   "S1": 467,
-  "S2s": 285,
+  "S2s": 284,
   "S2": 277,
   "DR2": 257,
   "UR2": 83,
@@ -11995,17 +11995,6 @@
    "tf": "1"
   },
   {
-   "t": "UZX",
-   "trig": "Bull-FS",
-   "dir": "long",
-   "bar": "2026-09-18",
-   "ago": 0,
-   "smelly": false,
-   "wide": false,
-   "illiq": false,
-   "tf": "1"
-  },
-  {
    "t": "VBCC",
    "trig": "Bull-FS",
    "dir": "long",
@@ -14878,17 +14867,6 @@
   },
   {
    "t": "UXIN",
-   "trig": "DC2",
-   "dir": "short",
-   "bar": "2026-09-17",
-   "ago": 1,
-   "smelly": false,
-   "wide": true,
-   "illiq": false,
-   "tf": "1"
-  },
-  {
-   "t": "UZX",
    "trig": "DC2",
    "dir": "short",
    "bar": "2026-09-17",
@@ -20085,6 +20063,17 @@
    "dir": "long",
    "bar": "2026-09-18",
    "ago": 0,
+   "smelly": false,
+   "wide": true,
+   "illiq": false,
+   "tf": "1"
+  },
+  {
+   "t": "HMOP",
+   "trig": "DR1",
+   "dir": "long",
+   "bar": "2026-09-17",
+   "ago": 1,
    "smelly": false,
    "wide": true,
    "illiq": false,
@@ -51176,16 +51165,6 @@
    "ago": 0,
    "sys": 2,
    "unit": 3,
-   "tf": "1"
-  },
-  {
-   "t": "UZX",
-   "trig": "S2s",
-   "dir": "short",
-   "bar": "2026-09-18",
-   "ago": 0,
-   "sys": 2,
-   "unit": 2,
    "tf": "1"
   },
   {
@@ -94628,12 +94607,6 @@
    "industry": "Telecommunication",
    "mc": 1586304000
   },
-  "UZX": {
-   "name": "Linkage Global Inc. Class A Ordinary Shares",
-   "px": 0.0813,
-   "industry": "Retail",
-   "mc": 5377182
-  },
   "VABK": {
    "name": "Virginia National Bankshares Corporation Common Stock",
    "px": 47.07,
@@ -105062,7 +105035,7 @@
    "agg_mult": 2,
    "fresh_within": 2,
    "asof": "2026-09-18",
-   "scanned": 11415,
+   "scanned": 11414,
    "fired": 4391,
    "counts": {
     "Bull-FS": 691,
@@ -162320,7 +162293,7 @@
    "agg_mult": 1,
    "fresh_within": 2,
    "asof": "2026-09-14",
-   "scanned": 10183,
+   "scanned": 10182,
    "fired": 3472,
    "counts": {
     "S1s": 1419,
@@ -209408,7 +209381,7 @@
       27
      ]
     ],
-    "atm_iv": 0.7057,
+    "atm_iv": 0.7056,
     "iv_pctl": null,
     "iv_obs": 5,
     "flags": {
@@ -210397,7 +210370,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2502,
+    "atm_iv": 0.2503,
     "iv_pctl": null,
     "iv_obs": 38,
     "flags": {
@@ -210794,7 +210767,7 @@
       41
      ]
     ],
-    "atm_iv": 0.47,
+    "atm_iv": 0.4699,
     "iv_pctl": null,
     "iv_obs": 28,
     "flags": {
@@ -210839,7 +210812,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5771,
+    "atm_iv": 0.5772,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -211492,7 +211465,7 @@
       27
      ]
     ],
-    "atm_iv": 0.6891,
+    "atm_iv": 0.689,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -211780,7 +211753,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1819,
+    "atm_iv": 0.182,
     "iv_pctl": null,
     "iv_obs": 45,
     "flags": {
@@ -214135,7 +214108,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2608,
+    "atm_iv": 0.2609,
     "iv_pctl": null,
     "iv_obs": 27,
     "flags": {
@@ -216218,7 +216191,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1473,
+    "atm_iv": 0.1474,
     "iv_pctl": null,
     "iv_obs": 30,
     "flags": {
@@ -217469,7 +217442,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2071,
+    "atm_iv": 0.2072,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -217736,7 +217709,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3314,
+    "atm_iv": 0.3315,
     "iv_pctl": null,
     "iv_obs": 26,
     "flags": {
@@ -218001,7 +217974,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1453,
+    "atm_iv": 0.1454,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -221133,7 +221106,7 @@
       41
      ]
     ],
-    "atm_iv": 0.6864,
+    "atm_iv": 0.6863,
     "iv_pctl": null,
     "iv_obs": 37,
     "flags": {
@@ -224095,7 +224068,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3178,
+    "atm_iv": 0.3179,
     "iv_pctl": null,
     "iv_obs": 44,
     "flags": {
@@ -224495,7 +224468,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5427,
+    "atm_iv": 0.5426,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -225674,7 +225647,7 @@
       41
      ]
     ],
-    "atm_iv": 0.487,
+    "atm_iv": 0.4869,
     "iv_pctl": null,
     "iv_obs": 21,
     "flags": {
@@ -226270,7 +226243,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4236,
+    "atm_iv": 0.4237,
     "iv_pctl": null,
     "iv_obs": 44,
     "flags": {
@@ -226602,7 +226575,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2277,
+    "atm_iv": 0.2276,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -228198,7 +228171,7 @@
       41
      ]
     ],
-    "atm_iv": 0.2617,
+    "atm_iv": 0.2616,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -228907,7 +228880,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4942,
+    "atm_iv": 0.4941,
     "iv_pctl": null,
     "iv_obs": 49,
     "flags": {
@@ -229255,7 +229228,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3126,
+    "atm_iv": 0.3125,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -229548,7 +229521,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2346,
+    "atm_iv": 0.2347,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -230913,7 +230886,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2059,
+    "atm_iv": 0.206,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -232765,7 +232738,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2503,
+    "atm_iv": 0.2504,
     "iv_pctl": null,
     "iv_obs": 33,
     "flags": {
@@ -232912,7 +232885,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1872,
+    "atm_iv": 0.1873,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -233145,7 +233118,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2327,
+    "atm_iv": 0.2328,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -233274,7 +233247,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2114,
+    "atm_iv": 0.2115,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -234204,7 +234177,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4341,
+    "atm_iv": 0.4342,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -234287,7 +234260,7 @@
       41
      ]
     ],
-    "atm_iv": 0.4092,
+    "atm_iv": 0.4093,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -234983,7 +234956,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3892,
+    "atm_iv": 0.3891,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -236321,7 +236294,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4774,
+    "atm_iv": 0.4773,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -238051,7 +238024,7 @@
       41
      ]
     ],
-    "atm_iv": 0.3349,
+    "atm_iv": 0.335,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -239436,7 +239409,7 @@
       27
      ]
     ],
-    "atm_iv": 0.7238,
+    "atm_iv": 0.7237,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -243483,7 +243456,7 @@
       41
      ]
     ],
-    "atm_iv": 0.2843,
+    "atm_iv": 0.2842,
     "iv_pctl": null,
     "iv_obs": 38,
     "flags": {
@@ -243786,7 +243759,7 @@
      "bear_put": {
       "long_k": 40,
       "short_k": 37.5,
-      "long_delta": -0.52,
+      "long_delta": -0.53,
       "debit": 1.11,
       "width": 2.5,
       "max_profit": 1.39,
@@ -244700,7 +244673,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3548,
+    "atm_iv": 0.3547,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -244918,7 +244891,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4305,
+    "atm_iv": 0.4306,
     "iv_pctl": null,
     "iv_obs": 30,
     "flags": {
@@ -245487,7 +245460,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2678,
+    "atm_iv": 0.2679,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -247198,7 +247171,7 @@
       41
      ]
     ],
-    "atm_iv": 0.3431,
+    "atm_iv": 0.343,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -250972,7 +250945,7 @@
       41
      ]
     ],
-    "atm_iv": 0.3584,
+    "atm_iv": 0.3585,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -258691,7 +258664,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2302,
+    "atm_iv": 0.2303,
     "iv_pctl": null,
     "iv_obs": 49,
     "flags": {
@@ -259570,7 +259543,7 @@
       27
      ]
     ],
-    "atm_iv": 0.6641,
+    "atm_iv": 0.664,
     "iv_pctl": null,
     "iv_obs": 21,
     "flags": {
@@ -260484,7 +260457,7 @@
       41
      ]
     ],
-    "atm_iv": 0.4541,
+    "atm_iv": 0.4542,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -260599,7 +260572,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1635,
+    "atm_iv": 0.1634,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -262941,7 +262914,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2977,
+    "atm_iv": 0.2978,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -266700,7 +266673,7 @@
       27
      ]
     ],
-    "atm_iv": 1.332,
+    "atm_iv": 1.3321,
     "iv_pctl": null,
     "iv_obs": 19,
     "flags": {
@@ -271186,7 +271159,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4209,
+    "atm_iv": 0.4208,
     "iv_pctl": null,
     "iv_obs": 36,
     "flags": {
@@ -271215,7 +271188,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4654,
+    "atm_iv": 0.4653,
     "iv_pctl": null,
     "iv_obs": 44,
     "flags": {
@@ -271330,7 +271303,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3161,
+    "atm_iv": 0.316,
     "iv_pctl": null,
     "iv_obs": 44,
     "flags": {
@@ -277779,7 +277752,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5179,
+    "atm_iv": 0.518,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -279381,7 +279354,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4594,
+    "atm_iv": 0.4593,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -280263,7 +280236,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5744,
+    "atm_iv": 0.5743,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -280740,7 +280713,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4551,
+    "atm_iv": 0.455,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -281149,7 +281122,7 @@
       41
      ]
     ],
-    "atm_iv": 0.4558,
+    "atm_iv": 0.4557,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -283621,7 +283594,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3236,
+    "atm_iv": 0.3237,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -285856,7 +285829,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2399,
+    "atm_iv": 0.24,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -287301,7 +287274,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4642,
+    "atm_iv": 0.4641,
     "iv_pctl": null,
     "iv_obs": 22,
     "flags": {
@@ -288027,7 +288000,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4185,
+    "atm_iv": 0.4184,
     "iv_pctl": null,
     "iv_obs": 30,
     "flags": {
@@ -288072,7 +288045,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2629,
+    "atm_iv": 0.2628,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -289483,7 +289456,7 @@
       41
      ]
     ],
-    "atm_iv": 0.3275,
+    "atm_iv": 0.3274,
     "iv_pctl": null,
     "iv_obs": 32,
     "flags": {
@@ -290768,7 +290741,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1676,
+    "atm_iv": 0.1677,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -292389,7 +292362,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5794,
+    "atm_iv": 0.5795,
     "iv_pctl": null,
     "iv_obs": 45,
     "flags": {
@@ -292473,7 +292446,7 @@
       27
      ]
     ],
-    "atm_iv": 0.6188,
+    "atm_iv": 0.6189,
     "iv_pctl": null,
     "iv_obs": 27,
     "flags": {
@@ -296432,7 +296405,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3381,
+    "atm_iv": 0.3388,
     "iv_pctl": null,
     "iv_obs": 37,
     "flags": {
@@ -297060,7 +297033,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3941,
+    "atm_iv": 0.394,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -298152,7 +298125,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3206,
+    "atm_iv": 0.3205,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -298267,7 +298240,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2638,
+    "atm_iv": 0.2639,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
@@ -298899,7 +298872,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3752,
+    "atm_iv": 0.3751,
     "iv_pctl": null,
     "iv_obs": 36,
     "flags": {
@@ -299084,7 +299057,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3713,
+    "atm_iv": 0.3714,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -302419,7 +302392,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4074,
+    "atm_iv": 0.4073,
     "iv_pctl": null,
     "iv_obs": 20,
     "flags": {
@@ -304710,7 +304683,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3847,
+    "atm_iv": 0.3848,
     "iv_pctl": null,
     "iv_obs": 35,
     "flags": {
@@ -304828,7 +304801,7 @@
       41
      ]
     ],
-    "atm_iv": 0.3191,
+    "atm_iv": 0.3192,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -305340,7 +305313,7 @@
       41
      ]
     ],
-    "atm_iv": 0.6333,
+    "atm_iv": 0.6332,
     "iv_pctl": null,
     "iv_obs": 28,
     "flags": {
@@ -306725,7 +306698,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4542,
+    "atm_iv": 0.4541,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -307391,7 +307364,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5321,
+    "atm_iv": 0.532,
     "iv_pctl": null,
     "iv_obs": 39,
     "flags": {
@@ -307452,7 +307425,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5793,
+    "atm_iv": 0.5792,
     "iv_pctl": null,
     "iv_obs": 54,
     "flags": {
@@ -308582,7 +308555,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2424,
+    "atm_iv": 0.2423,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -308697,7 +308670,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4365,
+    "atm_iv": 0.4364,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -310420,7 +310393,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2103,
+    "atm_iv": 0.2104,
     "iv_pctl": null,
     "iv_obs": 45,
     "flags": {
@@ -311676,7 +311649,7 @@
       27
      ]
     ],
-    "atm_iv": 1.1262,
+    "atm_iv": 1.1261,
     "iv_pctl": null,
     "iv_obs": 42,
     "flags": {
@@ -312929,7 +312902,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4371,
+    "atm_iv": 0.437,
     "iv_pctl": null,
     "iv_obs": 20,
     "flags": {
@@ -317600,7 +317573,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3566,
+    "atm_iv": 0.3565,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -322880,7 +322853,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2979,
+    "atm_iv": 0.298,
     "iv_pctl": null,
     "iv_obs": 38,
     "flags": {
@@ -323561,7 +323534,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3607,
+    "atm_iv": 0.3608,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -323780,7 +323753,7 @@
      "bear_put": {
       "long_k": 37.5,
       "short_k": 35,
-      "long_delta": -0.46,
+      "long_delta": -0.47,
       "debit": 0.76,
       "width": 2.5,
       "max_profit": 1.74,
@@ -324402,7 +324375,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4048,
+    "atm_iv": 0.4047,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -325669,7 +325642,7 @@
       27
      ]
     ],
-    "atm_iv": 0.5324,
+    "atm_iv": 0.5323,
     "iv_pctl": null,
     "iv_obs": 2,
     "flags": {
@@ -325960,7 +325933,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3971,
+    "atm_iv": 0.397,
     "iv_pctl": null,
     "iv_obs": 10,
     "flags": {
@@ -327902,7 +327875,7 @@
       27
      ]
     ],
-    "atm_iv": 0.8216,
+    "atm_iv": 0.8215,
     "iv_pctl": null,
     "iv_obs": 15,
     "flags": {
@@ -329136,7 +329109,7 @@
       27
      ]
     ],
-    "atm_iv": 0.255,
+    "atm_iv": 0.2552,
     "iv_pctl": null,
     "iv_obs": 29,
     "flags": {
@@ -329194,7 +329167,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4755,
+    "atm_iv": 0.4754,
     "iv_pctl": null,
     "iv_obs": 35,
     "flags": {
@@ -330556,7 +330529,7 @@
       27
      ]
     ],
-    "atm_iv": 0.222,
+    "atm_iv": 0.2221,
     "iv_pctl": null,
     "iv_obs": 54,
     "flags": {
@@ -333666,7 +333639,7 @@
       27
      ]
     ],
-    "atm_iv": 0.4151,
+    "atm_iv": 0.4152,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -333813,7 +333786,7 @@
       41
      ]
     ],
-    "atm_iv": 1.1954,
+    "atm_iv": 1.1953,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -333889,7 +333862,7 @@
       27
      ]
     ],
-    "atm_iv": 0.7029,
+    "atm_iv": 0.7028,
     "iv_pctl": null,
     "iv_obs": 36,
     "flags": {
@@ -333918,7 +333891,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2442,
+    "atm_iv": 0.2443,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -336638,7 +336611,7 @@
       27
      ]
     ],
-    "atm_iv": 0.1614,
+    "atm_iv": 0.1613,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -341002,7 +340975,7 @@
       27
      ]
     ],
-    "atm_iv": 0.2192,
+    "atm_iv": 0.2193,
     "iv_pctl": null,
     "iv_obs": 44,
     "flags": {
@@ -341408,7 +341381,7 @@
       27
      ]
     ],
-    "atm_iv": 0.648,
+    "atm_iv": 0.6479,
     "iv_pctl": null,
     "iv_obs": 32,
     "flags": {
@@ -342095,7 +342068,7 @@
       27
      ]
     ],
-    "atm_iv": 0.3479,
+    "atm_iv": 0.3478,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
