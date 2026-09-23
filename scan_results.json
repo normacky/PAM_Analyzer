@@ -3,18 +3,18 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-09-23T01:45:31.381Z",
+ "generated_at": "2026-09-23T03:36:15.887Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
  "engine_version": "v0.32",
  "engine_source": "/home/runner/work/PAM_Analyzer/PAM_Analyzer/pam_analyzer.html",
- "engine_mtime": "2026-09-22 23:49 UTC",
+ "engine_mtime": "2026-09-23 01:45 UTC",
  "fundamentals": "finnhub",
  "weekly_ok": true,
- "universe": 12647,
- "scanned": 12075,
- "fired": 4873,
+ "universe": 12646,
+ "scanned": 12074,
+ "fired": 4872,
  "trigger_types": [
   "Bull-FS",
   "UC1",
@@ -34,7 +34,7 @@
  "counts": {
   "S2": 935,
   "S1": 1258,
-  "Bear-FS": 322,
+  "Bear-FS": 321,
   "S1s": 952,
   "UC2": 260,
   "Bull-FS": 546,
@@ -45,7 +45,7 @@
   "DR2": 178,
   "DC2": 114,
   "DC1": 63,
-  "UR2": 129
+  "UR2": 128
  },
  "rows": [
   {
@@ -1728,17 +1728,6 @@
    "ago": 0,
    "smelly": false,
    "wide": false,
-   "illiq": false,
-   "tf": "1"
-  },
-  {
-   "t": "IBO",
-   "trig": "Bear-FS",
-   "dir": "short",
-   "bar": "2026-09-22",
-   "ago": 0,
-   "smelly": false,
-   "wide": true,
    "illiq": false,
    "tf": "1"
   },
@@ -66863,17 +66852,6 @@
    "tf": "1"
   },
   {
-   "t": "IBO",
-   "trig": "UR2",
-   "dir": "short",
-   "bar": "2026-09-21",
-   "ago": 1,
-   "smelly": false,
-   "wide": false,
-   "illiq": false,
-   "tf": "1"
-  },
-  {
    "t": "IMPP",
    "trig": "UR2",
    "dir": "short",
@@ -82207,12 +82185,6 @@
   "IBND": {
    "name": "State Street SPDR Bloomberg International Corporate Bond ETF",
    "px": 30.46
-  },
-  "IBO": {
-   "name": "Impact BioMedical, Inc.",
-   "px": 0.5276,
-   "industry": "Pharmaceuticals",
-   "mc": 4507593.660855784
   },
   "IBOC": {
    "name": "International Bancshares Corporation Common Stock",
@@ -107784,7 +107756,7 @@
    "agg_mult": 2,
    "fresh_within": 2,
    "asof": "2026-09-22",
-   "scanned": 11435,
+   "scanned": 11434,
    "fired": 4164,
    "counts": {
     "DR1": 805,
@@ -161498,8 +161470,8 @@
    "agg_mult": 1,
    "fresh_within": 2,
    "asof": "2026-09-21",
-   "scanned": 10207,
-   "fired": 3400,
+   "scanned": 10206,
+   "fired": 3399,
    "counts": {
     "S1s": 1078,
     "Bear-FS": 303,
@@ -161507,7 +161479,7 @@
     "S2": 154,
     "UC1": 77,
     "DR2": 98,
-    "UR1": 380,
+    "UR1": 379,
     "DR1": 445,
     "S1": 315,
     "S2s": 456,
@@ -201238,17 +201210,6 @@
      "tf": "W"
     },
     {
-     "t": "IBO",
-     "trig": "UR1",
-     "dir": "short",
-     "bar": "2026-09-21",
-     "ago": 0,
-     "smelly": false,
-     "wide": false,
-     "illiq": true,
-     "tf": "W"
-    },
-    {
      "t": "IDV",
      "trig": "UR1",
      "dir": "short",
@@ -215666,7 +215627,7 @@
      "iv_high": true,
      "iv_low": false,
      "earnings_inside": true,
-     "earnings_date": "2026-11-06",
+     "earnings_date": "2026-11-09",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 254.59,
@@ -216215,7 +216176,7 @@
      "iv_high": null,
      "iv_low": null,
      "earnings_inside": true,
-     "earnings_date": "2026-11-11",
+     "earnings_date": "2026-11-17",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 94,
@@ -313974,8 +313935,8 @@
     "flags": {
      "iv_high": true,
      "iv_low": false,
-     "earnings_inside": false,
-     "earnings_date": null,
+     "earnings_inside": true,
+     "earnings_date": "2026-11-12",
      "mc_20b": false,
      "spy_bear": false,
      "stock_sma20": 8.17,
