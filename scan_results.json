@@ -3,13 +3,13 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-10-16T01:50:24.241Z",
+ "generated_at": "2026-10-16T03:49:21.236Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
  "engine_version": "v0.32",
  "engine_source": "/home/runner/work/PAM_Analyzer/PAM_Analyzer/pam_analyzer.html",
- "engine_mtime": "2026-10-15 23:52 UTC",
+ "engine_mtime": "2026-10-16 01:50 UTC",
  "fundamentals": "finnhub",
  "weekly_ok": true,
  "universe": 12687,
@@ -95747,9 +95747,9 @@
   },
   "KNDI": {
    "name": "Kandi Technologies Group, Inc. Ordinary Shares",
-   "px": 0.4125,
+   "px": 4.125,
    "industry": "Auto Components",
-   "mc": 4142325
+   "mc": 41423250
   },
   "KNF": {
    "name": "Knife River Corporation",
@@ -234008,8 +234008,8 @@
       42
      ]
     ],
-    "atm_iv": 0.4728,
-    "iv_pctl": 3,
+    "atm_iv": 0.4729,
+    "iv_pctl": 2,
     "iv_obs": 61,
     "flags": {
      "iv_high": true,
@@ -234129,7 +234129,7 @@
       42
      ]
     ],
-    "atm_iv": 0.4743,
+    "atm_iv": 0.4742,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -235148,7 +235148,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3201,
+    "atm_iv": 0.321,
     "iv_pctl": null,
     "iv_obs": 30,
     "flags": {
@@ -235691,7 +235691,7 @@
       35
      ]
     ],
-    "atm_iv": 0.0424,
+    "atm_iv": 0.0425,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -238248,7 +238248,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2381,
+    "atm_iv": 0.238,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -240404,7 +240404,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5157,
+    "atm_iv": 0.5156,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -244788,7 +244788,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5246,
+    "atm_iv": 0.5247,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -245480,7 +245480,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5691,
+    "atm_iv": 0.569,
     "iv_pctl": 60,
     "iv_obs": 63,
     "flags": {
@@ -248307,7 +248307,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4854,
+    "atm_iv": 0.4855,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -248421,7 +248421,7 @@
       35
      ]
     ],
-    "atm_iv": 0.304,
+    "atm_iv": 0.3039,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -251344,7 +251344,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2758,
+    "atm_iv": 0.2759,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -253624,7 +253624,7 @@
      ]
     ],
     "atm_iv": 0.3947,
-    "iv_pctl": 67,
+    "iv_pctl": 69,
     "iv_obs": 67,
     "flags": {
      "iv_high": true,
@@ -254247,7 +254247,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5125,
+    "atm_iv": 0.5124,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -255897,7 +255897,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3304,
+    "atm_iv": 0.3305,
     "iv_pctl": 86,
     "iv_obs": 65,
     "flags": {
@@ -257306,8 +257306,8 @@
       42
      ]
     ],
-    "atm_iv": 0.6431,
-    "iv_pctl": 82,
+    "atm_iv": 0.6432,
+    "iv_pctl": 80,
     "iv_obs": 71,
     "flags": {
      "iv_high": true,
@@ -257420,7 +257420,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3517,
+    "atm_iv": 0.3518,
     "iv_pctl": 92,
     "iv_obs": 63,
     "flags": {
@@ -258354,7 +258354,7 @@
       42
      ]
     ],
-    "atm_iv": 0.7078,
+    "atm_iv": 0.7077,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -258617,7 +258617,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5029,
+    "atm_iv": 0.503,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -259805,7 +259805,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5107,
+    "atm_iv": 0.5106,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -260631,7 +260631,7 @@
       42
      ]
     ],
-    "atm_iv": 0.6987,
+    "atm_iv": 0.6988,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -262121,7 +262121,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5287,
+    "atm_iv": 0.5286,
     "iv_pctl": 91,
     "iv_obs": 67,
     "flags": {
@@ -263356,7 +263356,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2393,
+    "atm_iv": 0.2392,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -264650,7 +264650,7 @@
      ]
     ],
     "atm_iv": 1.1116,
-    "iv_pctl": 62,
+    "iv_pctl": 60,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -267007,8 +267007,8 @@
       35
      ]
     ],
-    "atm_iv": 0.2069,
-    "iv_pctl": 37,
+    "atm_iv": 0.207,
+    "iv_pctl": 38,
     "iv_obs": 60,
     "flags": {
      "iv_high": false,
@@ -268052,7 +268052,7 @@
       35
      ]
     ],
-    "atm_iv": 0.33,
+    "atm_iv": 0.3301,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -268279,7 +268279,7 @@
       35
      ]
     ],
-    "atm_iv": 0.7145,
+    "atm_iv": 0.7144,
     "iv_pctl": 61,
     "iv_obs": 61,
     "flags": {
@@ -269240,7 +269240,7 @@
       42
      ]
     ],
-    "atm_iv": 0.3483,
+    "atm_iv": 0.3482,
     "iv_pctl": 58,
     "iv_obs": 62,
     "flags": {
@@ -269777,7 +269777,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3618,
+    "atm_iv": 0.3617,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -270037,8 +270037,8 @@
       35
      ]
     ],
-    "atm_iv": 0.4881,
-    "iv_pctl": 48,
+    "atm_iv": 0.4882,
+    "iv_pctl": 47,
     "iv_obs": 66,
     "flags": {
      "iv_high": true,
@@ -271068,7 +271068,7 @@
       35
      ]
     ],
-    "atm_iv": 0.6066,
+    "atm_iv": 0.6067,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -271872,7 +271872,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3827,
+    "atm_iv": 0.3828,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -272897,7 +272897,7 @@
      ]
     ],
     "atm_iv": 0.4159,
-    "iv_pctl": 52,
+    "iv_pctl": 49,
     "iv_obs": 71,
     "flags": {
      "iv_high": true,
@@ -273233,7 +273233,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5632,
+    "atm_iv": 0.5631,
     "iv_pctl": 83,
     "iv_obs": 66,
     "flags": {
@@ -276979,8 +276979,8 @@
       42
      ]
     ],
-    "atm_iv": 0.4591,
-    "iv_pctl": 15,
+    "atm_iv": 0.459,
+    "iv_pctl": 17,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -277310,7 +277310,7 @@
       42
      ]
     ],
-    "atm_iv": 0.4131,
+    "atm_iv": 0.4132,
     "iv_pctl": 25,
     "iv_obs": 64,
     "flags": {
@@ -278386,7 +278386,7 @@
       35
      ]
     ],
-    "atm_iv": 0.1567,
+    "atm_iv": 0.1569,
     "iv_pctl": null,
     "iv_obs": 10,
     "flags": {
@@ -279783,7 +279783,7 @@
       35
      ]
     ],
-    "atm_iv": 0.1844,
+    "atm_iv": 0.1845,
     "iv_pctl": 39,
     "iv_obs": 62,
     "flags": {
@@ -281431,7 +281431,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2624,
+    "atm_iv": 0.2625,
     "iv_pctl": 63,
     "iv_obs": 67,
     "flags": {
@@ -283496,7 +283496,7 @@
      "bear_put": {
       "long_k": 250,
       "short_k": 210,
-      "long_delta": -0.61,
+      "long_delta": -0.62,
       "debit": 14.89,
       "width": 40,
       "max_profit": 25.11,
@@ -284131,7 +284131,7 @@
      ]
     ],
     "atm_iv": 0.4477,
-    "iv_pctl": 68,
+    "iv_pctl": 66,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -285258,7 +285258,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4647,
+    "atm_iv": 0.4646,
     "iv_pctl": 72,
     "iv_obs": 65,
     "flags": {
@@ -285966,7 +285966,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5385,
+    "atm_iv": 0.5384,
     "iv_pctl": null,
     "iv_obs": 19,
     "flags": {
@@ -286282,7 +286282,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3554,
+    "atm_iv": 0.3555,
     "iv_pctl": 38,
     "iv_obs": 64,
     "flags": {
@@ -286555,7 +286555,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3016,
+    "atm_iv": 0.3017,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -287532,7 +287532,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3629,
+    "atm_iv": 0.363,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -288016,8 +288016,8 @@
       35
      ]
     ],
-    "atm_iv": 0.2944,
-    "iv_pctl": 26,
+    "atm_iv": 0.2945,
+    "iv_pctl": 24,
     "iv_obs": 70,
     "flags": {
      "iv_high": false,
@@ -288311,7 +288311,7 @@
       42
      ]
     ],
-    "atm_iv": 0.8572,
+    "atm_iv": 0.8573,
     "iv_pctl": null,
     "iv_obs": 44,
     "flags": {
@@ -289206,7 +289206,7 @@
       35
      ]
     ],
-    "atm_iv": 0.6,
+    "atm_iv": 0.5999,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -289789,7 +289789,7 @@
      "bull_call": {
       "long_k": 120,
       "short_k": 130,
-      "long_delta": 0.58,
+      "long_delta": 0.57,
       "debit": 3.12,
       "width": 10,
       "max_profit": 6.88,
@@ -291942,7 +291942,7 @@
      ]
     ],
     "atm_iv": 0.1548,
-    "iv_pctl": 14,
+    "iv_pctl": 16,
     "iv_obs": 63,
     "flags": {
      "iv_high": false,
@@ -292307,7 +292307,7 @@
       35
      ]
     ],
-    "atm_iv": 0.452,
+    "atm_iv": 0.4521,
     "iv_pctl": 55,
     "iv_obs": 60,
     "flags": {
@@ -293377,7 +293377,7 @@
       35
      ]
     ],
-    "atm_iv": 0.363,
+    "atm_iv": 0.3629,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -293609,7 +293609,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5526,
+    "atm_iv": 0.5527,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -294053,7 +294053,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4595,
+    "atm_iv": 0.4596,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -294251,7 +294251,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5375,
+    "atm_iv": 0.5376,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -294393,7 +294393,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2819,
+    "atm_iv": 0.282,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -294720,7 +294720,7 @@
      ]
     ],
     "atm_iv": 0.3725,
-    "iv_pctl": 100,
+    "iv_pctl": 99,
     "iv_obs": 69,
     "flags": {
      "iv_high": true,
@@ -295725,7 +295725,7 @@
       42
      ]
     ],
-    "atm_iv": 0.5939,
+    "atm_iv": 0.594,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -295967,7 +295967,7 @@
       35
      ]
     ],
-    "atm_iv": 0.312,
+    "atm_iv": 0.3119,
     "iv_pctl": null,
     "iv_obs": 49,
     "flags": {
@@ -296918,8 +296918,8 @@
       35
      ]
     ],
-    "atm_iv": 0.6031,
-    "iv_pctl": 86,
+    "atm_iv": 0.603,
+    "iv_pctl": 87,
     "iv_obs": 63,
     "flags": {
      "iv_high": true,
@@ -297771,7 +297771,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5483,
+    "atm_iv": 0.5482,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -298227,7 +298227,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5705,
+    "atm_iv": 0.5704,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -299119,7 +299119,7 @@
       42
      ]
     ],
-    "atm_iv": 0.3251,
+    "atm_iv": 0.3252,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -300908,7 +300908,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4277,
+    "atm_iv": 0.4278,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -302900,7 +302900,7 @@
       42
      ]
     ],
-    "atm_iv": 0.471,
+    "atm_iv": 0.4709,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -303738,7 +303738,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3574,
+    "atm_iv": 0.3575,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -306407,7 +306407,7 @@
       42
      ]
     ],
-    "atm_iv": 0.65,
+    "atm_iv": 0.6499,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -308060,7 +308060,7 @@
      ]
     ],
     "atm_iv": 0.5093,
-    "iv_pctl": 42,
+    "iv_pctl": 44,
     "iv_obs": 62,
     "flags": {
      "iv_high": true,
@@ -308291,7 +308291,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5617,
+    "atm_iv": 0.5618,
     "iv_pctl": 56,
     "iv_obs": 63,
     "flags": {
@@ -309084,7 +309084,7 @@
      ]
     ],
     "atm_iv": 0.4146,
-    "iv_pctl": 50,
+    "iv_pctl": 48,
     "iv_obs": 64,
     "flags": {
      "iv_high": true,
@@ -310258,7 +310258,7 @@
      ]
     ],
     "atm_iv": 0.5242,
-    "iv_pctl": 88,
+    "iv_pctl": 89,
     "iv_obs": 66,
     "flags": {
      "iv_high": true,
@@ -310783,7 +310783,7 @@
      "bull_call": {
       "long_k": 34,
       "short_k": 39,
-      "long_delta": 0.55,
+      "long_delta": 0.54,
       "debit": 1.28,
       "width": 5,
       "max_profit": 3.72,
@@ -310989,8 +310989,8 @@
       35
      ]
     ],
-    "atm_iv": 0.2764,
-    "iv_pctl": 74,
+    "atm_iv": 0.2763,
+    "iv_pctl": 76,
     "iv_obs": 70,
     "flags": {
      "iv_high": false,
@@ -311998,7 +311998,7 @@
       42
      ]
     ],
-    "atm_iv": 0.2649,
+    "atm_iv": 0.2648,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -313476,7 +313476,7 @@
      ]
     ],
     "atm_iv": 0.8203,
-    "iv_pctl": 77,
+    "iv_pctl": 74,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -314161,7 +314161,7 @@
       35
      ]
     ],
-    "atm_iv": 0.8796,
+    "atm_iv": 0.8797,
     "iv_pctl": 89,
     "iv_obs": 62,
     "flags": {
@@ -315891,7 +315891,7 @@
      ]
     ],
     "atm_iv": 0.3272,
-    "iv_pctl": 31,
+    "iv_pctl": 32,
     "iv_obs": 68,
     "flags": {
      "iv_high": false,
@@ -317584,7 +317584,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3908,
+    "atm_iv": 0.3909,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -317817,7 +317817,7 @@
      ]
     ],
     "atm_iv": 0.2049,
-    "iv_pctl": 34,
+    "iv_pctl": 37,
     "iv_obs": 71,
     "flags": {
      "iv_high": false,
@@ -319421,7 +319421,7 @@
      "bull_call": {
       "long_k": 41,
       "short_k": 46,
-      "long_delta": 0.52,
+      "long_delta": 0.51,
       "debit": 1.34,
       "width": 5,
       "max_profit": 3.66,
@@ -320082,7 +320082,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2074,
+    "atm_iv": 0.2073,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -320795,7 +320795,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3366,
+    "atm_iv": 0.3365,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -322501,7 +322501,7 @@
       42
      ]
     ],
-    "atm_iv": 0.2418,
+    "atm_iv": 0.2419,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -325553,7 +325553,7 @@
       42
      ]
     ],
-    "atm_iv": 0.2609,
+    "atm_iv": 0.261,
     "iv_pctl": 67,
     "iv_obs": 63,
     "flags": {
@@ -325667,7 +325667,7 @@
       35
      ]
     ],
-    "atm_iv": 0.862,
+    "atm_iv": 0.8619,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -326248,7 +326248,7 @@
       35
      ]
     ],
-    "atm_iv": 0.1669,
+    "atm_iv": 0.167,
     "iv_pctl": 8,
     "iv_obs": 62,
     "flags": {
@@ -326461,8 +326461,8 @@
       35
      ]
     ],
-    "atm_iv": 0.6071,
-    "iv_pctl": 37,
+    "atm_iv": 0.6072,
+    "iv_pctl": 35,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -328589,7 +328589,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4017,
+    "atm_iv": 0.4016,
     "iv_pctl": null,
     "iv_obs": 37,
     "flags": {
@@ -328703,7 +328703,7 @@
       35
      ]
     ],
-    "atm_iv": 0.6409,
+    "atm_iv": 0.6408,
     "iv_pctl": null,
     "iv_obs": 30,
     "flags": {
@@ -328854,7 +328854,7 @@
      ]
     ],
     "atm_iv": 0.6328,
-    "iv_pctl": 66,
+    "iv_pctl": 64,
     "iv_obs": 61,
     "flags": {
      "iv_high": true,
@@ -329466,7 +329466,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4015,
+    "atm_iv": 0.4014,
     "iv_pctl": null,
     "iv_obs": 52,
     "flags": {
@@ -331079,7 +331079,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5445,
+    "atm_iv": 0.5444,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -332131,7 +332131,7 @@
       42
      ]
     ],
-    "atm_iv": 0.6,
+    "atm_iv": 0.6001,
     "iv_pctl": null,
     "iv_obs": 43,
     "flags": {
@@ -332474,7 +332474,7 @@
      ]
     ],
     "atm_iv": 0.2344,
-    "iv_pctl": 65,
+    "iv_pctl": 63,
     "iv_obs": 62,
     "flags": {
      "iv_high": false,
@@ -332805,7 +332805,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3951,
+    "atm_iv": 0.3952,
     "iv_pctl": 56,
     "iv_obs": 62,
     "flags": {
@@ -333344,8 +333344,8 @@
       42
      ]
     ],
-    "atm_iv": 0.5475,
-    "iv_pctl": 95,
+    "atm_iv": 0.5474,
+    "iv_pctl": 97,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -333857,7 +333857,7 @@
       42
      ]
     ],
-    "atm_iv": 0.3836,
+    "atm_iv": 0.3835,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -335394,7 +335394,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2787,
+    "atm_iv": 0.2788,
     "iv_pctl": 95,
     "iv_obs": 63,
     "flags": {
@@ -337250,7 +337250,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2196,
+    "atm_iv": 0.2195,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -338269,7 +338269,7 @@
       42
      ]
     ],
-    "atm_iv": 0.5564,
+    "atm_iv": 0.5563,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -338859,7 +338859,7 @@
       35
      ]
     ],
-    "atm_iv": 0.6639,
+    "atm_iv": 0.664,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -339522,7 +339522,7 @@
      ]
     ],
     "atm_iv": 0.7935,
-    "iv_pctl": 98,
+    "iv_pctl": 97,
     "iv_obs": 62,
     "flags": {
      "iv_high": true,
@@ -339866,7 +339866,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4152,
+    "atm_iv": 0.4153,
     "iv_pctl": 77,
     "iv_obs": 60,
     "flags": {
@@ -340760,7 +340760,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3533,
+    "atm_iv": 0.3532,
     "iv_pctl": null,
     "iv_obs": 45,
     "flags": {
@@ -341798,7 +341798,7 @@
       42
      ]
     ],
-    "atm_iv": 0.257,
+    "atm_iv": 0.2569,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -342653,8 +342653,8 @@
       35
      ]
     ],
-    "atm_iv": 0.4227,
-    "iv_pctl": 91,
+    "atm_iv": 0.4226,
+    "iv_pctl": 93,
     "iv_obs": 70,
     "flags": {
      "iv_high": true,
@@ -346166,7 +346166,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3565,
+    "atm_iv": 0.3566,
     "iv_pctl": null,
     "iv_obs": 45,
     "flags": {
@@ -346355,7 +346355,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5716,
+    "atm_iv": 0.5715,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
@@ -346631,7 +346631,7 @@
       35
      ]
     ],
-    "atm_iv": 0.7665,
+    "atm_iv": 0.7666,
     "iv_pctl": null,
     "iv_obs": 40,
     "flags": {
@@ -348537,7 +348537,7 @@
       35
      ]
     ],
-    "atm_iv": 1.3318,
+    "atm_iv": 1.3319,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -349619,7 +349619,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2869,
+    "atm_iv": 0.2868,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -349965,7 +349965,7 @@
       42
      ]
     ],
-    "atm_iv": 0.7843,
+    "atm_iv": 0.7844,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -350474,7 +350474,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3073,
+    "atm_iv": 0.3072,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -351656,7 +351656,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2657,
+    "atm_iv": 0.2656,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -354062,7 +354062,7 @@
      ]
     ],
     "atm_iv": 0.4761,
-    "iv_pctl": 74,
+    "iv_pctl": 72,
     "iv_obs": 68,
     "flags": {
      "iv_high": true,
@@ -356644,7 +356644,7 @@
       42
      ]
     ],
-    "atm_iv": 0.4102,
+    "atm_iv": 0.4101,
     "iv_pctl": 17,
     "iv_obs": 72,
     "flags": {
@@ -356935,7 +356935,7 @@
       35
      ]
     ],
-    "atm_iv": 0.9297,
+    "atm_iv": 0.9296,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
@@ -357281,7 +357281,7 @@
       35
      ]
     ],
-    "atm_iv": 0.9731,
+    "atm_iv": 0.9732,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -357510,7 +357510,7 @@
      ]
     ],
     "atm_iv": 0.5706,
-    "iv_pctl": 22,
+    "iv_pctl": 24,
     "iv_obs": 67,
     "flags": {
      "iv_high": true,
@@ -357855,7 +357855,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2012,
+    "atm_iv": 0.2013,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
@@ -359459,7 +359459,7 @@
      ]
     ],
     "atm_iv": 0.7621,
-    "iv_pctl": 12,
+    "iv_pctl": 10,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -360196,7 +360196,7 @@
      ]
     ],
     "atm_iv": 0.5051,
-    "iv_pctl": 42,
+    "iv_pctl": 40,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -360758,7 +360758,7 @@
       35
      ]
     ],
-    "atm_iv": 2.2279,
+    "atm_iv": 2.2278,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -361846,7 +361846,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4499,
+    "atm_iv": 0.45,
     "iv_pctl": 66,
     "iv_obs": 62,
     "flags": {
@@ -362682,7 +362682,7 @@
       35
      ]
     ],
-    "atm_iv": 0.583,
+    "atm_iv": 0.5829,
     "iv_pctl": 22,
     "iv_obs": 65,
     "flags": {
@@ -364506,7 +364506,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2658,
+    "atm_iv": 0.2659,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -366569,8 +366569,8 @@
       35
      ]
     ],
-    "atm_iv": 0.1974,
-    "iv_pctl": 20,
+    "atm_iv": 0.1973,
+    "iv_pctl": 22,
     "iv_obs": 60,
     "flags": {
      "iv_high": false,
@@ -366620,7 +366620,7 @@
      "bull_call": {
       "long_k": 120,
       "short_k": 125,
-      "long_delta": 0.53,
+      "long_delta": 0.52,
       "debit": 1.99,
       "width": 5,
       "max_profit": 3.01,
@@ -366635,7 +366635,7 @@
      "bear_put": {
       "long_k": 120,
       "short_k": 110,
-      "long_delta": -0.47,
+      "long_delta": -0.48,
       "debit": 2.27,
       "width": 10,
       "max_profit": 7.73,
@@ -370085,7 +370085,7 @@
      ]
     ],
     "atm_iv": 0.4794,
-    "iv_pctl": 20,
+    "iv_pctl": 22,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -371277,8 +371277,8 @@
       35
      ]
     ],
-    "atm_iv": 0.3433,
-    "iv_pctl": 73,
+    "atm_iv": 0.3432,
+    "iv_pctl": 75,
     "iv_obs": 60,
     "flags": {
      "iv_high": false,
@@ -374152,7 +374152,7 @@
       35
      ]
     ],
-    "atm_iv": 0.9624,
+    "atm_iv": 0.9623,
     "iv_pctl": null,
     "iv_obs": 29,
     "flags": {
@@ -374310,7 +374310,7 @@
       35
      ]
     ],
-    "atm_iv": 0.9696,
+    "atm_iv": 0.9697,
     "iv_pctl": null,
     "iv_obs": 29,
     "flags": {
@@ -374433,7 +374433,7 @@
       42
      ]
     ],
-    "atm_iv": 0.3425,
+    "atm_iv": 0.3426,
     "iv_pctl": 79,
     "iv_obs": 62,
     "flags": {
@@ -374969,7 +374969,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3054,
+    "atm_iv": 0.3053,
     "iv_pctl": 64,
     "iv_obs": 61,
     "flags": {
@@ -375269,7 +375269,7 @@
      ]
     ],
     "atm_iv": 0.3237,
-    "iv_pctl": 85,
+    "iv_pctl": 83,
     "iv_obs": 60,
     "flags": {
      "iv_high": false,
@@ -377015,8 +377015,8 @@
       42
      ]
     ],
-    "atm_iv": 0.2334,
-    "iv_pctl": 32,
+    "atm_iv": 0.2335,
+    "iv_pctl": 31,
     "iv_obs": 65,
     "flags": {
      "iv_high": false,
@@ -377726,7 +377726,7 @@
       35
      ]
     ],
-    "atm_iv": 0.5132,
+    "atm_iv": 0.5131,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -379115,7 +379115,7 @@
       35
      ]
     ],
-    "atm_iv": 0.6157,
+    "atm_iv": 0.6158,
     "iv_pctl": null,
     "iv_obs": 45,
     "flags": {
@@ -380412,7 +380412,7 @@
       35
      ]
     ],
-    "atm_iv": 0.8457,
+    "atm_iv": 0.8456,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -380624,7 +380624,7 @@
       35
      ]
     ],
-    "atm_iv": 0.8084,
+    "atm_iv": 0.8085,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -380934,7 +380934,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3665,
+    "atm_iv": 0.3664,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -381612,7 +381612,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4011,
+    "atm_iv": 0.401,
     "iv_pctl": 86,
     "iv_obs": 63,
     "flags": {
@@ -382175,8 +382175,8 @@
       42
      ]
     ],
-    "atm_iv": 0.4594,
-    "iv_pctl": 7,
+    "atm_iv": 0.4595,
+    "iv_pctl": 5,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -383696,7 +383696,7 @@
       35
      ]
     ],
-    "atm_iv": 0.3293,
+    "atm_iv": 0.3294,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -384182,7 +384182,7 @@
      ]
     ],
     "atm_iv": 0.3039,
-    "iv_pctl": 77,
+    "iv_pctl": 78,
     "iv_obs": 64,
     "flags": {
      "iv_high": false,
@@ -385451,7 +385451,7 @@
       35
      ]
     ],
-    "atm_iv": 0.2992,
+    "atm_iv": 0.2991,
     "iv_pctl": null,
     "iv_obs": 36,
     "flags": {
@@ -385825,8 +385825,8 @@
       35
      ]
     ],
-    "atm_iv": 0.3106,
-    "iv_pctl": 79,
+    "atm_iv": 0.3105,
+    "iv_pctl": 80,
     "iv_obs": 70,
     "flags": {
      "iv_high": false,
@@ -387696,7 +387696,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4719,
+    "atm_iv": 0.4718,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -388593,7 +388593,7 @@
       35
      ]
     ],
-    "atm_iv": 0.4533,
+    "atm_iv": 0.4532,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
