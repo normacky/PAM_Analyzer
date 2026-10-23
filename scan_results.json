@@ -3,18 +3,18 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-10-23T01:47:02.139Z",
+ "generated_at": "2026-10-23T04:01:17.049Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
  "engine_version": "v0.32",
  "engine_source": "/home/runner/work/PAM_Analyzer/PAM_Analyzer/pam_analyzer.html",
- "engine_mtime": "2026-10-22 23:30 UTC",
+ "engine_mtime": "2026-10-23 01:47 UTC",
  "fundamentals": "finnhub",
  "weekly_ok": true,
- "universe": 12683,
- "scanned": 12220,
- "fired": 5366,
+ "universe": 12679,
+ "scanned": 12216,
+ "fired": 5365,
  "trigger_types": [
   "Bull-FS",
   "UC1",
@@ -33,10 +33,10 @@
  ],
  "counts": {
   "S2": 181,
-  "S2s": 518,
+  "S2s": 517,
   "Bull-FS": 520,
   "S1s": 1069,
-  "S1": 2439,
+  "S1": 2438,
   "DR2": 230,
   "UR1": 314,
   "DR1": 552,
@@ -36385,16 +36385,6 @@
    "tf": "1"
   },
   {
-   "t": "PASW",
-   "trig": "S1",
-   "dir": "long",
-   "bar": "2026-10-22",
-   "ago": 0,
-   "sys": 1,
-   "unit": 1,
-   "tf": "1"
-  },
-  {
    "t": "PATH",
    "trig": "S1",
    "dir": "long",
@@ -61065,16 +61055,6 @@
    "tf": "1"
   },
   {
-   "t": "PASW",
-   "trig": "S2s",
-   "dir": "short",
-   "bar": "2026-10-21",
-   "ago": 1,
-   "sys": 2,
-   "unit": 1,
-   "tf": "1"
-  },
-  {
    "t": "PAVE",
    "trig": "S2s",
    "dir": "short",
@@ -73817,7 +73797,7 @@
    "name": "Black Hawk Acquisition Corporation Class A Ordinary Shares",
    "px": 4.29,
    "industry": "N/A",
-   "mc": 17803500.000000004
+   "mc": 8837400
   },
   "BKHAR": {
    "name": "Black Hawk Acquisition Corporation Rights",
@@ -75787,7 +75767,7 @@
    "name": "C1 Fund Inc.",
    "px": 2.63,
    "industry": "N/A",
-   "mc": 17542100
+   "mc": 17279100
   },
   "CFO": {
    "name": "VictoryShares US 500 Enhanced Volatility Wtd ETF",
@@ -77791,7 +77771,7 @@
    "name": "Caesars Entertainment, Inc. Common Stock",
    "px": 29.07,
    "industry": "Hotels, Restaurants & Leisure",
-   "mc": 5922140400
+   "mc": 5923884600
   },
   "D": {
    "name": "Dominion Energy, Inc Common Stock",
@@ -79819,7 +79799,7 @@
    "name": "The Elmet Group Co. Common Stock",
    "px": 20.91,
    "industry": "Machinery",
-   "mc": 626881800
+   "mc": 636918600
   },
   "ELTK": {
    "name": "Eltek Ltd. Ordinary Shares",
@@ -80943,7 +80923,7 @@
    "name": "First Business Financial Services, Inc. Common Stock",
    "px": 72.5,
    "industry": "Banking",
-   "mc": 606099999.9999999
+   "mc": 606824999.9999999
   },
   "FBK": {
    "name": "FB Financial Corporation",
@@ -82661,7 +82641,7 @@
    "name": "Future Vision II Acquisition Corporation Units",
    "px": 28,
    "industry": "N/A",
-   "mc": 211120000
+   "mc": 108640000
   },
   "FWD": {
    "name": "AB Disruptors ETF",
@@ -83805,7 +83785,7 @@
    "name": "GP-Act III Acquisition Corp. Units",
    "px": 10.99,
    "industry": "N/A",
-   "mc": 394980600
+   "mc": 177598400
   },
   "GPC": {
    "name": "Genuine Parts Company",
@@ -85919,7 +85899,7 @@
    "name": "Intellicheck, Inc. Common Stock",
    "px": 2.4,
    "industry": "Technology",
-   "mc": 48600000
+   "mc": 48648000
   },
   "IDT": {
    "name": "IDT Corporation Class B",
@@ -88465,7 +88445,7 @@
    "name": "Krystal Biotech, Inc. Common Stock",
    "px": 320.13,
    "industry": "Biotechnology",
-   "mc": 9437432400
+   "mc": 9475848000
   },
   "KSEP": {
    "name": "Innovator U.S. Small Cap Power Buffer ETF - September",
@@ -89293,7 +89273,7 @@
    "name": "LOBO TECHNOLOGIES LTD. Class A Ordinary Shares",
    "px": 0.45,
    "industry": "Automobiles",
-   "mc": 6228000
+   "mc": 6498000
   },
   "LOCO": {
    "name": "El Pollo Loco Holdings, Inc. Common Stock",
@@ -91425,7 +91405,7 @@
    "name": "SOLV Energy, Inc. Class A Common Stock",
    "px": 21.53,
    "industry": "Construction",
-   "mc": 4514625700
+   "mc": 4357456700
   },
   "MX": {
    "name": "Magnachip Semiconductor Corp.",
@@ -93523,7 +93503,7 @@
    "name": "OppFi Inc.",
    "px": 5.78,
    "industry": "Financial Services",
-   "mc": 493554200
+   "mc": 492513800
   },
   "OPHC": {
    "name": "OptimumBank Holdings, Inc.",
@@ -94020,12 +94000,6 @@
    "px": 80.18,
    "industry": "Energy",
    "mc": 4020225200.0000005
-  },
-  "PASW": {
-   "name": "Ping An Biomedical Co., Ltd. Class A Ordinary Shares",
-   "px": 0.134,
-   "industry": "Distributors",
-   "mc": 3289700
   },
   "PATH": {
    "name": "UiPath, Inc.",
@@ -99125,7 +99099,7 @@
    "name": "Senti Biosciences Holdings, Inc. Common Stock",
    "px": 0.1905,
    "industry": "Biotechnology",
-   "mc": 5932170
+   "mc": 5934075
   },
   "SNTQ": {
    "name": "MRP SynthEquity Nasdaq 100 ETF",
@@ -103469,7 +103443,7 @@
    "name": "Vivmark Residential",
    "px": 63.57,
    "industry": "Real Estate",
-   "mc": 23833664400
+   "mc": 49189194600
   },
   "VNAM": {
    "name": "Global X MSCI Vietnam ETF",
@@ -106363,7 +106337,7 @@
    "name": "ArriVent BioPharma, Inc. Common Stock",
    "px": 19.2,
    "industry": "Biotechnology",
-   "mc": 894144000
+   "mc": 946752000
   },
   "AVGW": {
    "name": "Roundhill AVGO WeeklyPay ETF",
@@ -107273,7 +107247,7 @@
    "name": "Climb Bio, Inc. Common Stock",
    "px": 10.54,
    "industry": "Biotechnology",
-   "mc": 603520400
+   "mc": 605417600
   },
   "CMCI": {
    "name": "VanEck CMCI Commodity Strategy ETF",
@@ -108229,7 +108203,7 @@
    "name": "First Commonwealth Financial Corporation",
    "px": 21.06,
    "industry": "Banking",
-   "mc": 2129165999.9999998
+   "mc": 2128323599.9999998
   },
   "FDEC": {
    "name": "FT Vest U.S. Equity Buffer ETF - December",
@@ -110641,7 +110615,7 @@
    "name": "CL Workshop Group Limited American Depositary Shares",
    "px": 0.0892,
    "industry": "Paper & Forest",
-   "mc": 1476260
+   "mc": 40338916
   },
   "NWPX": {
    "name": "NWPX Infrastructure, Inc. Common Stock",
@@ -113557,13 +113531,13 @@
    "agg_mult": 2,
    "fresh_within": 2,
    "asof": "2026-10-22",
-   "scanned": 11488,
-   "fired": 4110,
+   "scanned": 11484,
+   "fired": 4109,
    "counts": {
     "S2s": 441,
     "Bull-FS": 609,
     "DR1": 763,
-    "S1s": 1379,
+    "S1s": 1378,
     "UC2": 130,
     "DC2": 73,
     "S1": 579,
@@ -150021,16 +149995,6 @@
      "tf": "2"
     },
     {
-     "t": "PASW",
-     "trig": "S1s",
-     "dir": "short",
-     "bar": "2026-10-21",
-     "ago": 1,
-     "sys": 1,
-     "unit": 2,
-     "tf": "2"
-    },
-    {
      "t": "PATN",
      "trig": "S1s",
      "dir": "short",
@@ -167880,15 +167844,15 @@
    "agg_mult": 1,
    "fresh_within": 2,
    "asof": "2026-10-19",
-   "scanned": 10230,
-   "fired": 4213,
+   "scanned": 10226,
+   "fired": 4212,
    "counts": {
     "Bull-FS": 385,
     "S1s": 1565,
     "DR1": 461,
     "UR1": 650,
     "DC1": 128,
-    "S2s": 525,
+    "S2s": 524,
     "S1": 334,
     "DC2": 109,
     "DR2": 239,
@@ -209502,16 +209466,6 @@
      "ago": 1,
      "sys": 2,
      "unit": 1,
-     "tf": "W"
-    },
-    {
-     "t": "PASW",
-     "trig": "S2s",
-     "dir": "short",
-     "bar": "2026-10-19",
-     "ago": 0,
-     "sys": 2,
-     "unit": 2,
      "tf": "W"
     },
     {
@@ -373428,7 +373382,7 @@
       56
      ]
     ],
-    "atm_iv": 0.458,
+    "atm_iv": 0.4661,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -373547,7 +373501,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4703,
+    "atm_iv": 0.4786,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
@@ -373627,8 +373581,8 @@
       56
      ]
     ],
-    "atm_iv": 0.9808,
-    "iv_pctl": 87,
+    "atm_iv": 0.9981,
+    "iv_pctl": 92,
     "iv_obs": 63,
     "flags": {
      "iv_high": true,
@@ -373746,7 +373700,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4294,
+    "atm_iv": 0.4371,
     "iv_pctl": 99,
     "iv_obs": 73,
     "flags": {
@@ -373865,7 +373819,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4195,
+    "atm_iv": 0.4269,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -373983,7 +373937,7 @@
       42
      ]
     ],
-    "atm_iv": 0.6621,
+    "atm_iv": 0.6714,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -374101,8 +374055,8 @@
       42
      ]
     ],
-    "atm_iv": 0.3409,
-    "iv_pctl": 73,
+    "atm_iv": 0.3458,
+    "iv_pctl": 71,
     "iv_obs": 62,
     "flags": {
      "iv_high": false,
@@ -374223,7 +374177,7 @@
       56
      ]
     ],
-    "atm_iv": 0.8989,
+    "atm_iv": 0.9147,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -374303,8 +374257,8 @@
       56
      ]
     ],
-    "atm_iv": 0.6711,
-    "iv_pctl": 93,
+    "atm_iv": 0.6829,
+    "iv_pctl": 98,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -374422,7 +374376,7 @@
       56
      ]
     ],
-    "atm_iv": 0.8425,
+    "atm_iv": 0.8575,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -374486,8 +374440,8 @@
       42
      ]
     ],
-    "atm_iv": 0.5217,
-    "iv_pctl": 58,
+    "atm_iv": 0.529,
+    "iv_pctl": 60,
     "iv_obs": 62,
     "flags": {
      "iv_high": true,
@@ -374536,12 +374490,12 @@
      },
      "bull_call": {
       "long_k": 140,
-      "short_k": 162.5,
+      "short_k": 165,
       "long_delta": 0.54,
-      "debit": 7.19,
-      "width": 22.5,
-      "max_profit": 15.31,
-      "breakeven": 147.19,
+      "debit": 7.39,
+      "width": 25,
+      "max_profit": 17.61,
+      "breakeven": 147.39,
       "ok": {
        "rr_1to2": true,
        "liquidity": false
@@ -374608,7 +374562,7 @@
       56
      ]
     ],
-    "atm_iv": 0.2638,
+    "atm_iv": 0.2684,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -374727,7 +374681,7 @@
       56
      ]
     ],
-    "atm_iv": 0.5257,
+    "atm_iv": 0.5349,
     "iv_pctl": null,
     "iv_obs": 42,
     "flags": {
@@ -374792,12 +374746,12 @@
      },
      "bear_put": {
       "long_k": 75,
-      "short_k": 65,
+      "short_k": 60,
       "long_delta": -0.52,
-      "debit": 3.16,
-      "width": 10,
-      "max_profit": 6.84,
-      "breakeven": 71.84,
+      "debit": 3.63,
+      "width": 15,
+      "max_profit": 11.37,
+      "breakeven": 71.37,
       "ok": {
        "rr_1to2": true,
        "liquidity": false
@@ -374845,7 +374799,7 @@
       42
      ]
     ],
-    "atm_iv": 0.7531,
+    "atm_iv": 0.7638,
     "iv_pctl": null,
     "iv_obs": 49,
     "flags": {
@@ -374925,7 +374879,7 @@
       56
      ]
     ],
-    "atm_iv": 0.5539,
+    "atm_iv": 0.5632,
     "iv_pctl": null,
     "iv_obs": 54,
     "flags": {
@@ -374988,8 +374942,8 @@
       42
      ]
     ],
-    "atm_iv": 0.2621,
-    "iv_pctl": 52,
+    "atm_iv": 0.2654,
+    "iv_pctl": 55,
     "iv_obs": 64,
     "flags": {
      "iv_high": false,
@@ -375053,12 +375007,12 @@
      },
      "bear_put": {
       "long_k": 44,
-      "short_k": 42,
+      "short_k": 41,
       "long_delta": -0.56,
-      "debit": 0.35,
-      "width": 2,
-      "max_profit": 1.65,
-      "breakeven": 43.65,
+      "debit": 0.62,
+      "width": 3,
+      "max_profit": 2.38,
+      "breakeven": 43.38,
       "ok": {
        "rr_1to2": true,
        "liquidity": false
@@ -375106,7 +375060,7 @@
       42
      ]
     ],
-    "atm_iv": 0.6853,
+    "atm_iv": 0.695,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -375225,7 +375179,7 @@
       56
      ]
     ],
-    "atm_iv": 0.244,
+    "atm_iv": 0.2481,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -375344,11 +375298,11 @@
       56
      ]
     ],
-    "atm_iv": 0.3483,
-    "iv_pctl": 54,
+    "atm_iv": 0.3545,
+    "iv_pctl": 56,
     "iv_obs": 68,
     "flags": {
-     "iv_high": false,
+     "iv_high": true,
      "iv_low": false,
      "earnings_inside": false,
      "earnings_date": null,
@@ -375463,8 +375417,8 @@
       56
      ]
     ],
-    "atm_iv": 0.4102,
-    "iv_pctl": 75,
+    "atm_iv": 0.4173,
+    "iv_pctl": 82,
     "iv_obs": 71,
     "flags": {
      "iv_high": true,
@@ -375582,8 +375536,8 @@
       56
      ]
     ],
-    "atm_iv": 0.5502,
-    "iv_pctl": 57,
+    "atm_iv": 0.5598,
+    "iv_pctl": 62,
     "iv_obs": 68,
     "flags": {
      "iv_high": true,
@@ -375601,7 +375555,7 @@
      "bcs": {
       "short_k": 32.5,
       "long_k": 35,
-      "short_delta": 0.26,
+      "short_delta": 0.25,
       "credit": 0.48,
       "width": 2.5,
       "max_loss": 2.02,
@@ -375635,7 +375589,7 @@
       "call_short_k": 32.5,
       "call_long_k": 37.5,
       "short_put_delta": -0.33,
-      "short_call_delta": 0.26,
+      "short_call_delta": 0.25,
       "put_credit": 0.64,
       "call_credit": 0.12,
       "credit": 0.76,
@@ -375670,7 +375624,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4859,
+    "atm_iv": 0.4943,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -375735,8 +375689,8 @@
       56
      ]
     ],
-    "atm_iv": 0.5862,
-    "iv_pctl": 100,
+    "atm_iv": 0.5966,
+    "iv_pctl": 98,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -375854,7 +375808,7 @@
       56
      ]
     ],
-    "atm_iv": 0.2413,
+    "atm_iv": 0.2456,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -375918,19 +375872,19 @@
       "dte": 28
      },
      "bear_put": {
-      "long_k": 190,
+      "long_k": 185,
       "short_k": 170,
-      "long_delta": -0.58,
-      "debit": 6.47,
-      "width": 20,
-      "max_profit": 13.53,
-      "breakeven": 183.53,
+      "long_delta": -0.47,
+      "debit": 3.78,
+      "width": 15,
+      "max_profit": 11.22,
+      "breakeven": 181.22,
       "ok": {
        "rr_1to2": true,
        "liquidity": false
       },
-      "expiry": "2026-12-18",
-      "dte": 56
+      "expiry": "2026-11-20",
+      "dte": 28
      },
      "condor": {
       "put_short_k": 180,
@@ -375972,8 +375926,8 @@
       42
      ]
     ],
-    "atm_iv": 0.4657,
-    "iv_pctl": 11,
+    "atm_iv": 0.4723,
+    "iv_pctl": 15,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -376090,7 +376044,7 @@
       42
      ]
     ],
-    "atm_iv": 0.6766,
+    "atm_iv": 0.6861,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -376209,8 +376163,8 @@
       56
      ]
     ],
-    "atm_iv": 0.3067,
-    "iv_pctl": 46,
+    "atm_iv": 0.3121,
+    "iv_pctl": 48,
     "iv_obs": 65,
     "flags": {
      "iv_high": false,
@@ -376331,8 +376285,8 @@
       56
      ]
     ],
-    "atm_iv": 0.1966,
-    "iv_pctl": 66,
+    "atm_iv": 0.2004,
+    "iv_pctl": 70,
     "iv_obs": 70,
     "flags": {
      "iv_high": false,
@@ -376396,7 +376350,7 @@
       56
      ]
     ],
-    "atm_iv": 0.2902,
+    "atm_iv": 0.2953,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -376515,7 +376469,7 @@
       56
      ]
     ],
-    "atm_iv": 0.2358,
+    "atm_iv": 0.2402,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -376634,8 +376588,8 @@
       56
      ]
     ],
-    "atm_iv": 0.4704,
-    "iv_pctl": 89,
+    "atm_iv": 0.4787,
+    "iv_pctl": 90,
     "iv_obs": 63,
     "flags": {
      "iv_high": true,
@@ -376752,8 +376706,8 @@
       42
      ]
     ],
-    "atm_iv": 0.2502,
-    "iv_pctl": 34,
+    "atm_iv": 0.2538,
+    "iv_pctl": 40,
     "iv_obs": 73,
     "flags": {
      "iv_high": false,
@@ -376802,12 +376756,12 @@
      },
      "bull_call": {
       "long_k": 83,
-      "short_k": 89,
+      "short_k": 90,
       "long_delta": 0.55,
-      "debit": 1.97,
-      "width": 6,
-      "max_profit": 4.03,
-      "breakeven": 84.97,
+      "debit": 2.12,
+      "width": 7,
+      "max_profit": 4.88,
+      "breakeven": 85.12,
       "ok": {
        "rr_1to2": true,
        "liquidity": true
@@ -376817,12 +376771,12 @@
      },
      "bear_put": {
       "long_k": 85,
-      "short_k": 77,
+      "short_k": 76,
       "long_delta": -0.56,
-      "debit": 3.08,
-      "width": 8,
-      "max_profit": 4.92,
-      "breakeven": 81.92,
+      "debit": 3.24,
+      "width": 9,
+      "max_profit": 5.76,
+      "breakeven": 81.76,
       "ok": {
        "rr_1to2": false,
        "liquidity": false
@@ -376871,11 +376825,11 @@
       56
      ]
     ],
-    "atm_iv": 0.3489,
-    "iv_pctl": 33,
+    "atm_iv": 0.355,
+    "iv_pctl": 40,
     "iv_obs": 60,
     "flags": {
-     "iv_high": false,
+     "iv_high": true,
      "iv_low": false,
      "earnings_inside": false,
      "earnings_date": null,
@@ -376990,8 +376944,8 @@
       56
      ]
     ],
-    "atm_iv": 0.4406,
-    "iv_pctl": 38,
+    "atm_iv": 0.4485,
+    "iv_pctl": 42,
     "iv_obs": 71,
     "flags": {
      "iv_high": true,
@@ -377109,11 +377063,11 @@
       56
      ]
     ],
-    "atm_iv": 0.3494,
-    "iv_pctl": 65,
+    "atm_iv": 0.3556,
+    "iv_pctl": 71,
     "iv_obs": 68,
     "flags": {
-     "iv_high": false,
+     "iv_high": true,
      "iv_low": false,
      "earnings_inside": false,
      "earnings_date": null,
@@ -377228,7 +377182,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4069,
+    "atm_iv": 0.4141,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -377347,8 +377301,8 @@
       56
      ]
     ],
-    "atm_iv": 0.7396,
-    "iv_pctl": 44,
+    "atm_iv": 0.7527,
+    "iv_pctl": 48,
     "iv_obs": 62,
     "flags": {
      "iv_high": true,
@@ -377466,7 +377420,7 @@
       56
      ]
     ],
-    "atm_iv": 0.9196,
+    "atm_iv": 0.9355,
     "iv_pctl": null,
     "iv_obs": 34,
     "flags": {
@@ -377531,8 +377485,8 @@
       56
      ]
     ],
-    "atm_iv": 0.6242,
-    "iv_pctl": 63,
+    "atm_iv": 0.6353,
+    "iv_pctl": 64,
     "iv_obs": 73,
     "flags": {
      "iv_high": true,
@@ -377650,7 +377604,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4832,
+    "atm_iv": 0.4917,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -377769,7 +377723,7 @@
       56
      ]
     ],
-    "atm_iv": 0.2663,
+    "atm_iv": 0.2711,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -377887,7 +377841,7 @@
       42
      ]
     ],
-    "atm_iv": 0.3406,
+    "atm_iv": 0.3455,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -378006,11 +377960,11 @@
       56
      ]
     ],
-    "atm_iv": 0.3455,
+    "atm_iv": 0.3515,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
-     "iv_high": false,
+     "iv_high": true,
      "iv_low": false,
      "earnings_inside": true,
      "earnings_date": "2026-11-18",
@@ -378125,7 +378079,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4925,
+    "atm_iv": 0.5012,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -378243,12 +378197,12 @@
       42
      ]
     ],
-    "atm_iv": 0.2963,
-    "iv_pctl": 62,
+    "atm_iv": 0.3005,
+    "iv_pctl": 68,
     "iv_obs": 69,
     "flags": {
      "iv_high": false,
-     "iv_low": true,
+     "iv_low": false,
      "earnings_inside": true,
      "earnings_date": "2026-11-19",
      "mc_20b": true,
@@ -378362,8 +378316,8 @@
       56
      ]
     ],
-    "atm_iv": 0.3599,
-    "iv_pctl": 74,
+    "atm_iv": 0.3661,
+    "iv_pctl": 77,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -378481,8 +378435,8 @@
       56
      ]
     ],
-    "atm_iv": 0.2489,
-    "iv_pctl": 97,
+    "atm_iv": 0.2532,
+    "iv_pctl": 99,
     "iv_obs": 68,
     "flags": {
      "iv_high": false,
@@ -378576,8 +378530,8 @@
       42
      ]
     ],
-    "atm_iv": 0.4505,
-    "iv_pctl": 19,
+    "atm_iv": 0.4567,
+    "iv_pctl": 24,
     "iv_obs": 63,
     "flags": {
      "iv_high": true,
@@ -378695,7 +378649,7 @@
       56
      ]
     ],
-    "atm_iv": 0.6835,
+    "atm_iv": 0.6949,
     "iv_pctl": null,
     "iv_obs": 59,
     "flags": {
@@ -378728,7 +378682,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4811,
+    "atm_iv": 0.4897,
     "iv_pctl": null,
     "iv_obs": 5,
     "flags": {
@@ -378824,7 +378778,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4278,
+    "atm_iv": 0.4348,
     "iv_pctl": null,
     "iv_obs": 57,
     "flags": {
@@ -378876,8 +378830,8 @@
       56
      ]
     ],
-    "atm_iv": 0.2529,
-    "iv_pctl": 25,
+    "atm_iv": 0.2566,
+    "iv_pctl": 27,
     "iv_obs": 60,
     "flags": {
      "iv_high": false,
@@ -378956,8 +378910,8 @@
       56
      ]
     ],
-    "atm_iv": 0.4571,
-    "iv_pctl": 85,
+    "atm_iv": 0.4652,
+    "iv_pctl": 93,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -379075,7 +379029,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4221,
+    "atm_iv": 0.4296,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -379194,7 +379148,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4872,
+    "atm_iv": 0.4958,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -379313,8 +379267,8 @@
       56
      ]
     ],
-    "atm_iv": 0.2408,
-    "iv_pctl": 21,
+    "atm_iv": 0.2451,
+    "iv_pctl": 22,
     "iv_obs": 72,
     "flags": {
      "iv_high": false,
@@ -379435,7 +379389,7 @@
       56
      ]
     ],
-    "atm_iv": 0.2886,
+    "atm_iv": 0.2934,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -379539,7 +379493,7 @@
       56
      ]
     ],
-    "atm_iv": 0.334,
+    "atm_iv": 0.3399,
     "iv_pctl": null,
     "iv_obs": 41,
     "flags": {
@@ -379658,7 +379612,7 @@
       56
      ]
     ],
-    "atm_iv": 0.7563,
+    "atm_iv": 0.7697,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -379738,8 +379692,8 @@
       56
      ]
     ],
-    "atm_iv": 0.3267,
-    "iv_pctl": 70,
+    "atm_iv": 0.3325,
+    "iv_pctl": 73,
     "iv_obs": 63,
     "flags": {
      "iv_high": false,
@@ -379804,7 +379758,7 @@
      "bear_put": {
       "long_k": 340,
       "short_k": 300,
-      "long_delta": -0.61,
+      "long_delta": -0.62,
       "debit": 13.03,
       "width": 40,
       "max_profit": 26.97,
@@ -379822,7 +379776,7 @@
       "call_short_k": 350,
       "call_long_k": 360,
       "short_put_delta": -0.24,
-      "short_call_delta": 0.29,
+      "short_call_delta": 0.28,
       "put_credit": 1.98,
       "call_credit": 1.92,
       "credit": 3.9,
@@ -379857,7 +379811,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4899,
+    "atm_iv": 0.4988,
     "iv_pctl": null,
     "iv_obs": 30,
     "flags": {
@@ -379960,8 +379914,8 @@
       42
      ]
     ],
-    "atm_iv": 1.1032,
-    "iv_pctl": 88,
+    "atm_iv": 1.1187,
+    "iv_pctl": 95,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -380048,7 +380002,7 @@
       56
      ]
     ],
-    "atm_iv": 0.5416,
+    "atm_iv": 0.5513,
     "iv_pctl": null,
     "iv_obs": 46,
     "flags": {
@@ -380166,7 +380120,7 @@
       42
      ]
     ],
-    "atm_iv": 0.436,
+    "atm_iv": 0.4421,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -380245,20 +380199,20 @@
       "dte": 42
      },
      "condor": {
-      "put_short_k": 70,
-      "put_long_k": 65,
+      "put_short_k": 69,
+      "put_long_k": 64,
       "call_short_k": 83,
       "call_long_k": 88,
-      "short_put_delta": -0.27,
+      "short_put_delta": -0.24,
       "short_call_delta": 0.27,
-      "put_credit": 1.23,
+      "put_credit": 0.96,
       "call_credit": 0.19,
-      "credit": 1.42,
+      "credit": 1.15,
       "width_put": 5,
       "width_call": 5,
-      "max_loss": 3.58,
-      "be_low": 68.58,
-      "be_high": 84.42,
+      "max_loss": 3.85,
+      "be_low": 67.85,
+      "be_high": 84.15,
       "ok": {
        "credit_each": false,
        "liquidity": false
@@ -380285,8 +380239,8 @@
       56
      ]
     ],
-    "atm_iv": 0.2423,
-    "iv_pctl": 55,
+    "atm_iv": 0.2465,
+    "iv_pctl": 59,
     "iv_obs": 76,
     "flags": {
      "iv_high": false,
@@ -380407,8 +380361,8 @@
       56
      ]
     ],
-    "atm_iv": 0.4864,
-    "iv_pctl": 42,
+    "atm_iv": 0.4949,
+    "iv_pctl": 45,
     "iv_obs": 62,
     "flags": {
      "iv_high": true,
@@ -380526,7 +380480,7 @@
       56
      ]
     ],
-    "atm_iv": 1.0047,
+    "atm_iv": 1.0224,
     "iv_pctl": null,
     "iv_obs": 56,
     "flags": {
@@ -380644,12 +380598,12 @@
       42
      ]
     ],
-    "atm_iv": 0.2996,
+    "atm_iv": 0.3039,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
      "iv_high": false,
-     "iv_low": true,
+     "iv_low": false,
      "earnings_inside": true,
      "earnings_date": "2026-10-29",
      "mc_20b": true,
@@ -380762,7 +380716,7 @@
       42
      ]
     ],
-    "atm_iv": 1.0921,
+    "atm_iv": 1.1076,
     "iv_pctl": 100,
     "iv_obs": 64,
     "flags": {
@@ -380880,7 +380834,7 @@
       42
      ]
     ],
-    "atm_iv": 0.5521,
+    "atm_iv": 0.5599,
     "iv_pctl": null,
     "iv_obs": 32,
     "flags": {
@@ -380948,7 +380902,7 @@
       "put_long_k": 6,
       "call_short_k": 10.5,
       "call_long_k": 12,
-      "short_put_delta": -0.3,
+      "short_put_delta": -0.31,
       "short_call_delta": 0.27,
       "put_credit": -0.76,
       "call_credit": 0.2,
@@ -380984,8 +380938,8 @@
       56
      ]
     ],
-    "atm_iv": 0.4495,
-    "iv_pctl": 53,
+    "atm_iv": 0.4575,
+    "iv_pctl": 56,
     "iv_obs": 64,
     "flags": {
      "iv_high": true,
@@ -381049,18 +381003,18 @@
      },
      "bear_put": {
       "long_k": 195,
-      "short_k": 165,
-      "long_delta": -0.57,
-      "debit": 10.81,
-      "width": 30,
-      "max_profit": 19.19,
-      "breakeven": 184.19,
+      "short_k": 155,
+      "long_delta": -0.53,
+      "debit": 12.7,
+      "width": 40,
+      "max_profit": 27.3,
+      "breakeven": 182.3,
       "ok": {
-       "rr_1to2": false,
+       "rr_1to2": true,
        "liquidity": false
       },
-      "expiry": "2026-11-20",
-      "dte": 28
+      "expiry": "2026-12-18",
+      "dte": 56
      },
      "condor": {
       "put_short_k": 170,
@@ -381103,8 +381057,8 @@
       56
      ]
     ],
-    "atm_iv": 0.3663,
-    "iv_pctl": 92,
+    "atm_iv": 0.3728,
+    "iv_pctl": 95,
     "iv_obs": 66,
     "flags": {
      "iv_high": true,
@@ -381221,8 +381175,8 @@
       42
      ]
     ],
-    "atm_iv": 0.5285,
-    "iv_pctl": 51,
+    "atm_iv": 0.536,
+    "iv_pctl": 56,
     "iv_obs": 70,
     "flags": {
      "iv_high": true,
@@ -381340,7 +381294,7 @@
       56
      ]
     ],
-    "atm_iv": 0.52,
+    "atm_iv": 0.5292,
     "iv_pctl": null,
     "iv_obs": 53,
     "flags": {
@@ -381495,7 +381449,7 @@
       56
      ]
     ],
-    "atm_iv": 0.6833,
+    "atm_iv": 0.6953,
     "iv_pctl": null,
     "iv_obs": 54,
     "flags": {
@@ -381614,7 +381568,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4311,
+    "atm_iv": 0.4389,
     "iv_pctl": null,
     "iv_obs": 48,
     "flags": {
@@ -381766,8 +381720,8 @@
       56
      ]
     ],
-    "atm_iv": 0.2895,
-    "iv_pctl": 75,
+    "atm_iv": 0.2946,
+    "iv_pctl": 81,
     "iv_obs": 72,
     "flags": {
      "iv_high": false,
@@ -381885,8 +381839,8 @@
       56
      ]
     ],
-    "atm_iv": 0.7003,
-    "iv_pctl": 78,
+    "atm_iv": 0.7126,
+    "iv_pctl": 83,
     "iv_obs": 60,
     "flags": {
      "iv_high": true,
@@ -382004,7 +381958,7 @@
       56
      ]
     ],
-    "atm_iv": 0.3898,
+    "atm_iv": 0.3967,
     "iv_pctl": 93,
     "iv_obs": 75,
     "flags": {
@@ -382123,8 +382077,8 @@
       56
      ]
     ],
-    "atm_iv": 0.5187,
-    "iv_pctl": 72,
+    "atm_iv": 0.5278,
+    "iv_pctl": 75,
     "iv_obs": 64,
     "flags": {
      "iv_high": true,
@@ -382242,7 +382196,7 @@
       56
      ]
     ],
-    "atm_iv": 0.6042,
+    "atm_iv": 0.6147,
     "iv_pctl": null,
     "iv_obs": 35,
     "flags": {
@@ -382360,7 +382314,7 @@
       42
      ]
     ],
-    "atm_iv": 0.7599,
+    "atm_iv": 0.7706,
     "iv_pctl": null,
     "iv_obs": 55,
     "flags": {
@@ -382410,12 +382364,12 @@
      },
      "bull_call": {
       "long_k": 33,
-      "short_k": 41,
+      "short_k": 42,
       "long_delta": 0.56,
-      "debit": 2.37,
-      "width": 8,
-      "max_profit": 5.63,
-      "breakeven": 35.37,
+      "debit": 2.65,
+      "width": 9,
+      "max_profit": 6.35,
+      "breakeven": 35.65,
       "ok": {
        "rr_1to2": true,
        "liquidity": false
@@ -382479,8 +382433,8 @@
       56
      ]
     ],
-    "atm_iv": 0.6622,
-    "iv_pctl": 64,
+    "atm_iv": 0.674,
+    "iv_pctl": 69,
     "iv_obs": 61,
     "flags": {
      "iv_high": true,
@@ -382582,7 +382536,7 @@
       56
      ]
     ],
-    "atm_iv": 1.0164,
+    "atm_iv": 1.0337,
     "iv_pctl": null,
     "iv_obs": 51,
     "flags": {
@@ -382631,8 +382585,8 @@
       56
      ]
     ],
-    "atm_iv": 0.2659,
-    "iv_pctl": 45,
+    "atm_iv": 0.2705,
+    "iv_pctl": 55,
     "iv_obs": 73,
     "flags": {
      "iv_high": false,
@@ -382753,8 +382707,8 @@
       56
      ]
     ],
-    "atm_iv": 1.0201,
-    "iv_pctl": 94,
+    "atm_iv": 1.0381,
+    "iv_pctl": 95,
     "iv_obs": 65,
     "flags": {
      "iv_high": true,
@@ -382817,7 +382771,7 @@
       42
      ]
     ],
-    "atm_iv": 0.4945,
+    "atm_iv": 0.5014,
     "iv_pctl": null,
     "iv_obs": 47,
     "flags": {
@@ -382898,18 +382852,18 @@
      "condor": {
       "put_short_k": 88,
       "put_long_k": 86,
-      "call_short_k": 111,
+      "call_short_k": 110,
       "call_long_k": 114,
       "short_put_delta": -0.26,
-      "short_call_delta": 0.24,
+      "short_call_delta": 0.27,
       "put_credit": 0.74,
-      "call_credit": 0.4,
-      "credit": 1.14,
+      "call_credit": 0.7,
+      "credit": 1.44,
       "width_put": 2,
-      "width_call": 3,
-      "max_loss": 1.86,
-      "be_low": 86.86,
-      "be_high": 112.14,
+      "width_call": 4,
+      "max_loss": 2.56,
+      "be_low": 86.56,
+      "be_high": 111.44,
       "ok": {
        "credit_each": false,
        "liquidity": false
@@ -382935,7 +382889,7 @@
       42
      ]
     ],
-    "atm_iv": 0.6405,
+    "atm_iv": 0.6495,
     "iv_pctl": null,
     "iv_obs": 50,
     "flags": {
@@ -383054,7 +383008,7 @@
       56
      ]
     ],
-    "atm_iv": 0.4526,
+    "atm_iv": 0.4606,
     "iv_pctl": null,
     "iv_obs": 58,
     "flags": {
@@ -383173,8 +383127,8 @@
       56
      ]
     ],
-    "atm_iv": 0.3531,
-    "iv_pctl": 63,
+    "atm_iv": 0.3596,
+    "iv_pctl": 64,
     "iv_obs": 64,
     "flags": {
      "iv_high": true,
@@ -383237,7 +383191,7 @@
       56
      ]
     ],
-    "atm_iv": 0.5509,
+    "atm_iv": 0.5603,
     "iv_pctl": null,
     "iv_obs": 14,
     "flags": {
