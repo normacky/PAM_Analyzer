@@ -3,13 +3,13 @@
  "timeframe": "1day",
  "agg_mult": 1,
  "fresh_within": 2,
- "generated_at": "2026-11-03T05:35:42.790Z",
+ "generated_at": "2026-11-03T08:00:22.051Z",
  "provider": "alpaca",
  "feed": "sip",
  "adjustment": "split",
  "engine_version": "v0.32",
  "engine_source": "/home/runner/work/PAM_Analyzer/PAM_Analyzer/pam_analyzer.html",
- "engine_mtime": "2026-11-03 03:04 UTC",
+ "engine_mtime": "2026-11-03 05:36 UTC",
  "fundamentals": "finnhub",
  "weekly_ok": true,
  "universe": 12669,
@@ -92444,7 +92444,7 @@
    "name": "Copa Holdings, S.A.",
    "px": 137.34,
    "industry": "Airlines",
-   "mc": 5603472000
+   "mc": 5606218800
   },
   "CPAC": {
    "name": "CEMENTOS PACASMAYO S.A.A.",
@@ -99524,7 +99524,7 @@
    "name": "GLOBUS MEDICAL INC",
    "px": 79.46,
    "industry": "Health Care",
-   "mc": 10785900400
+   "mc": 10668299600
   },
   "GMHS": {
    "name": "Gamehaus Holdings Inc. Class A Ordinary Shares",
@@ -124436,7 +124436,7 @@
    "name": "CDW Corporation Common Stock",
    "px": 150.59,
    "industry": "Electrical Equipment",
-   "mc": 19237872500
+   "mc": 18826761800
   },
   "CEF": {
    "name": "Sprott Physical Gold and Silver Trust",
